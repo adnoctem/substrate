@@ -184,6 +184,12 @@ compile a harmless fixture with the Windows .NET Framework C# compiler and exerc
 The release pipeline is driven by [semantic-release](../.releaserc) (see
 [`.github/workflows/release.yaml`](../.github/workflows/release.yaml)):
 
+Version 1.8.7 is the frozen v1 baseline. CI continues validating `main`, `next`, and `MVProwess/v2`, but successful tests no longer trigger
+a release. Publishing is manual through `workflow_dispatch`, requires the repository variable `PSFOUNDATION_RELEASE_ENABLED` to be exactly
+`true`, and is restricted to `main` or `next`. Leave that variable unset or false during the rewrite. The release job validates its selected
+revision before publishing; feature branches cannot publish. Restoring automatic releases and selecting the v2 release policy are separate
+release-readiness tasks.
+
 1. `tools/release.ps1 -Prepare -Version <next>` (invoked by the `@semantic-release/exec` plugin) writes the resolved version into
    `src/PSFoundation.psd1` — `ModuleVersion`, plus the `Prerelease` key under `PSData` for suffix versions like `1.1.0-beta.1` — rebuilds
    the `dist/` archives and regenerates `dist/CHECKSUMS_SHA256.txt`. The manifest change is committed as part of the release commit, so the

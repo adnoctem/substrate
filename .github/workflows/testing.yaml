@@ -3,9 +3,9 @@ name: "Testing"
 on:
   workflow_dispatch:
   push:
-    branches: [main, next]
+    branches: [main, next, MVProwess/v2]
   pull_request:
-    branches: [main, next]
+    branches: [main, next, MVProwess/v2]
 
 permissions: {}
 
@@ -20,7 +20,6 @@ jobs:
   lint:
     name: Lint
     runs-on: windows-latest
-    continue-on-error: true
     permissions:
       contents: read
       packages: read
@@ -30,10 +29,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Dump pre-existing module state
+      - name: Initialize dependencies
         shell: pwsh
-        run: |
-          Install-Module PSScriptAnalyzer -Force -SkipPublisherCheck
+        run: .\PSFoundation.ps1 init
 
       - name: Check formatting
         shell: pwsh
@@ -93,35 +91,3 @@ jobs:
           path: build/test-results/*.xml
           if-no-files-found: warn
           retention-days: 14
-
-  dispatch:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    needs: [test]
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Dispatch a release workflow run
-        # release only after every platform in the test matrix succeeded
-        # ref: https://github.com/actions/runner/issues/1251
-        if: ${{ github.event_name == 'push' && always() && !contains(join(needs.*.result, ','), 'failure') }}
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
-        with:
-          github-token: "${{ env.GITHUB_TOKEN }}"
-          script: |
-            const payload = {
-              run_id: "${{ github.run_id }}",
-              sha: "${{ github.sha }}"
-            }
-
-            console.log("Sending event payload", JSON.stringify(payload, null, 2));
-
-            const { owner, repo } = context.repo;
-            await github.rest.repos.createDispatchEvent({
-              owner,
-              repo,
-              event_type: 'release',
-              client_payload: payload
-            });

@@ -2,8 +2,6 @@ name: "Release"
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [release]
 
 permissions: read-all
 
@@ -16,6 +14,8 @@ concurrency:
 
 jobs:
   release:
+    # v1 is frozen. Publishing requires deliberate repository opt-in and a release branch.
+    if: ${{ vars.PSFOUNDATION_RELEASE_ENABLED == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next') }}
     runs-on: windows-latest
     env:
       GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN }}
@@ -28,6 +28,19 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
+
+      - name: Initialize dependencies
+        run: .\PSFoundation.ps1 init
+
+      - name: Validate the selected release revision
+        run: |
+          .\PSFoundation.ps1 format -Check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\PSFoundation.ps1 lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\PSFoundation.ps1 test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
