@@ -1,9 +1,9 @@
 using System;
 
-namespace PSFoundation.Registry;
+namespace PSFoundation.Registry.Compatibility;
 
 /// <summary>Post-apply audit decisions used by existing configuration consumers.</summary>
-public sealed class RegistrySettingAudit
+internal sealed class RegistrySettingAudit
 {
     public string Action { get; }
     public string Status { get; }

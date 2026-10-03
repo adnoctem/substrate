@@ -1,3 +1,6 @@
+using PSFoundation.Registry.Compatibility;
+using RegistryPath = PSFoundation.Registry.Compatibility.LegacyRegistryPath;
+using RegistryReader = PSFoundation.Registry.Compatibility.LegacyRegistryReader;
 using System;
 using System.IO;
 using System.Management.Automation;
@@ -6,7 +9,7 @@ namespace PSFoundation.PowerShell.Registry;
 
 [Cmdlet(VerbsData.Mount, "DefaultUserHive", SupportsShouldProcess = true, ConfirmImpact = ConfirmImpact.High)]
 [OutputType(typeof(string))]
-public sealed class MountDefaultUserHiveCommand : RegistryToolCommand
+public sealed class MountDefaultUserHiveCommand : RegistryProcessCommand
 {
     [Parameter(Position = 0), ValidatePattern("^[A-Za-z0-9_-]+$")] public string MountName { get; set; } = "DefaultUser";
     [Parameter(Position = 1), ValidateNotNullOrEmpty] public string HivePath { get; set; } = null!;

@@ -2,19 +2,19 @@ using System;
 using System.Linq;
 using Microsoft.Win32;
 
-namespace PSFoundation.Registry;
+namespace PSFoundation.Registry.Compatibility;
 
-/// <summary>Native registry access. All handles except those explicitly returned by RegistryReader are owned here.</summary>
-public sealed class RegistryStore : IRegistryStateStore
+/// <summary>Native registry access. All handles except those explicitly returned by LegacyRegistryReader are owned here.</summary>
+internal sealed class RegistryStore : IRegistryStateStore
 {
-    private readonly RegistryReader reader = new RegistryReader();
-    public bool KeyExists(RegistryPath path)
+    private readonly LegacyRegistryReader reader = new LegacyRegistryReader();
+    public bool KeyExists(LegacyRegistryPath path)
     {
         using (var key = reader.Open(path))
             return key != null;
     }
 
-    public RegistryState Read(RegistryPath path, string name, RegistryView view)
+    public RegistryState Read(LegacyRegistryPath path, string name, RegistryView view)
     {
         using (var key = reader.Open(path, false, view))
         {
@@ -39,7 +39,7 @@ public sealed class RegistryStore : IRegistryStateStore
         }
     }
 
-    public object? GetValue(RegistryPath path, string name)
+    public object? GetValue(LegacyRegistryPath path, string name)
     {
         using (var key = reader.Open(path))
         {
@@ -53,19 +53,19 @@ public sealed class RegistryStore : IRegistryStateStore
         }
     }
 
-    public string[] SubKeys(RegistryPath path)
+    public string[] SubKeys(LegacyRegistryPath path)
     {
         using (var key = reader.Open(path))
             return key?.GetSubKeyNames() ?? Array.Empty<string>();
     }
 
-    public string[] ValueNames(RegistryPath path)
+    public string[] ValueNames(LegacyRegistryPath path)
     {
         using (var key = reader.Open(path))
             return key?.GetValueNames() ?? Array.Empty<string>();
     }
 
-    public void CreateKey(RegistryPath path)
+    public void CreateKey(LegacyRegistryPath path)
     {
         if (path.SubKey.Length == 0)
             throw new InvalidOperationException("Cannot create a root hive key.");
@@ -75,7 +75,7 @@ public sealed class RegistryStore : IRegistryStateStore
         }
     }
 
-    public void DeleteKey(RegistryPath path, bool recurse)
+    public void DeleteKey(LegacyRegistryPath path, bool recurse)
     {
         if (path.SubKey.Length == 0)
             throw new InvalidOperationException("Cannot remove a root hive key.");
@@ -88,13 +88,13 @@ public sealed class RegistryStore : IRegistryStateStore
         }
     }
 
-    public void SetValue(RegistryPath path, string name, object value, RegistryValueKind kind)
+    public void SetValue(LegacyRegistryPath path, string name, object value, RegistryValueKind kind)
     {
         using (var key = reader.Open(path, true))
             key!.SetValue(name, value, kind);
     }
 
-    public void DeleteValue(RegistryPath path, string name)
+    public void DeleteValue(LegacyRegistryPath path, string name)
     {
         using (var key = reader.Open(path, true))
             key?.DeleteValue(name, false);

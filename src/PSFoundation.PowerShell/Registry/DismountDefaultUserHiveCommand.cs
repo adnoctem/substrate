@@ -1,10 +1,13 @@
+using PSFoundation.Registry.Compatibility;
+using RegistryPath = PSFoundation.Registry.Compatibility.LegacyRegistryPath;
+using RegistryReader = PSFoundation.Registry.Compatibility.LegacyRegistryReader;
 using System;
 using System.Management.Automation;
 
 namespace PSFoundation.PowerShell.Registry;
 
 [Cmdlet(VerbsData.Dismount, "DefaultUserHive", SupportsShouldProcess = true, ConfirmImpact = ConfirmImpact.Medium)]
-public sealed class DismountDefaultUserHiveCommand : RegistryToolCommand
+public sealed class DismountDefaultUserHiveCommand : RegistryProcessCommand
 {
     [Parameter(Position = 0), ValidatePattern("^[A-Za-z0-9_-]+$")] public string MountName { get; set; } = "DefaultUser";
     protected override void ProcessRecord()

@@ -1,3 +1,6 @@
+using PSFoundation.Registry.Compatibility;
+using RegistryPath = PSFoundation.Registry.Compatibility.LegacyRegistryPath;
+using RegistryReader = PSFoundation.Registry.Compatibility.LegacyRegistryReader;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,8 +15,8 @@ namespace PSFoundation.PowerShell.Registry;
 /// <summary>PowerShell-only mapping, path expansion and stream handling.</summary>
 public abstract class RegistryCommand : PSCmdlet
 {
-    protected readonly RegistryStore Store = new RegistryStore();
-    protected IRegistryStateStore SnapshotStore => new StateBoundary(this);
+    private protected readonly RegistryStore Store = new RegistryStore();
+    private protected IRegistryStateStore SnapshotStore => new StateBoundary(this);
 
     private sealed class StateBoundary : IRegistryStateStore
     {
@@ -23,7 +26,7 @@ public abstract class RegistryCommand : PSCmdlet
         public void Apply(RegistryState desired) => command.Store.Apply(desired);
     }
 
-    protected RegistryState ReadState(RegistryPath path, string name, RegistryView view)
+    private protected RegistryState ReadState(RegistryPath path, string name, RegistryView view)
     {
         try
         { return Store.Read(path, name, view); }
@@ -36,7 +39,7 @@ public abstract class RegistryCommand : PSCmdlet
         }
     }
 
-    protected RegistryPath ParseRequired(string path)
+    private protected RegistryPath ParseRequired(string path)
     {
         try
         { return RegistryPath.Parse(path); }
@@ -46,7 +49,7 @@ public abstract class RegistryCommand : PSCmdlet
             throw;
         }
     }
-    protected RegistryPath? Parse(string path)
+    private protected RegistryPath? Parse(string path)
     {
         try
         {
@@ -55,7 +58,7 @@ public abstract class RegistryCommand : PSCmdlet
         catch (ArgumentException) { LegacyError.Write(this, $"Unable to resolve registry hive from path: '{path}'"); return null; }
     }
 
-    protected RegistryPath[] Expand(RegistryPath path)
+    private protected RegistryPath[] Expand(RegistryPath path)
     {
         if (!WildcardPattern.ContainsWildcardCharacters(path.ProviderPath))
             return new[] { path };
@@ -67,7 +70,7 @@ public abstract class RegistryCommand : PSCmdlet
         catch (ItemNotFoundException) { return Array.Empty<RegistryPath>(); }
     }
 
-    protected bool ValueExists(RegistryPath path, string name)
+    private protected bool ValueExists(RegistryPath path, string name)
     {
         if (!WildcardPattern.ContainsWildcardCharacters(name))
             return Store.Read(path, name, RegistryView.Default).Exists;
@@ -75,7 +78,7 @@ public abstract class RegistryCommand : PSCmdlet
         return Store.ValueNames(path).Any(pattern.IsMatch);
     }
 
-    protected object ProviderValue(object? value, RegistryValueKind kind)
+    private protected object ProviderValue(object? value, RegistryValueKind kind)
     {
         try
         {
@@ -85,7 +88,7 @@ public abstract class RegistryCommand : PSCmdlet
         catch (PSInvalidCastException) when (kind == RegistryValueKind.QWord) { return unchecked((long)LanguagePrimitives.ConvertTo<ulong>(value)); }
     }
 
-    protected void Failure(Exception error, string denied, string failed)
+    private protected void Failure(Exception error, string denied, string failed)
     {
         if (error is PipelineStoppedException || error is ActionPreferenceStopException)
             throw error;
@@ -148,7 +151,7 @@ public abstract class RegistryCommand : PSCmdlet
         }
     }
 
-    protected object? Required(Dictionary<string, object?> fields, string name)
+    private protected object? Required(Dictionary<string, object?> fields, string name)
     {
         if (fields.TryGetValue(name, out var value))
             return value;
@@ -157,9 +160,9 @@ public abstract class RegistryCommand : PSCmdlet
         return null;
     }
 
-    protected void Invalid(string message) => ThrowTerminatingError(new ErrorRecord(new RuntimeException(message), message, ErrorCategory.OperationStopped, message));
+    private protected void Invalid(string message) => ThrowTerminatingError(new ErrorRecord(new RuntimeException(message), message, ErrorCategory.OperationStopped, message));
 
-    protected RegistryState Desired(object setting, bool requireVersion = false, bool expected = false)
+    private protected RegistryState Desired(object setting, bool requireVersion = false, bool expected = false)
     {
         var fields = Fields(setting);
         fields.TryGetValue("SnapshotVersion", out var version);
@@ -190,7 +193,7 @@ public abstract class RegistryCommand : PSCmdlet
         return new RegistryState(ParseRequired(Text(fields["Path"])), Text(fields["Name"]), view, exists, kind, value);
     }
 
-    protected void Status(string path, string? name, string? status)
+    private protected void Status(string path, string? name, string? status)
     {
         if (status != null)
             WriteObject(name == null ? Shape("Path", path, "Status", status) : Shape("Path", path, "Name", name, "Status", status));

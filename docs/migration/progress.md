@@ -38,6 +38,16 @@ review as further dependencies are migrated. The current packaging RID is win-x6
 
 ## Current implementation scope
 
+As of 2026-10-04, the registry domain also has a public C# API for other applications, led by `RegistryManager`, with typed values and
+paths, snapshot plans, search, copy/move/rename, file/hive services, permissions and change notifications. Legacy PowerShell behavior is
+isolated in internal compatibility classes. The managed suite passes 68 registry and two core tests per target (140 executions), and the
+existing PowerShell package contract/behavior tests pass in both hosts. See [the API guide](../registry-api.md) and
+[the agreed library boundaries](../decisions/reusable-library-api.md). Host independence does not claim cross-platform registry support.
+
+The full Pester suites were rerun on this iteration: 911 passed / six existing skips in PowerShell 7 and 914 passed / three existing skips
+in Windows PowerShell 5.1, with no failures. Both hosts passed formatting and lint. The final C# regression covers preserving partial-write
+evidence when an unsupported native value appears during restoration.
+
 The staged package has all 19 registry commands plus the initial `New-OperationResult` adapter compiled. The registry command map,
 compatibility allowances and remaining platform gates are recorded in [the registry checkpoint](registry.md). `registry.ps1` is excluded
 from the staged package; migrated common helpers are removed through AST-based staging. Other domains remain legacy implementations.

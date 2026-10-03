@@ -1,3 +1,6 @@
+using PSFoundation.Registry.Compatibility;
+using RegistryPath = PSFoundation.Registry.Compatibility.LegacyRegistryPath;
+using RegistryReader = PSFoundation.Registry.Compatibility.LegacyRegistryReader;
 using System.Management.Automation;
 using Microsoft.Win32;
 using PSFoundation.Registry;

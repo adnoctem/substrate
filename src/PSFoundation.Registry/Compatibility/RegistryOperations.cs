@@ -3,15 +3,15 @@ using System.Collections;
 using System.Linq;
 using Microsoft.Win32;
 
-namespace PSFoundation.Registry;
+namespace PSFoundation.Registry.Compatibility;
 
 /// <summary>Legacy CRUD decisions, including comparison quirks and confirmation ordering.</summary>
-public sealed class RegistryOperations
+internal sealed class RegistryOperations
 {
     private readonly RegistryStore store;
     public RegistryOperations(RegistryStore store) => this.store = store;
 
-    public string? Create(string input, RegistryPath path, Func<string, string, bool> authorize, Action<string> verbose)
+    public string? Create(string input, LegacyRegistryPath path, Func<string, string, bool> authorize, Action<string> verbose)
     {
         if (path.SubKey.Length == 0)
             throw new InvalidOperationException($"Cannot create a root hive key: '{input}'");
@@ -27,7 +27,7 @@ public sealed class RegistryOperations
         return "Created";
     }
 
-    public string? Remove(string input, RegistryPath[] paths, bool recurse, Func<string, string, bool> authorize,
+    public string? Remove(string input, LegacyRegistryPath[] paths, bool recurse, Func<string, string, bool> authorize,
         Func<bool> authorizeChildren, Action<string> verbose)
     {
         if (paths.Any(p => p.SubKey.Length == 0))
@@ -76,7 +76,7 @@ public sealed class RegistryOperations
         return string.Equals(Text(left), Text(right), StringComparison.OrdinalIgnoreCase);
     }
 
-    public string? Set(string input, RegistryPath path, RegistryPath[] paths, string name, object? value, RegistryValueKind? requestedKind,
+    public string? Set(string input, LegacyRegistryPath path, LegacyRegistryPath[] paths, string name, object? value, RegistryValueKind? requestedKind,
         Func<RegistryValueKind, object> convertValue, Func<string, string, bool> authorize, Action<string> verbose, string displayValue,
         Func<string, bool>? namePattern = null)
     {
@@ -110,7 +110,7 @@ public sealed class RegistryOperations
         return exists ? "Updated" : "Created";
     }
 
-    public string? RemoveValue(string input, RegistryPath[] paths, string name, Func<string, string, bool> authorize, Action<string> verbose, Func<string, bool>? namePattern = null)
+    public string? RemoveValue(string input, LegacyRegistryPath[] paths, string name, Func<string, string, bool> authorize, Action<string> verbose, Func<string, bool>? namePattern = null)
     {
         paths = paths.Where(store.KeyExists).ToArray();
         if (paths.Length == 0)

@@ -1,3 +1,6 @@
+using PSFoundation.Registry.Compatibility;
+using RegistryPath = PSFoundation.Registry.Compatibility.LegacyRegistryPath;
+using RegistryReader = PSFoundation.Registry.Compatibility.LegacyRegistryReader;
 using System;
 using System.Management.Automation;
 using PSFoundation.Registry;
@@ -5,7 +8,7 @@ using PSFoundation.Registry;
 namespace PSFoundation.PowerShell.Registry;
 
 [Cmdlet(VerbsCommon.Search, "RegistryKey")]
-public sealed class SearchRegistryKeyCommand : RegistryToolCommand
+public sealed class SearchRegistryKeyCommand : RegistryProcessCommand
 {
     [Parameter(Mandatory = true, Position = 0)] public string Root { get; set; } = "";
     [Parameter(Mandatory = true, Position = 1)] public string Pattern { get; set; } = "";
@@ -14,7 +17,7 @@ public sealed class SearchRegistryKeyCommand : RegistryToolCommand
     {
         try
         {
-            new RegistryFileService(new RegistryTool(), Text(SessionState.PSVariable.GetValue("PSEdition")) == "Desktop").Search(Root, Pattern, SessionState.Path.GetUnresolvedProviderPathFromPSPath(OutputPath), Cancellation.Token);
+            new LegacyRegistryFileService(new RegistryCommandRunner(), Text(SessionState.PSVariable.GetValue("PSEdition")) == "Desktop").Search(Root, Pattern, SessionState.Path.GetUnresolvedProviderPathFromPSPath(OutputPath), Cancellation.Token);
             WriteObject(true);
         }
         catch (OperationCanceledException) { throw new PipelineStoppedException(); }

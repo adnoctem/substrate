@@ -2,12 +2,12 @@ using System;
 using System.Collections;
 using Microsoft.Win32;
 
-namespace PSFoundation.Registry;
+namespace PSFoundation.Registry.Compatibility;
 
 /// <summary>A raw, view-specific value snapshot. A null KeyExists denotes desired state.</summary>
-public sealed class RegistryState
+internal sealed class RegistryState
 {
-    public RegistryPath Path { get; }
+    public LegacyRegistryPath Path { get; }
     public string Name { get; }
     public RegistryView View { get; }
     public bool? KeyExists { get; }
@@ -15,7 +15,7 @@ public sealed class RegistryState
     public RegistryValueKind? Kind { get; }
     public object? Value { get; }
 
-    public RegistryState(RegistryPath path, string name, RegistryView view, bool exists,
+    public RegistryState(LegacyRegistryPath path, string name, RegistryView view, bool exists,
         RegistryValueKind? kind, object? value, bool? keyExists = null)
     {
         Path = path;
@@ -48,7 +48,7 @@ public sealed class RegistryState
     public string Identity => Path.ProviderPath.Length + ":" + Path.ProviderPath + Name.Length + ":" + Name + ":" + View;
 }
 
-public sealed class RegistryDifference
+internal sealed class RegistryDifference
 {
     public RegistryState Before { get; }
     public RegistryState After { get; }
@@ -61,7 +61,7 @@ public sealed class RegistryDifference
     }
 }
 
-public sealed class RegistryRestoreResult
+internal sealed class RegistryRestoreResult
 {
     public RegistryDifference Difference { get; }
     public RegistryState After { get; internal set; }
@@ -77,13 +77,13 @@ public sealed class RegistryRestoreResult
 }
 
 /// <summary>The narrow state boundary used for conflict, failure and race testing.</summary>
-public interface IRegistryStateStore
+internal interface IRegistryStateStore
 {
-    RegistryState Read(RegistryPath path, string name, RegistryView view);
+    RegistryState Read(LegacyRegistryPath path, string name, RegistryView view);
     void Apply(RegistryState desired);
 }
 
-public sealed class RegistryStateService
+internal sealed class RegistryStateService
 {
     private readonly IRegistryStateStore store;
     private readonly Func<Exception, bool> handleFailure;

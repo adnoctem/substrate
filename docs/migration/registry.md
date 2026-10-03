@@ -4,32 +4,38 @@ The first registry implementation replaces 19 public functions with compiled cmd
 adapter is also packaged, for 20 compiled commands and 192 total exports including aliases. This is a registry checkpoint, not completion of
 the module-wide rewrite.
 
+The 2026-10-04 refinement adds a public `RegistryManager` and focused services for direct use from other applications. See the
+[C# registry API](../registry-api.md) and [architecture decision](../decisions/reusable-library-api.md). Legacy classes listed below now
+live in an internal `Compatibility` namespace; `RegistryPath` and `RegistryReader` there are named `LegacyRegistryPath` and
+`LegacyRegistryReader`. They are not the new public C# contract. The former `RegistryTool` is now the internal `RegistryCommandRunner`, and
+the legacy report/export helper is `LegacyRegistryFileService`. PowerShell still exports the same commands.
+
 ## Command map
 
 Every adapter is a separate `*Command.cs` file under `src/PSFoundation.PowerShell/Registry`. Names follow the public command without its
 hyphen, for example `SetRegistryValueCommand`. Public parameter declarations and legacy object/stream mapping remain in this assembly.
 
-| v1 command                      | Original file | C# implementation                    |
-| ------------------------------- | ------------- | ------------------------------------ |
-| ConvertTo-RegistryProviderPath  | registry.ps1  | RegistryPath                         |
-| Resolve-RegistryPath            | registry.ps1  | RegistryPath, RegistryReader         |
-| Get-RegistryKey                 | registry.ps1  | RegistryStore                        |
-| Set-RegistryKey                 | registry.ps1  | RegistryOperations, RegistryStore    |
-| Remove-RegistryKey              | registry.ps1  | RegistryOperations, RegistryStore    |
-| Get-RegistryValue               | registry.ps1  | RegistryStore                        |
-| Set-RegistryValue               | registry.ps1  | RegistryOperations, RegistryStore    |
-| Remove-RegistryValue            | registry.ps1  | RegistryOperations, RegistryStore    |
-| Test-RegistryPath               | registry.ps1  | RegistryStore                        |
-| Test-RegistryValue              | registry.ps1  | RegistryStore                        |
-| Get-RegistryValueKind           | registry.ps1  | RegistryStore                        |
-| Compare-RegistrySettingState    | registry.ps1  | RegistryStateService                 |
-| Restore-RegistrySettingState    | registry.ps1  | RegistryStateService                 |
-| Mount-DefaultUserHive           | registry.ps1  | DefaultUserHiveService, RegistryTool |
-| Dismount-DefaultUserHive        | registry.ps1  | DefaultUserHiveService, RegistryTool |
-| Export-RegistryKey              | registry.ps1  | RegistryFileService, RegistryTool    |
-| Search-RegistryKey              | registry.ps1  | RegistryFileService, RegistryTool    |
-| Export-RegistrySettingState     | common.ps1    | RegistryStore, RegistryState         |
-| ConvertTo-RegistrySettingResult | common.ps1    | RegistrySettingAudit                 |
+| v1 command                      | Original file | C# implementation                                |
+| ------------------------------- | ------------- | ------------------------------------------------ |
+| ConvertTo-RegistryProviderPath  | registry.ps1  | LegacyRegistryPath                               |
+| Resolve-RegistryPath            | registry.ps1  | LegacyRegistryReader, RegistryManager            |
+| Get-RegistryKey                 | registry.ps1  | RegistryStore                                    |
+| Set-RegistryKey                 | registry.ps1  | RegistryOperations, RegistryStore                |
+| Remove-RegistryKey              | registry.ps1  | RegistryOperations, RegistryStore                |
+| Get-RegistryValue               | registry.ps1  | RegistryStore                                    |
+| Set-RegistryValue               | registry.ps1  | RegistryOperations, RegistryStore                |
+| Remove-RegistryValue            | registry.ps1  | RegistryOperations, RegistryStore                |
+| Test-RegistryPath               | registry.ps1  | RegistryStore                                    |
+| Test-RegistryValue              | registry.ps1  | RegistryStore                                    |
+| Get-RegistryValueKind           | registry.ps1  | RegistryStore                                    |
+| Compare-RegistrySettingState    | registry.ps1  | RegistryStateService                             |
+| Restore-RegistrySettingState    | registry.ps1  | RegistryStateService                             |
+| Mount-DefaultUserHive           | registry.ps1  | DefaultUserHiveService, RegistryCommandRunner    |
+| Dismount-DefaultUserHive        | registry.ps1  | DefaultUserHiveService, RegistryCommandRunner    |
+| Export-RegistryKey              | registry.ps1  | LegacyRegistryFileService, RegistryCommandRunner |
+| Search-RegistryKey              | registry.ps1  | LegacyRegistryFileService, RegistryCommandRunner |
+| Export-RegistrySettingState     | common.ps1    | RegistryStore, RegistryState                     |
+| ConvertTo-RegistrySettingResult | common.ps1    | RegistrySettingAudit                             |
 
 The private snapshot/equality/file helpers have been replaced by these services. The staged package omits `registry.ps1` completely and
 removes the two migrated setting helpers from staged `common.ps1`. Source scripts remain available for legacy tests and incremental
@@ -38,8 +44,8 @@ migration. Remaining domains do not call the removed private registry helpers. T
 ## Boundaries and safety
 
 - `PSFoundation.Registry` contains no PowerShell dependency. Its tests consume services directly from C# and check assembly references.
-- `RegistryReader.Open` returns a caller-owned live registry handle. Other store operations dispose their own handles, including temporary
-  base keys. Snapshots read raw ExpandString data and retain the explicit registry view.
+- `RegistryManager.OpenKey` (and the compatibility reader) returns a caller-owned live registry handle. Other store operations dispose their
+  own handles, including temporary base keys. Snapshots read raw ExpandString data and retain the explicit registry view.
 - Restoration compares expected state, obtains confirmation, checks again immediately before writing, and verifies afterward. It preserves
   unrelated values and keys. The recheck narrows races; it is not an atomic registry transaction.
 - Registry provider wildcard expansion and legacy PowerShell conversion rules live at the adapter boundary. Native registry access, mutation
@@ -103,3 +109,8 @@ Actual elevated load/unload of an expendable hive, interactive confirmation host
 winkit script execution is claimed by this checkpoint. GitHub CI is wired to build and test this slice but is not run remotely here.
 
 Implementation stops at this registry boundary. The next domain requires a separate continuation from the maintainer.
+
+The expanded C# suite on 2026-10-04 passes 68 registry and two core tests per target (140 executions). Added native coverage includes
+copy/move/rename, `.reg` import/export, explicit view routing, permissions and access denial, notifications and cancellation. Synthetic
+failure tests cover hive ownership and file publication. Advanced live hive/remote/privilege validation remains outstanding as detailed in
+the API guide. The original 79-scenario-per-host PowerShell comparison remains unchanged and passes after the compatibility separation.

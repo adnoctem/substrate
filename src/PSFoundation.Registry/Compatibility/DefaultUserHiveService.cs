@@ -2,16 +2,16 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace PSFoundation.Registry;
+namespace PSFoundation.Registry.Compatibility;
 
 /// <summary>Hive lifecycle policy. Tests supply an isolated tool and mount/file probes.</summary>
-public sealed class DefaultUserHiveService
+internal sealed class DefaultUserHiveService
 {
-    private readonly IRegistryTool tool;
+    private readonly IRegistryCommandRunner tool;
     private readonly Func<string, bool> mounted;
     private readonly Func<string, bool> fileExists;
     private readonly Action reclaimHandles;
-    public DefaultUserHiveService(IRegistryTool tool, Func<string, bool> mounted, Func<string, bool>? fileExists = null, Action? reclaimHandles = null)
+    public DefaultUserHiveService(IRegistryCommandRunner tool, Func<string, bool> mounted, Func<string, bool>? fileExists = null, Action? reclaimHandles = null)
     {
         this.tool = tool;
         this.mounted = mounted;

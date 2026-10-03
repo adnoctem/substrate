@@ -1,3 +1,4 @@
+using PSFoundation.Registry.Compatibility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,17 +7,17 @@ using Xunit;
 
 namespace PSFoundation.Registry.Tests;
 
-public sealed class RegistryToolTests
+public sealed class RegistryCommandRunnerTests
 {
     [Theory]
     [InlineData("", "\"\"")]
     [InlineData("a b", "\"a b\"")]
     [InlineData("a\"b", "\"a\\\"b\"")]
     [InlineData("C:\\path\\", "\"C:\\path\\\\\"")]
-    public void QuotesWindowsArguments(string value, string expected) => Assert.Equal(expected, RegistryTool.QuoteArgument(value));
+    public void QuotesWindowsArguments(string value, string expected) => Assert.Equal(expected, RegistryCommandRunner.QuoteArgument(value));
 
     [Fact]
-    public void RejectsNulArguments() => Assert.Throws<ArgumentException>(() => RegistryTool.QuoteArgument("a\0b"));
+    public void RejectsNulArguments() => Assert.Throws<ArgumentException>(() => RegistryCommandRunner.QuoteArgument("a\0b"));
 
     [Theory]
     [InlineData("exit")]
@@ -38,10 +39,10 @@ public sealed class RegistryToolTests
                     throw new IOException("Synthetic launch failure");
                 if (failure != "missing")
                     File.WriteAllText(arguments[2], failure == "empty" ? "" : "new");
-                return new RegistryToolResult(failure == "noexit" ? (int?)null : failure == "exit" ? 1 : 0,
+                return new RegistryCommandResult(failure == "noexit" ? (int?)null : failure == "exit" ? 1 : 0,
                     cancelled: failure == "cancelled", timedOut: failure == "timeout");
             });
-            Assert.ThrowsAny<Exception>(() => new RegistryFileService(tool).Export("HKCU\\Synthetic", destination, CancellationToken.None));
+            Assert.ThrowsAny<Exception>(() => new LegacyRegistryFileService(tool).Export("HKCU\\Synthetic", destination, CancellationToken.None));
             Assert.Equal("old", File.ReadAllText(destination));
             Assert.Empty(Directory.GetFiles(directory, ".psf-reg-*"));
         });
@@ -53,8 +54,8 @@ public sealed class RegistryToolTests
         WithDirectory(directory =>
         {
             var destination = Path.Combine(directory, "new export.reg");
-            var tool = new FakeTool(arguments => { File.WriteAllText(arguments[2], "new"); return new RegistryToolResult(0); });
-            var service = new RegistryFileService(tool);
+            var tool = new FakeTool(arguments => { File.WriteAllText(arguments[2], "new"); return new RegistryCommandResult(0); });
+            var service = new LegacyRegistryFileService(tool);
             service.Export("HKCU\\Synthetic", destination, CancellationToken.None);
             Assert.Equal("new", File.ReadAllText(destination));
             File.WriteAllText(destination, "old");
@@ -73,8 +74,8 @@ public sealed class RegistryToolTests
             File.WriteAllText(destination, "old");
             using (var cancellation = new CancellationTokenSource())
             {
-                var tool = new FakeTool(arguments => { File.WriteAllText(arguments[2], "new"); cancellation.Cancel(); return new RegistryToolResult(0); });
-                Assert.Throws<OperationCanceledException>(() => new RegistryFileService(tool).Export("HKCU\\Synthetic", destination, cancellation.Token));
+                var tool = new FakeTool(arguments => { File.WriteAllText(arguments[2], "new"); cancellation.Cancel(); return new RegistryCommandResult(0); });
+                Assert.Throws<OperationCanceledException>(() => new LegacyRegistryFileService(tool).Export("HKCU\\Synthetic", destination, cancellation.Token));
                 Assert.Equal("old", File.ReadAllText(destination));
                 Assert.Empty(Directory.GetFiles(directory, ".psf-reg-*"));
             }
@@ -100,7 +101,7 @@ public sealed class RegistryToolTests
     {
         var logs = new List<string>();
         var reclaimed = 0;
-        var tool = new FakeTool(_ => new RegistryToolResult(initialCode, "synthetic"));
+        var tool = new FakeTool(_ => new RegistryCommandResult(initialCode, "synthetic"));
         var service = new DefaultUserHiveService(tool, _ => true, reclaimHandles: () => reclaimed++);
         service.Dismount("Synthetic", (_, _) => true, (message, _) => logs.Add(message), CancellationToken.None);
         Assert.Equal(calls, tool.Calls);
@@ -119,15 +120,16 @@ public sealed class RegistryToolTests
         finally { Directory.Delete(directory, true); }
     }
 
-    private sealed class FakeTool : IRegistryTool
+    private sealed class FakeTool : IRegistryCommandRunner
     {
-        private readonly Func<string[], RegistryToolResult> run;
+        private readonly Func<string[], RegistryCommandResult> run;
         public int Calls;
-        public FakeTool(Func<string[], RegistryToolResult> run) => this.run = run;
-        public RegistryToolResult Run(string[] arguments, CancellationToken cancellation)
+        public FakeTool(Func<string[], RegistryCommandResult> run) => this.run = run;
+        public RegistryCommandResult Run(string[] arguments, CancellationToken cancellation)
         {
             Calls++;
             return run(arguments);
         }
+        public System.Threading.Tasks.Task<RegistryCommandResult> RunAsync(string[] arguments, CancellationToken cancellation) => System.Threading.Tasks.Task.FromResult(Run(arguments, cancellation));
     }
 }

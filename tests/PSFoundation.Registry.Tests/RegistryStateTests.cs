@@ -1,3 +1,4 @@
+using PSFoundation.Registry.Compatibility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace PSFoundation.Registry.Tests;
 public sealed class RegistryStateTests
 {
     private static RegistryState State(object? value, bool exists = true, RegistryValueKind kind = RegistryValueKind.String) =>
-        new RegistryState(RegistryPath.Parse(@"HKCU\Software\Synthetic"), "Value", RegistryView.Registry32, exists, kind, value);
+        new RegistryState(LegacyRegistryPath.Parse(@"HKCU\Software\Synthetic"), "Value", RegistryView.Registry32, exists, kind, value);
 
     [Fact]
     public void EqualityIncludesCaseOrderKindAndAbsence()
@@ -87,7 +88,7 @@ public sealed class RegistryStateTests
     public void NativeStateRoundTripsAllKindsAndRecreatesOnlySelectedValues(RegistryView view)
     {
         var relative = @"Software\PSFoundation.Tests\" + Guid.NewGuid().ToString("N");
-        var path = RegistryPath.Parse("HKCU\\" + relative);
+        var path = LegacyRegistryPath.Parse("HKCU\\" + relative);
         var store = new RegistryStore();
         var data = new Dictionary<RegistryValueKind, object>
         {
@@ -141,7 +142,7 @@ public sealed class RegistryStateTests
         public bool DenyRead;
         public Exception? WriteFailure;
         public FakeStore(RegistryState current) => Current = current;
-        public RegistryState Read(RegistryPath path, string name, RegistryView view) => DenyRead ? throw new UnauthorizedAccessException("Synthetic denial") : Current;
+        public RegistryState Read(LegacyRegistryPath path, string name, RegistryView view) => DenyRead ? throw new UnauthorizedAccessException("Synthetic denial") : Current;
         public void Apply(RegistryState desired)
         {
             if (WriteFailure != null)
