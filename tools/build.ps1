@@ -57,10 +57,17 @@ param (
   [string]$Name = 'PSFoundation',
 
   [ValidateSet('Both', 'Zip', 'TarGz')]
-  [string]$Format = 'Both'
+  [string]$Format = 'Both',
+
+  [switch]$Legacy
 )
 
 $ErrorActionPreference = 'Stop'
+
+if (-not $Legacy -and (Test-Path -LiteralPath (Join-Path (Split-Path $PSScriptRoot -Parent) 'PSFoundation.slnx'))) {
+  & (Join-Path $PSScriptRoot 'build-managed.ps1') -OutputDirectory $OutputDirectory -Name $Name -Format $Format -WhatIf:$WhatIfPreference
+  exit $LASTEXITCODE
+}
 
 $repositoryRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Split-Path -Path $PSScriptRoot -Parent))
 $outputPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputDirectory)

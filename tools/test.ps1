@@ -40,10 +40,19 @@ param (
   [string[]]$Path = @(Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'tests'),
   [switch]$Coverage,
   [string]$OutputDirectory,
-  [switch]$IncludeIntegration
+  [switch]$IncludeIntegration,
+  [switch]$Managed
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($Managed) {
+  $root = Split-Path $PSScriptRoot -Parent
+  $env:DOTNET_CLI_HOME = Join-Path $root 'build/dotnet'
+  $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+  & dotnet test (Join-Path $root 'PSFoundation.slnx') --no-build --no-restore --configuration Release --logger 'trx' --results-directory (Join-Path $root 'build/test-results/managed')
+  exit $LASTEXITCODE
+}
 
 $pester = Get-Module -ListAvailable -Name Pester |
   Sort-Object Version -Descending |

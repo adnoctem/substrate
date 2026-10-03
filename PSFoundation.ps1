@@ -75,6 +75,7 @@ if (-not $Command) {
 }
 
 $scriptMap = @{
+  'baseline'     = 'baseline'
   'init'         = 'initialize'
   'initialize'   = 'initialize'
   'setup'        = 'initialize'

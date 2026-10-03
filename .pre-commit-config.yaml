@@ -58,6 +58,13 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: csharp-format-check
+        name: C# format check
+        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 format -Managed -Check
+        language: system
+        pass_filenames: false
+        files: '\.(cs|csproj|slnx)$'
+
       - id: windows-powershell-format-check
         name: Windows PowerShell 5.1 format check
         entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 format -Check

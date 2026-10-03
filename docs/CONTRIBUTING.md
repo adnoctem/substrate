@@ -4,8 +4,13 @@ Contributions are welcome via GitHub's Pull Requests. This document outlines the
 
 ## Building
 
-The project uses the `PSFoundation.ps1` launcher script in the repository root to drive all development workflows. No external build tools
-(Make, CMake, etc.) are required — only PowerShell and the launcher script.
+On `MVProwess/v2`, install the .NET SDK pinned in `global.json` and initialize the PowerShell dependencies below. Run `baseline` and `build`
+before the package tests. Use `test -Managed` for C# suites and `format -Managed` (or `format -Managed -Check`) for C# formatting. Managed
+build warnings are errors; CI restores enforce NuGet lock files. Generated files, packages and module staging stay under `build/`, and
+deployment archives stay under `dist/`. See [the registry checkpoint](migration/registry.md) for the current migration boundary and runtime
+validation limits.
+
+The project uses the `PSFoundation.ps1` launcher script in the repository root to drive all development workflows.
 
 Before running anything else, you must initialize the project. This downloads the PowerShell module dependencies declared in
 [`src/PSFoundation.psd1`](../src/PSFoundation.psd1) and the dev dependencies in

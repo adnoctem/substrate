@@ -60,10 +60,24 @@ param (
 
   [switch]$Check,
 
-  [switch]$IncludeSecrets
+  [switch]$IncludeSecrets,
+
+  [switch]$Managed
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($Managed) {
+  $root = Split-Path $PSScriptRoot -Parent
+  $env:DOTNET_CLI_HOME = Join-Path $root 'build/dotnet'
+  $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+  $env:Configuration = 'Release'
+  $arguments = @('format', 'whitespace', (Join-Path $root 'PSFoundation.slnx'), '--no-restore')
+  if ($Check) { $arguments += '--verify-no-changes' }
+  if ($VerbosePreference -eq 'Continue') { $arguments += @('--verbosity', 'diagnostic') }
+  & dotnet @arguments
+  exit $LASTEXITCODE
+}
 
 if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
   Write-Error 'PSScriptAnalyzer is not installed. Install it with: Install-Module PSScriptAnalyzer'
