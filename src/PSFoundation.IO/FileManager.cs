@@ -12,7 +12,11 @@ public sealed class FileManager
 {
     /// <remarks>Writes to a sibling temporary file and publishes by rename or replacement. Cancellation before publication leaves the destination
     /// intact. Replacement is a single filesystem operation, not a transaction across files; the filesystem must support File.Replace.</remarks>
-    public async Task WriteAtomicallyAsync(FileSystemPath destination, Stream content, bool overwrite = false, CancellationToken cancellationToken = default)
+    public Task WriteAtomicallyAsync(FileSystemPath destination, Stream content, bool overwrite = false, CancellationToken cancellationToken = default)
+        => WriteAtomicallyAsync(destination, content, overwrite, cancellationToken, null);
+
+    // Supplies failure-stage evidence to the compatibility adapter without exposing PowerShell error semantics in this library.
+    internal async Task WriteAtomicallyAsync(FileSystemPath destination, Stream content, bool overwrite, CancellationToken cancellationToken, Action<string, int>? beforeOperation)
     {
         if (destination == null)
             throw new ArgumentNullException(nameof(destination));
@@ -24,17 +28,26 @@ public sealed class FileManager
         var temporary = Path.Combine(Path.GetDirectoryName(destination.Value)!, ".psf-" + Guid.NewGuid().ToString("N") + ".tmp");
         try
         {
+            beforeOperation?.Invoke("Open", 4);
             using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, true))
             {
+                beforeOperation?.Invoke("CopyTo", 1);
                 await content.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(false);
+                beforeOperation?.Invoke("Flush", 0);
                 await output.FlushAsync(cancellationToken).ConfigureAwait(false);
                 output.Flush(true);
             }
             cancellationToken.ThrowIfCancellationRequested();
             if (overwrite && File.Exists(destination.Value))
+            {
+                beforeOperation?.Invoke("Replace", 3);
                 File.Replace(temporary, destination.Value, null);
+            }
             else
+            {
+                beforeOperation?.Invoke("Move", 2);
                 File.Move(temporary, destination.Value);
+            }
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }

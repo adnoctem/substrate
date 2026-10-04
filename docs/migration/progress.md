@@ -48,11 +48,15 @@ The full Pester suites were rerun on this iteration: 911 passed / six existing s
 in Windows PowerShell 5.1, with no failures. Both hosts passed formatting and lint. The final C# regression covers preserving partial-write
 evidence when an unsupported native value appears during restoration.
 
-The next shared-foundation slice brings the staged package to 28 compiled commands, with 160 public functions still using the legacy
-implementation. All public commands from `common.ps1`, `registry.ps1` and `errors.ps1` are compiled; those scripts are excluded from
-staging. The package retains 192 exports. See [the foundation checkpoint](foundations.md) and the generated
-[command inventory](commands.json). Regenerate the inventory through `baseline -Inventory` after a cutover. It records each pinned public
-function, its source, direct command dependencies and current migration status.
+The shared-foundation and registry-policy slices bring the staged package to 30 compiled commands, with 158 public functions still using the
+legacy implementation. All public commands from `common.ps1`, `registry.ps1` and `errors.ps1` are compiled; those scripts are excluded from
+staging. The package retains 192 exports. See [the foundation checkpoint](foundations.md), [the policy codec checkpoint](policy-codec.md)
+and the generated [command inventory](commands.json). Regenerate the inventory through `baseline -Inventory` after a cutover. It records
+each pinned public function, its source, direct command dependencies and current migration status.
+
+The policy checkpoint passes 136 managed tests per target (272 executions). Full Pester results are 915 passed / six existing skips in
+PowerShell 7 and 918 passed / three existing skips in Windows PowerShell 5.1. Both hosts compare the staged command contracts and behavior
+with the pinned baseline; see the policy checkpoint for the final boundary refinements and validation scope.
 
 C# formatting now runs through `format -Managed` and pre-commit. Build warnings are errors, CI restores enforce lock files, and the feature
 workflow builds the staged module before running C# and PowerShell package tests. Full module migration, analyzer policy beyond compiler

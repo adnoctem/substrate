@@ -13,6 +13,9 @@ The pinned v1 contract remains the oracle. Implementation allowances must be nar
 - `Test-IPv4Address` and `Test-IPv6Address` can report inactive `ConfirmImpact=Medium` as script functions versus `None` as compiled
   cmdlets. Only these names and values are normalized, and only with `SupportsShouldProcess=false`.
 
+The policy codec also characterizes an existing globalization quirk, preserved only at the PowerShell boundary. See the
+[policy codec checkpoint](policy-codec.md); the reusable C# parser validates terminators ordinally.
+
 ## Decision needed: basic function binding
 
 The frozen metadata identifies 12 public functions without PowerShell common parameters:

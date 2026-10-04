@@ -1125,7 +1125,7 @@
   {
     "Command": "ConvertFrom-RegistryPolicy",
     "Source": "policies.ps1",
-    "Compiled": false,
+    "Compiled": true,
     "Calls": [
       "Assert-PSFPolicyDelimiter",
       "ConvertFrom-PSFPolicyPayload",
@@ -1135,7 +1135,7 @@
   {
     "Command": "ConvertTo-RegistryPolicy",
     "Source": "policies.ps1",
-    "Compiled": false,
+    "Compiled": true,
     "Calls": [
       "ConvertTo-PSFPolicyPayload",
       "Join-Path"

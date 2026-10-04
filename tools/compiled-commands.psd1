@@ -11,4 +11,5 @@
   Core        = @('New-OperationResult', 'Add-OperationResult', 'Write-OperationResultLog', 'Resolve-LongPath')
   Diagnostics = @('Get-ErrorTranslation', 'Write-Log', 'Invoke-SafeProcess')
   Networking  = @('Test-IPv4Address', 'Test-IPv6Address')
+  Policies    = @('ConvertFrom-RegistryPolicy', 'ConvertTo-RegistryPolicy')
 }

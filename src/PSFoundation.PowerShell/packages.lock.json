@@ -37,7 +37,8 @@
       "psfoundation.registry": {
         "type": "Project",
         "dependencies": {
-          "PSFoundation.Diagnostics": "[1.0.0, )"
+          "PSFoundation.Diagnostics": "[1.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )"
         }
       }
     },
@@ -128,7 +129,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Win32.Registry": "[5.0.0, )",
-          "PSFoundation.Diagnostics": "[1.0.0, )"
+          "PSFoundation.Diagnostics": "[1.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )"
         }
       }
     },

@@ -27,6 +27,7 @@ if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -F
 $null = [IO.Directory]::CreateDirectory($stage)
 $catalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands.psd1')
 $compiled = @($catalog.Values | ForEach-Object { $_ } | Sort-Object)
+$retiredPrivate = @('Read-PSFPolicyString', 'Assert-PSFPolicyDelimiter', 'ConvertFrom-PSFPolicyPayload', 'ConvertTo-PSFPolicyPayload')
 if ($compiled.Count -ne @($compiled | Sort-Object -Unique).Count) { throw 'Compiled command catalog contains duplicate entries.' }
 $encoding = New-Object Text.UTF8Encoding($true)
 foreach ($file in @(Get-ChildItem (Join-Path $root 'src') -File)) {
@@ -38,7 +39,7 @@ foreach ($file in @(Get-ChildItem (Join-Path $root 'src') -File)) {
   $parseErrors = $null
   $ast = [Management.Automation.Language.Parser]::ParseInput($text, [ref]$tokens, [ref]$parseErrors)
   if ($parseErrors.Count) { throw "Cannot stage invalid script '$($file.Name)'." }
-  $definitions = @($ast.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -in $compiled }, $true) | Sort-Object { $_.Extent.StartOffset } -Descending)
+  $definitions = @($ast.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and ($node.Name -in $compiled -or $node.Name -in $retiredPrivate) }, $true) | Sort-Object { $_.Extent.StartOffset } -Descending)
   foreach ($definition in $definitions) { $text = $text.Remove($definition.Extent.StartOffset, $definition.Extent.EndOffset - $definition.Extent.StartOffset) }
   [IO.File]::WriteAllText($destination, $text, $encoding)
 }
