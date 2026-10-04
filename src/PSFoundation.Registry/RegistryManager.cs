@@ -103,6 +103,10 @@ public sealed class RegistryManager
             return key != null && key.GetValueNames().Contains(name, StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>Lists value names without reading their contents, for callers that must select an allowlist before collecting data.</summary>
+    public IReadOnlyList<string> GetValueNames(RegistryPath path)
+    { using (var key = RequireKey(path)) return Array.AsReadOnly(key.GetValueNames()); }
+
     public IReadOnlyList<RegistryValueEntry> GetValues(RegistryPath path)
     {
         using (var key = RequireKey(path))

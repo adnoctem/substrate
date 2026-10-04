@@ -250,6 +250,25 @@ results, package bytes, overwrite behavior and parameter/help contracts. No AD a
 attempted. Live provisioning, optional certificate/policy inclusion and credential impersonation require a disposable domain integration
 environment.
 
+## Office observation checkpoint
+
+The Office library adds typed configuration, inventory, language preservation, compliance and activation assessment. Registry discovery uses
+`RegistryManager` and selects allowed value names before reading data. Installed builds follow documented inventory first, then agreeing
+active product resource versions; malformed stronger evidence stops fallback. App Paths retain present, missing and uncertain states,
+without launching applications or following network paths. MSI products, related components and orphaned patches retain their existing
+classifications.
+
+The package now owns 72 compiled commands and 34 C#-backed compatibility functions: 106 of 188 public functions, with all 192 exports.
+`New-OfficeDeploymentConfiguration`, `Get-OfficeInventory` and `Get-OfficeActivationStatus` are compiled adapters. `Test-OfficeDeployment`
+retains legacy schema normalization in the compatibility wrapper and delegates comparison to C#. The core also supports detached evidence
+analysis, explicit locale selection, async inventory/activation and cancellation. These APIs grant no installation authority.
+
+Two managed workflow tests bring the suite to 223 per target (446 executions). Guarded PowerShell comparisons cover configuration and
+inventory report shapes, version evidence precedence, incomplete/conflicting evidence, compliance, parameter/help contracts and local
+read-only inventory. Native volume activation, broad Office/OS/architecture combinations and real deployment/recovery remain integration
+work. No Office installation, activation or removal was attempted. Deployment planning, media, execution and recovery are still being
+migrated; the complete Office workflow is not yet native.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

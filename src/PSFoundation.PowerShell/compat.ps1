@@ -1,5 +1,29 @@
 ﻿#Requires -Version 5.0
 
+function Test-OfficeDeployment {
+  <#
+  .SYNOPSIS
+    Compares observed Office state with an explicit target.
+  .DESCRIPTION
+    Retains configuration validation and report objects while C# assesses discrepancies and missing evidence.
+  .PARAMETER Configuration
+    Configuration from New-OfficeDeploymentConfiguration.
+  .PARAMETER Inventory
+    Optional observation for offline assessment. Execution always rediscovers state.
+  .EXAMPLE
+    Test-OfficeDeployment -Configuration $configuration
+  #>
+  [CmdletBinding()]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)][object]$Configuration,
+    [object]$Inventory
+  )
+  $target = ConvertTo-PSFOfficeConfiguration $Configuration
+  if (-not $Inventory) { $Inventory = Get-OfficeInventory }
+  [PSFoundation.PowerShell.Office.OfficeCompatibility]::Assess($target, $Inventory)
+}
+
 function Install-Win32Program {
   <#
   .SYNOPSIS

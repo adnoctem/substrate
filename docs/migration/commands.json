@@ -618,8 +618,8 @@
   {
     "Command": "New-OfficeDeploymentConfiguration",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PSFOfficeList",
       "Get-OfficeInventory",
@@ -633,8 +633,8 @@
   {
     "Command": "Get-OfficeInventory",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ForEach-Object",
       "Get-PSFOfficeAppPathEvidence",
@@ -652,7 +652,7 @@
     "Command": "Test-OfficeDeployment",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertTo-PSFOfficeConfiguration",
       "Get-OfficeInventory",
@@ -664,8 +664,8 @@
   {
     "Command": "Get-OfficeActivationStatus",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-CimInstance",
       "Where-Object"
