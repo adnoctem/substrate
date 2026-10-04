@@ -86,7 +86,8 @@
       "psfoundation.security": {
         "type": "Project",
         "dependencies": {
-          "PSFoundation.IO": "[1.0.0, )"
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Windows": "[1.0.0, )"
         }
       },
       "psfoundation.windows": {
@@ -255,6 +256,7 @@
         "type": "Project",
         "dependencies": {
           "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Windows": "[1.0.0, )",
           "System.Diagnostics.EventLog": "[4.7.0, )"
         }
       },

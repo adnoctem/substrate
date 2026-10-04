@@ -10,6 +10,16 @@ using Microsoft.Management.Infrastructure.Options;
 namespace PSFoundation.Windows;
 
 public enum ScheduledTaskState { Unknown = 0, Disabled = 1, Queued = 2, Ready = 3, Running = 4 }
+public sealed class ScheduledTaskAction
+{
+    public CimRecord Data { get; }
+    public string? Id => Data.GetValue("Id") as string;
+    public string? Executable => Data.GetValue("Execute") as string;
+    public string? Arguments => Data.GetValue("Arguments") as string;
+    public string? WorkingDirectory => Data.GetValue("WorkingDirectory") as string;
+    public string? ComClassId => Data.GetValue("ClassId") as string;
+    internal ScheduledTaskAction(CimRecord data) => Data = data;
+}
 public sealed class ScheduledTaskInfo
 {
     public string Name { get; }
@@ -17,6 +27,7 @@ public sealed class ScheduledTaskInfo
     public ScheduledTaskState State { get; }
     public string? Description { get; }
     public string? Author { get; }
+    public IReadOnlyList<ScheduledTaskAction> Actions { get; }
     internal ScheduledTaskInfo(CimInstance instance)
     {
         Name = instance.CimInstanceProperties["TaskName"]?.Value as string ?? "";
@@ -24,6 +35,10 @@ public sealed class ScheduledTaskInfo
         State = (ScheduledTaskState)Convert.ToInt32(instance.CimInstanceProperties["State"]?.Value, CultureInfo.InvariantCulture);
         Description = instance.CimInstanceProperties["Description"]?.Value as string;
         Author = instance.CimInstanceProperties["Author"]?.Value as string;
+        var actions = instance.CimInstanceProperties["Actions"]?.Value as CimInstance[] ?? Array.Empty<CimInstance>();
+        try
+        { Actions = Array.AsReadOnly(actions.Select(action => new ScheduledTaskAction(CimRecord.Capture(action))).ToArray()); }
+        finally { foreach (var action in actions) action.Dispose(); }
     }
 }
 
@@ -38,7 +53,7 @@ public sealed class ScheduledTaskManager
         var tasks = new List<ScheduledTaskInfo>();
         using (var session = CimSession.Create(null))
         using (var options = new CimOperationOptions { Timeout = timeout, CancellationToken = cancellationToken })
-            foreach (var item in session.QueryInstances(Namespace, "WQL", "SELECT TaskName, TaskPath, State, Description, Author FROM MSFT_ScheduledTask", options))
+            foreach (var item in session.QueryInstances(Namespace, "WQL", "SELECT TaskName, TaskPath, State, Description, Author, Actions FROM MSFT_ScheduledTask", options))
                 using (item)
                 { cancellationToken.ThrowIfCancellationRequested(); tasks.Add(new ScheduledTaskInfo(item)); }
         return tasks.AsReadOnly();

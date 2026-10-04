@@ -18,7 +18,7 @@
     'Test-HostApplicability', 'Test-Elevation', 'Convert-RobocopyExitCode', 'Test-PendingReboot', 'Get-FileLockProcess', 'Set-ScheduledTaskState', 'Get-DotNetVersion'
   )
   Interop     = @('Remove-ComObject', 'Invoke-ComGarbageCollection')
-  Security    = @('Test-WindowsEventLogChannel', 'Export-EventLog')
+  Security    = @('Test-WindowsEventLogChannel', 'Export-EventLog', 'Get-DefenderThreatDescriptionURL', 'Add-DefenderExclusion', 'Get-ScheduledTaskAction', 'Get-WMIPersistence')
   Devices     = @('Get-PrintDevice', 'Get-DefaultPrintDevice', 'Set-DefaultPrintDevice', 'Get-ScanDevice')
   Packages    = @('Get-Win32Program', 'Find-Win32Program', 'Get-InstalledProgramCount', 'Uninstall-Win32Program')
 }

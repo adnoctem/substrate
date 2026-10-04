@@ -1473,7 +1473,7 @@
     "Command": "Get-DefenderThreatDetection",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Add-Member",
       "ConvertTo-Json",
@@ -1492,7 +1492,7 @@
     "Command": "Get-DefenderThreat",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Add-Member",
       "ConvertTo-Json",
@@ -1508,15 +1508,15 @@
   {
     "Command": "Get-DefenderThreatDescriptionURL",
     "Source": "security.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
     "Command": "Add-DefenderExclusion",
     "Source": "security.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Add-MpPreference",
       "New-OperationResult"
@@ -1551,7 +1551,7 @@
     "Command": "Find-NewlyWrittenObject",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertTo-Json",
       "Format-Table",
@@ -1594,8 +1594,8 @@
   {
     "Command": "Get-ScheduledTaskAction",
     "Source": "security.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ForEach-Object",
       "Get-ScheduledTask",
@@ -1605,8 +1605,8 @@
   {
     "Command": "Get-WMIPersistence",
     "Source": "security.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-CimInstance"
     ]

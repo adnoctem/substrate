@@ -52,6 +52,10 @@ public sealed class MaintenanceManagerTests
         var tasks = new ScheduledTaskManager();
         var scheduled = await tasks.GetTasksAsync(timeout);
         Assert.All(scheduled, task => Assert.StartsWith("\\", task.FolderPath));
+        Assert.Contains(scheduled, task => task.Actions.Count != 0);
+        Assert.All(scheduled.SelectMany(task => task.Actions), action => Assert.NotEmpty(action.Data.ClassName));
+        var detached = await new CimManager().QueryAsync(@"root\cimv2", "SELECT Name FROM Win32_Service", timeout);
+        Assert.Contains(detached, record => string.Equals(record.GetValue("Name") as string, "RpcSs", StringComparison.OrdinalIgnoreCase));
         using (var cancellation = new CancellationTokenSource())
         {
             cancellation.Cancel();

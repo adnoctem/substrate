@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../PSFoundation.IO/PSFoundation.IO.csproj" />
+    <ProjectReference Include="../PSFoundation.Windows/PSFoundation.Windows.csproj" />
     <EmbeddedResource Include="default-event-definitions.json" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

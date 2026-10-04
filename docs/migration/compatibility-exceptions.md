@@ -191,3 +191,17 @@ unless C# callers explicitly request overwrite. Export includes all matching eve
 exports. Export cancellation is checked around the synchronous provider call. C# readers support cancellation during reads; the PowerShell
 compatibility iterator releases its reader when enumeration stops, but cannot interrupt an in-flight native read. Returned raw records must
 be disposed by the consumer. Remote transport and lazy message rendering remain part of the pending integration matrix.
+
+Defender and WMI inspection now use detached property records at the PowerShell boundary. Business fields and arrays remain, but live
+`CimInstance` handles and provider metadata/methods are no longer attached. Defender's TXT/JSON formatting remains in `compat.ps1`; raw CIM
+serialization metadata may differ. Detection description URLs are resolved by joining `ThreatID` to the threat inventory, fixing the old
+assumption that detections always carry a threat name. Unresolved names yield a null URL. Native provider failures retain their own errors;
+Defender configuration still honors confirmation at the PowerShell boundary and never bypasses provider protection policies.
+
+WMI inventory exposes all permanent consumer types in C#; the existing PowerShell result retains its three original collections and only
+command-line consumers. Partial-read failures appear in the typed result and verbose PowerShell output. Scheduled-task action inventory
+retains non-executable actions with null executable/argument fields instead of failing on missing properties.
+
+File searches use literal filesystem paths and do not traverse directory reparse points. C# results report skipped points and read failures;
+the legacy presentation wrapper reports them through verbose output. This avoids junction loops and makes partial scans inspectable. The
+exclusive write-time window, sort order, selected file fields and each PowerShell edition's mode text are retained.

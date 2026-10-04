@@ -213,6 +213,23 @@ and export tests use the local System channel, delete their temporary EVTX files
 engines, the default catalog, configuration/enrichment compatibility, native queries and runtime inventory. Remote event sessions and the
 wider host matrix still require integration validation. No Defender configuration, firewall rule or production installation was changed.
 
+## Security inspection checkpoint
+
+The next batch reaches 100 of 188 public functions: 67 compiled commands and 33 C#-backed compatibility functions. All 192 exports remain.
+`DefenderManager` owns native threat/detection/status inventory and explicit exclusion add/remove operations. `WmiPersistenceManager` reads
+filters, consumers and bindings without modifying subscriptions. `CimManager` supplies reusable queries with detached, read-only values;
+caller-supplied sessions remain borrowed. Scheduled-task inventory now includes action data, including non-executable COM actions.
+
+`FileInventoryManager` supports write-time windows, recursion, hidden files, cancellation and explicitly requested partial results. Read
+failures and skipped directory reparse points remain visible to C# callers. PowerShell retains its formatting, logging and host-specific
+file mode strings. Threat description links no longer require `System.Web` to have been loaded, and detection links resolve through threat
+IDs.
+
+The batch adds two managed workflow tests, bringing the suite to 220 per target (440 executions). Existing guarded probes cover the seven
+newly migrated commands, parameter contracts, read-only task/WMI inspection, filesystem search and Defender WhatIf. Native Defender changes
+were validated for cancellation before invocation; actual exclusion changes require a disposable integration machine and were not executed.
+Remote CIM sessions, Defender provider mutations and diverse WMI consumer registrations remain integration work.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

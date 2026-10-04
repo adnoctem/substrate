@@ -64,4 +64,27 @@ public sealed class FileManagerTests : IDisposable
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             => Task.FromException<int>(new IOException("synthetic source failure"));
     }
+
+    [Fact]
+    public async Task InventoryFindsAWriteWindowAndRetainsPartialReadEvidence()
+    {
+        var nested = Directory.CreateDirectory(Path.Combine(directory, "nested"));
+        var selected = Path.Combine(nested.FullName, "selected.txt");
+        File.WriteAllText(selected, "data");
+        File.WriteAllText(Path.Combine(directory, "old.txt"), "old");
+        var time = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        File.SetLastWriteTimeUtc(selected, time);
+        File.SetLastWriteTimeUtc(Path.Combine(directory, "old.txt"), time.AddDays(-1));
+        var manager = new FileInventoryManager();
+        var found = await manager.FindAsync(FileSystemPath.Parse(directory), time.AddMinutes(-1), time.AddMinutes(1));
+        Assert.True(found.IsComplete);
+        Assert.Equal(selected, Assert.Single(found.Files).Path.Value);
+        Assert.Empty(manager.Find(FileSystemPath.Parse(directory), time.AddMinutes(-1), time.AddMinutes(1), recursive: false).Files);
+        var missing = FileSystemPath.Parse(Path.Combine(directory, "missing"));
+        Assert.Throws<FileNotFoundException>(() => manager.Find(missing));
+        var partial = manager.Find(missing, continueOnError: true);
+        Assert.False(partial.IsComplete);
+        Assert.Single(partial.Errors);
+        Assert.Throws<OperationCanceledException>(() => manager.Find(missing, cancellationToken: new CancellationToken(true)));
+    }
 }
