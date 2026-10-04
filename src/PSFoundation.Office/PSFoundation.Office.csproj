@@ -4,10 +4,13 @@
     <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
     <ProjectReference Include="../PSFoundation.Registry/PSFoundation.Registry.csproj" />
     <ProjectReference Include="../PSFoundation.Windows/PSFoundation.Windows.csproj" />
+    <ProjectReference Include="../PSFoundation.Security/PSFoundation.Security.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Net.Http" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
 </Project>

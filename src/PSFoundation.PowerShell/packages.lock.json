@@ -63,7 +63,9 @@
       "psfoundation.office": {
         "type": "Project",
         "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )",
+          "PSFoundation.Security": "[1.0.0, )",
           "PSFoundation.Windows": "[1.0.0, )"
         }
       },
@@ -238,7 +240,9 @@
       "psfoundation.office": {
         "type": "Project",
         "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )",
+          "PSFoundation.Security": "[1.0.0, )",
           "PSFoundation.Windows": "[1.0.0, )"
         }
       },

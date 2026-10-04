@@ -211,3 +211,18 @@ trailing bytes left by a shorter replacement. New files retain the established B
 returned buffer explicitly and restores the caller's prior impersonation context. The PowerShell default reuse flag, confirmation level,
 credential binding and structured result fields remain. Cancellation before the native call prevents provisioning; cancellation during an
 accepted call does not hide its outcome or imply rollback of an AD account change.
+
+Office tool assessment now uses native embedded Authenticode verification, including revocation checks. Catalog-only signatures are not
+accepted as ODT evidence; missing revocation evidence remains a trust failure. The status/reason fields and supported Office identities
+remain, while native I/O error messages can differ from PowerShell provider messages. Source availability is bounded to 60 seconds at the
+PowerShell boundary and remains a reachability check only.
+
+Office protected-path checks now reject null DACLs, untrusted delete-child/generic write grants, unsupported conditional ACEs and device
+namespaces. These cases previously could pass incomplete checks. Descriptor diagnostics retain their field names and stages; write-grant
+details remain in the diagnostic object. Existing directories are validated without rewriting their ownership or access rules.
+
+Office execution now enforces its documented wait-for-completion policy instead of inheriting process-tree termination from the generic
+process wrapper. Cancellation after launch does not kill ODT. Output capture is limited to one MiB per stream; C# results expose truncation
+flags, while the existing PowerShell process report retains its fields. Acquisition adds bounded downloads, validates visible HTTPS
+redirects and publishes by rename without overwrite. Work-directory cleanup checks links before descending and deletes nonrecursively.
+Compiled Office errors retain reason data but may have cmdlet-specific error identifiers and native I/O wording.

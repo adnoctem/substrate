@@ -2,4 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/PSFoundation.Office/PSFoundation.Office.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
 </Project>

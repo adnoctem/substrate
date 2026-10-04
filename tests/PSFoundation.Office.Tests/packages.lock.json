@@ -139,7 +139,9 @@
       "psfoundation.office": {
         "type": "Project",
         "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )",
+          "PSFoundation.Security": "[1.0.0, )",
           "PSFoundation.Windows": "[1.0.0, )"
         }
       },
@@ -148,6 +150,13 @@
         "dependencies": {
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
+      "psfoundation.security": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Windows": "[1.0.0, )"
         }
       },
       "psfoundation.windows": {
@@ -221,6 +230,11 @@
         "resolved": "3.0.0",
         "contentHash": "uwMyWN33+iQ8Wm/n1yoPXgFoiYNd0HzJyoqSVhaQZyJfaQrJR3udgcIHjqa1qbc3lS6kvfuUMN4TrF4U4refCQ=="
       },
+      "Microsoft.NETCore.Platforms": {
+        "type": "Transitive",
+        "resolved": "3.1.0",
+        "contentHash": "z7aeg8oHln2CuNulfhiLYxCVMPEwBl3rzicjvIX+4sUuCwvXw5oXQEtbiU2c0z4qYL5L3Kmx0mMA/+t/SbY67w=="
+      },
       "Microsoft.NETFramework.ReferenceAssemblies.net461": {
         "type": "Transitive",
         "resolved": "1.0.3",
@@ -244,6 +258,14 @@
         "type": "Transitive",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "4.7.0",
+        "contentHash": "iDoKGQcRwX0qwY+eAEkaJGae0d/lHlxtslO+t8pJWAUxlvY3tqLtVOPnW2UU4cFjP0Y/L1QBqhkZfSyGqVMR2w==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "3.1.0"
+        }
       },
       "xunit.abstractions": {
         "type": "Transitive",
@@ -294,7 +316,9 @@
       "psfoundation.office": {
         "type": "Project",
         "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )",
+          "PSFoundation.Security": "[1.0.0, )",
           "PSFoundation.Windows": "[1.0.0, )"
         }
       },
@@ -303,6 +327,14 @@
         "dependencies": {
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
+      "psfoundation.security": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Windows": "[1.0.0, )",
+          "System.Diagnostics.EventLog": "[4.7.0, )"
         }
       },
       "psfoundation.windows": {

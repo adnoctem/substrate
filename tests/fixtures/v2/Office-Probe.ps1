@@ -7,6 +7,27 @@ $module = Get-Module PSFoundation
 $managed = (Get-Command Get-OfficeInventory).CommandType -eq 'Cmdlet'
 $observations = [ordered]@{}
 $observations['live-read-only-inventory'] = Get-OfficeInventory
+$observations['tool-source'] = Resolve-OfficeDeploymentToolSource
+$repo = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
+$processHost = Join-Path $repo 'build/bin/ProcessHost/Release/net48/ProcessHost.exe'
+$observations['unsigned-tool'] = Test-OfficeDeploymentTool -OdtPath $processHost
+$previewPath = Join-Path $repo 'build/office-tool-preview-absent'
+$observations['tool-preview'] = Install-OfficeDeploymentTool -Destination $previewPath -DryRun
+$observations['tool-whatif'] = Install-OfficeDeploymentTool -Destination $previewPath -WhatIf
+$observations['tool-help-whatif'] = @(Get-OfficeDeploymentToolHelp -OdtPath $processHost -WhatIf)
+if (Test-Path -LiteralPath $previewPath) { throw 'Tool preview created its destination.' }
+$observations['unsigned-execution'] = & $module {
+  param ($Executable)
+  try { Invoke-PSFOfficeTool -OdtPath $Executable -Mode /help; throw 'Unsigned tool was executed.' }
+  catch { if (-not $_.Exception.Data.Contains('OfficeReason')) { throw }; [string]$_.Exception.Data['OfficeReason'] }
+} $processHost
+foreach ($pathCase in @(@{ Name = 'protected-path'; Path = (Join-Path $repo 'README.md') }, @{ Name = 'traversal'; Path = 'C:\Media\..\Windows' })) {
+  $observations[$pathCase.Name] = & $module {
+    param ($Path)
+    try { Assert-PSFOfficeProtectedPath $Path; [PSCustomObject]@{ Valid = $true } }
+    catch { [PSCustomObject]@{ Valid = $false; Reason = $_.Exception.Data['OfficeReason']; Diagnostic = $_.Exception.Data['OfficeDiagnostic'] } }
+  } $pathCase.Path
+}
 $target = New-OfficeDeploymentConfiguration -TargetProductId Standard2019Volume -Language de-DE, en-us, de-de -Version 16.0.10417.20095 -ExcludeApp Teams, Groove
 $observations['configuration'] = $target
 $observations['defaults'] = New-OfficeDeploymentConfiguration Standard2024Volume

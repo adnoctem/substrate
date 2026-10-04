@@ -21,6 +21,7 @@
   Security     = @('Test-WindowsEventLogChannel', 'Export-EventLog', 'Get-DefenderThreatDescriptionURL', 'Add-DefenderExclusion', 'Get-ScheduledTaskAction', 'Get-WMIPersistence')
   Devices      = @('Get-PrintDevice', 'Get-DefaultPrintDevice', 'Set-DefaultPrintDevice', 'Get-ScanDevice')
   Provisioning = @('New-OfflineDomainJoinBlob', 'New-DjoinFile')
-  Office       = @('New-OfficeDeploymentConfiguration', 'Get-OfficeInventory', 'Get-OfficeActivationStatus')
+  Office       = @('New-OfficeDeploymentConfiguration', 'Get-OfficeInventory', 'Get-OfficeActivationStatus',
+    'Resolve-OfficeDeploymentToolSource', 'Test-OfficeDeploymentToolSourceAvailability', 'Test-OfficeDeploymentTool', 'Get-OfficeDeploymentToolHelp', 'Install-OfficeDeploymentTool')
   Packages     = @('Get-Win32Program', 'Find-Win32Program', 'Get-InstalledProgramCount', 'Uninstall-Win32Program')
 }

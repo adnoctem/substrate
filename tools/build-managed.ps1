@@ -29,7 +29,8 @@ $catalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands
 $compiled = @($catalog.Values | ForEach-Object { $_ } | Sort-Object)
 $compatibilityCatalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compatibility-commands.psd1')
 $compatibility = @($compatibilityCatalog.Values | ForEach-Object { $_ } | Sort-Object)
-$retiredPrivate = @('Read-PSFPolicyString', 'Assert-PSFPolicyDelimiter', 'ConvertFrom-PSFPolicyPayload', 'ConvertTo-PSFPolicyPayload', 'Resolve-IPv6PrefixData', 'New-PSFOfficeXml')
+$retiredPrivate = @('Read-PSFPolicyString', 'Assert-PSFPolicyDelimiter', 'ConvertFrom-PSFPolicyPayload', 'ConvertTo-PSFPolicyPayload', 'Resolve-IPv6PrefixData', 'New-PSFOfficeXml',
+  'Assert-PSFOfficePath', 'Assert-PSFOfficeProtectedPath', 'New-PSFOfficeProtectedDirectory', 'Invoke-PSFOfficeTool', 'Remove-PSFOfficeWorkDirectory')
 if ($compiled.Count -ne @($compiled | Sort-Object -Unique).Count) { throw 'Compiled command catalog contains duplicate entries.' }
 if ($compatibility.Count -ne @($compatibility | Sort-Object -Unique).Count -or @($compatibility | Where-Object { $_ -in $compiled }).Count) { throw 'Compatibility commands must have unique owners.' }
 $encoding = New-Object Text.UTF8Encoding($true)

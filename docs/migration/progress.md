@@ -283,6 +283,40 @@ compiled commands and 35 C#-backed wrappers. One additional managed workflow bri
 compare all nine plan operations, ten XML operations, exact version text and parameter/help contracts against v1. Execution, media and
 recovery are still being migrated; no real Office changes were performed.
 
+## Office trust checkpoint
+
+`AuthenticodeVerifier` uses Windows trust policy for embedded signatures, releases verification state and certificate handles, and returns
+detached public certificate evidence. Online and cache-only revocation modes both fail closed; there is no no-check option. The supplied
+LGPO executable was verified read-only in both PowerShell hosts, including its Microsoft signer and timestamp, without executing it.
+Catalog-only verification remains outside this API. Native trust calls cannot be interrupted; cancellation is observed before/after them.
+
+`FileSecurityManager` reads/writes explicit security sections and creates directories with their descriptor applied at creation.
+`OfficePathGuard` replaces the staged private path/ACL helpers and retains diagnostic stages. It additionally rejects null DACLs, untrusted
+delete-child/generic write grants, unsupported conditional ACEs and device namespaces. No existing deployment directory is automatically
+repaired, and path observations are not a transaction against concurrent filesystem changes.
+
+`OdtTool` now owns reviewed source metadata, bounded HEAD checks and signature/identity/version assessment. Three more public commands are
+compiled, reaching 110 of 188 functions: 75 compiled and 35 C#-backed wrappers. Two functional tests cover native descriptor handling,
+unsigned tool rejection, descriptor policy and offline HTTP probing, bringing the managed suite to 226 per target (452 executions). Office
+report and command-contract comparisons remain guarded in both hosts. No downloaded tool or Office installer was executed; acquisition,
+execution and recovery integration are still pending.
+
+## Office tool execution checkpoint
+
+`OdtTool` adds explicit sync/async download, configure, customize and help operations. Every invocation verifies the tool again and holds
+read leases on its executable and configuration until completion. Once launched, ODT is allowed to finish even if cancellation is requested,
+because its work may involve shared services. Capture is bounded and truncation remains visible in the typed process result.
+
+Acquisition validates Microsoft HTTPS redirects, caps extractor downloads at 64 MiB and verifies the extractor before executing it. It
+verifies extracted setup.exe, publishes without overwrite and rechecks the published tool. Working directories receive protected ACLs at
+creation; cleanup checks each directory before enumeration and uses nonrecursive deletion. Existing tools are checked and never silently
+replaced. Supplied HTTP transports must disable automatic redirects for each hop to be visible to validation.
+
+The package now owns 77 compiled commands and 35 C#-backed wrappers: 112 of 188 public functions. The same managed trust workflow also
+checks unsigned invocation rejection across all modes, cancellation before work, preservation of an existing untrusted tool and redirect
+rejection. Fresh PowerShell probes cover acquisition previews, WhatIf and the private execution boundary. Real Microsoft extraction and
+Office process integration remain pending; ordinary tests do not execute downloaded tools or install Office.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

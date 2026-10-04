@@ -1,5 +1,44 @@
 ﻿#Requires -Version 5.0
 
+function Invoke-PSFOfficeTool {
+  [CmdletBinding()]
+  param ([string]$OdtPath, [ValidateSet('/download', '/configure', '/customize', '/help')][string]$Mode, [string]$ConfigurationPath)
+  $outcome = [PSFoundation.PowerShell.Office.OfficeCompatibility]::InvokeTool($OdtPath, $Mode, $ConfigurationPath)
+  if ($outcome.Failure) { Stop-PSFOfficeOperation $outcome.Failure.ReasonCode $outcome.Failure.Detail $outcome.Failure.Diagnostic }
+  $outcome.Result
+}
+
+function Remove-PSFOfficeWorkDirectory {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Private cleanup of the operation-owned directory after approval.')]
+  [CmdletBinding()]
+  param ([string]$Path, [string]$Parent)
+  if (-not $Path) { return }
+  $failure = [PSFoundation.PowerShell.Office.OfficeCompatibility]::RemoveDeploymentDirectory($Path, $Parent)
+  if ($failure) { Stop-PSFOfficeOperation $failure.ReasonCode $failure.Detail $failure.Diagnostic }
+}
+
+function Assert-PSFOfficePath {
+  [CmdletBinding()]
+  param ([string]$Path)
+  $failure = [PSFoundation.PowerShell.Office.OfficeCompatibility]::CheckDeploymentPath($Path, $false, 'DeploymentFile')
+  if ($failure) { Stop-PSFOfficeOperation $failure.ReasonCode $failure.Detail $failure.Diagnostic }
+}
+
+function Assert-PSFOfficeProtectedPath {
+  [CmdletBinding()]
+  param ([string]$Path, [string]$ObjectKind = 'DeploymentFile')
+  $failure = [PSFoundation.PowerShell.Office.OfficeCompatibility]::CheckDeploymentPath($Path, $true, $ObjectKind)
+  if ($failure) { Stop-PSFOfficeOperation $failure.ReasonCode $failure.Detail $failure.Diagnostic }
+}
+
+function New-PSFOfficeProtectedDirectory {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Private primitive called only after public ShouldProcess approval.')]
+  [CmdletBinding()]
+  param ([string]$Path)
+  $failure = [PSFoundation.PowerShell.Office.OfficeCompatibility]::CreateDeploymentDirectory($Path)
+  if ($failure) { Stop-PSFOfficeOperation $failure.ReasonCode $failure.Detail $failure.Diagnostic }
+}
+
 function Get-OfficeDeploymentPlan {
   <#
   .SYNOPSIS

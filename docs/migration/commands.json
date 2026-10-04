@@ -696,15 +696,15 @@
   {
     "Command": "Resolve-OfficeDeploymentToolSource",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
     "Command": "Test-OfficeDeploymentToolSourceAvailability",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-Date",
       "Invoke-WebRequest",
@@ -714,8 +714,8 @@
   {
     "Command": "Test-OfficeDeploymentTool",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Assert-PSFOfficePath",
       "Get-AuthenticodeSignature",
@@ -725,8 +725,8 @@
   {
     "Command": "Get-OfficeDeploymentToolHelp",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Invoke-PSFOfficeTool"
     ]
@@ -734,8 +734,8 @@
   {
     "Command": "Install-OfficeDeploymentTool",
     "Source": "office.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Assert-PSFOfficePath",
       "Get-AuthenticodeSignature",
