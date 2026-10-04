@@ -83,6 +83,12 @@
           "PSFoundation.IO": "[1.0.0, )"
         }
       },
+      "psfoundation.security": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
       "psfoundation.windows": {
         "type": "Project",
         "dependencies": {
@@ -161,6 +167,14 @@
         "resolved": "4.5.1",
         "contentHash": "Rw7ijyl1qqRS0YQD/WycNst8hUUMgrMH4FCn1nNm27M4VxchZ1js3fVjQaANHO5f3sN4isvP4a+Met9Y4YomAg=="
       },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "4.7.0",
+        "contentHash": "iDoKGQcRwX0qwY+eAEkaJGae0d/lHlxtslO+t8pJWAUxlvY3tqLtVOPnW2UU4cFjP0Y/L1QBqhkZfSyGqVMR2w==",
+        "dependencies": {
+          "System.Security.Principal.Windows": "4.7.0"
+        }
+      },
       "System.Memory": {
         "type": "Transitive",
         "resolved": "4.5.4",
@@ -235,6 +249,13 @@
           "Microsoft.Win32.Registry": "[5.0.0, )",
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
+      "psfoundation.security": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "System.Diagnostics.EventLog": "[4.7.0, )"
         }
       },
       "psfoundation.windows": {

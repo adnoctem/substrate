@@ -1581,8 +1581,8 @@
   {
     "Command": "Export-EventLog",
     "Source": "security.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Invoke-SafeProcess",
       "Out-File",
@@ -1615,7 +1615,7 @@
     "Command": "Import-SecurityEventConfiguration",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Import-PowerShellDataFile",
       "Join-Path",
@@ -1626,7 +1626,7 @@
     "Command": "Get-SecurityEventGroup",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Import-SecurityEventConfiguration"
     ]
@@ -1635,7 +1635,7 @@
     "Command": "Get-SecurityEventDefinition",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Import-SecurityEventConfiguration",
       "New-Object"
@@ -1644,8 +1644,8 @@
   {
     "Command": "Test-WindowsEventLogChannel",
     "Source": "security.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-WinEvent"
     ]
@@ -1654,7 +1654,7 @@
     "Command": "Get-WindowsEventByDefinition",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ForEach-Object",
       "Get-Date",
@@ -1673,7 +1673,7 @@
     "Command": "Resolve-WindowsEventMappedField",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Import-SecurityEventConfiguration"
     ]
@@ -1682,7 +1682,7 @@
     "Command": "ConvertFrom-WinEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Import-SecurityEventConfiguration",
       "Resolve-WindowsEventMappedField"
@@ -1692,7 +1692,7 @@
     "Command": "Get-WindowsLogonEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1706,7 +1706,7 @@
     "Command": "Get-WindowsAccountChangeEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1720,7 +1720,7 @@
     "Command": "Get-WindowsServiceEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1734,7 +1734,7 @@
     "Command": "Get-WindowsBootEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1748,7 +1748,7 @@
     "Command": "Get-WindowsPowerShellEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1762,7 +1762,7 @@
     "Command": "Get-WindowsScheduledTaskEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1776,7 +1776,7 @@
     "Command": "Get-WindowsSysmonEvent",
     "Source": "security.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1972,8 +1972,8 @@
   {
     "Command": "Get-DotNetVersion",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "dotnet",
       "ForEach-Object",

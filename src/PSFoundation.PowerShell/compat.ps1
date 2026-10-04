@@ -78,6 +78,571 @@ function Set-ServiceStartupState {
   }
 }
 
+function Import-SecurityEventConfiguration {
+  <#
+  .SYNOPSIS
+    Reads and caches literal security event configuration data.
+  .DESCRIPTION
+    Keeps the module-local cache while C# parses the data without executing expressions.
+  .PARAMETER Path
+    Path to the security event data file.
+  .PARAMETER Force
+    Replaces the cached configuration.
+  .EXAMPLE
+    Import-SecurityEventConfiguration -Force
+  #>
+  [CmdletBinding()]
+  param ([string]$Path = (Join-Path $PSScriptRoot 'security.psd1'), [switch]$Force)
+  $cached = try { $script:SecurityEventConfiguration } catch { $null }
+  if ($cached -and -not $Force) { return $cached }
+  $resolved = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+  $script:SecurityEventConfiguration = [PSFoundation.PowerShell.Security.EventConfigurationCompatibility]::Read($resolved)
+  $script:SecurityEventConfiguration
+}
+
+function Get-SecurityEventGroup {
+  <#
+  .SYNOPSIS
+    Gets a named security event group.
+  .DESCRIPTION
+    Resolves the group from the supplied or cached configuration through C#.
+  .PARAMETER Name
+    Group name.
+  .PARAMETER Configuration
+    Event configuration hashtable.
+  .EXAMPLE
+    Get-SecurityEventGroup -Name Logon
+  #>
+  [CmdletBinding()]
+  param ([Parameter(Mandatory = $true)][string]$Name, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
+  [PSFoundation.PowerShell.Security.EventConfigurationCompatibility]::Group($Name, $Configuration)
+}
+
+function Get-SecurityEventDefinition {
+  <#
+  .SYNOPSIS
+    Finds event definitions using the C# event catalog.
+  .DESCRIPTION
+    Preserves original definition hashtables and optional filters.
+  .PARAMETER Group
+    Semantic group.
+  .PARAMETER LogName
+    Event channel.
+  .PARAMETER ProviderName
+    Event provider.
+  .PARAMETER Id
+    Event identifiers.
+  .PARAMETER Name
+    Logical event name.
+  .PARAMETER Configuration
+    Event configuration hashtable.
+  .EXAMPLE
+    Get-SecurityEventDefinition -Group Logon -Id 4624
+  #>
+  [CmdletBinding()]
+  param ([string]$Group, [string]$LogName, [string]$ProviderName, [int[]]$Id, [string]$Name, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
+  [PSFoundation.PowerShell.Security.EventConfigurationCompatibility]::Definitions($Configuration, $Group, $LogName, $ProviderName, $Id, $Name)
+}
+
+function Resolve-WindowsEventMappedField {
+  <#
+  .SYNOPSIS
+    Resolves an event field's semantic mapping.
+  .DESCRIPTION
+    Retains integer and string key handling from the original command.
+  .PARAMETER MapName
+    Field map name.
+  .PARAMETER Value
+    Field value.
+  .PARAMETER Configuration
+    Event configuration hashtable.
+  .EXAMPLE
+    Resolve-WindowsEventMappedField -MapName LogonType -Value 10
+  #>
+  [CmdletBinding()]
+  param ([Parameter(Mandatory = $true)][string]$MapName, [Parameter(Mandatory = $true)][object]$Value, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
+  [PSFoundation.PowerShell.Security.EventConfigurationCompatibility]::MappedField($MapName, $Value, $Configuration)
+}
+
+function ConvertFrom-WinEvent {
+  <#
+  .SYNOPSIS
+    Converts an event record to the established enriched result shape.
+  .DESCRIPTION
+    Uses the C# bounded XML parser and retains the supplied record on the result.
+  .PARAMETER Event
+    An event record with a ToXml method.
+  .PARAMETER Configuration
+    Event configuration hashtable.
+  .EXAMPLE
+    Get-WinEvent -LogName System -MaxEvents 1 | ConvertFrom-WinEvent
+  #>
+  [CmdletBinding()]
+  param ([Parameter(Mandatory = $true, ValueFromPipeline = $true)][object]$Event, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
+  process { [PSFoundation.PowerShell.Security.EventConfigurationCompatibility]::ConvertEvent($Event, $Configuration) }
+}
+
+function Get-WindowsEventByDefinition {
+  <#
+    .SYNOPSIS
+      Generic event query helper wrapping Get-WinEvent -FilterHashtable.
+    .DESCRIPTION
+      Queries Windows event logs using filter-hashtable-based queries for
+      performance. Accepts event definitions, a group name, or ID lists.
+      Definitions are grouped by LogName to minimise individual queries.
+      Supports remote computers and optional channel skipping.
+    .PARAMETER Definition
+      Array of event definition hashtables.
+    .PARAMETER Group
+      Semantic group name resolved from the configuration.
+    .PARAMETER Id
+      Event IDs to query (bypasses definition lookup).
+    .PARAMETER LogName
+      Event log channel(s) to query.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER SkipMissingChannel
+      Skip channels that do not exist rather than throwing.
+    .PARAMETER MaxEvents
+      Maximum events to return per log/channel query.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsEventByDefinition -Group 'Logon' -StartTime (Get-Date).AddHours(-4)
+    .EXAMPLE
+      PS> Get-WindowsEventByDefinition -Id 4624, 4625 -LogName 'Security' -MaxEvents 100
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true)]
+    [hashtable[]] $Definition,
+
+    [Parameter(Mandatory = $false)]
+    [string] $Group,
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $LogName,
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [switch] $SkipMissingChannel,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  begin { $definitions = [Collections.Generic.List[hashtable]]::new() }
+  process { if ($Definition) { $definitions.AddRange($Definition) } }
+  end {
+    $queries = [PSFoundation.PowerShell.Security.EventQueryCompatibility]::Prepare($definitions.ToArray(), $Group, $Id, $LogName, $StartTime, $EndTime, $MaxEvents, $Configuration)
+    [PSFoundation.PowerShell.Security.EventQueryCompatibility]::Read($queries, $ComputerName, $SkipMissingChannel, { param($message) Write-Error $message })
+  }
+}
+
+function Get-WindowsLogonEvent {
+  <#
+    .SYNOPSIS
+      Queries and normalises logon-related security events.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the Logon group. Supports
+      filtering by event ID and logon type. Suppresses noisy system accounts
+      by default unless -IncludeSystem is supplied.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all Logon group IDs.
+    .PARAMETER LogonType
+      Filter by numeric logon type(s), e.g. 10 for RDP.
+    .PARAMETER IncludeSystem
+      Include system and machine accounts normally suppressed.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsLogonEvent -Id 4625
+      Returns failed logon events from the past 24 hours.
+    .EXAMPLE
+      PS> Get-WindowsLogonEvent -Id 4624 -LogonType 10
+      Returns successful RDP logons.
+    .EXAMPLE
+      PS> Get-WindowsLogonEvent -Id 4624, 4800, 4801 -LogonType 2, 7
+      Returns local console and unlock activity.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $LogonType,
+
+    [Parameter(Mandatory = $false)]
+    [switch] $IncludeSystem,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('Logon', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{ LogonType = $LogonType; IncludeSystem = [bool]$IncludeSystem }, { param($message) Write-Error $message })
+}
+
+function Get-WindowsAccountChangeEvent {
+  <#
+    .SYNOPSIS
+      Queries account lifecycle and group membership change events.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the AccountChange group.
+      Supports filtering by target user, subject user, and event ID.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all AccountChange group IDs.
+    .PARAMETER TargetUserName
+      Filter by the target account name of the change.
+    .PARAMETER SubjectUserName
+      Filter by the account that performed the change.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsAccountChangeEvent -Id 4720
+      Returns user account creation events.
+    .EXAMPLE
+      PS> Get-WindowsAccountChangeEvent -Id 4728, 4732 -StartTime (Get-Date).AddDays(-7)
+      Returns group membership additions for the past 7 days.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string] $TargetUserName,
+
+    [Parameter(Mandatory = $false)]
+    [string] $SubjectUserName,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('AccountChange', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{ TargetUserName = $TargetUserName; SubjectUserName = $SubjectUserName }, { param($message) Write-Error $message })
+}
+
+function Get-WindowsServiceEvent {
+  <#
+    .SYNOPSIS
+      Queries service lifecycle, failure, and installation events.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the Service group. Supports
+      filtering by service name and event ID.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all Service group IDs.
+    .PARAMETER ServiceName
+      Filter by the service name involved.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsServiceEvent -Id 7045
+      Returns new service installation events (common persistence vector).
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string] $ServiceName,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('Service', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{ ServiceName = $ServiceName }, { param($message) Write-Error $message })
+}
+
+function Get-WindowsBootEvent {
+  <#
+    .SYNOPSIS
+      Queries boot, shutdown, and crash events.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the BootShutdown group.
+      Covers unexpected reboots, BSODs, clean shutdowns, and service
+      lifecycle transitions.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all BootShutdown group IDs.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsBootEvent -Id 41, 1001
+      Returns unexpected shutdowns and BSOD events.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('BootShutdown', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{}, { param($message) Write-Error $message })
+}
+
+function Get-WindowsPowerShellEvent {
+  <#
+    .SYNOPSIS
+      Queries PowerShell operational telemetry events.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the PowerShell group. Supports
+      filtering by event ID, executing user, and script block content pattern.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all PowerShell group IDs.
+    .PARAMETER UserName
+      Filter by the user account that executed the PowerShell code.
+    .PARAMETER ScriptBlockText
+      Regex pattern to search within captured script block content.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsPowerShellEvent -Id 4104
+      Returns script block logging events (highest-value PowerShell event).
+    .EXAMPLE
+      PS> Get-WindowsPowerShellEvent -ScriptBlockText 'DownloadString|FromBase64'
+      Returns PowerShell events matching suspicious download or encoding patterns.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string] $UserName,
+
+    [Parameter(Mandatory = $false)]
+    [string] $ScriptBlockText,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('PowerShell', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{ UserName = $UserName; ScriptBlockText = $ScriptBlockText }, { param($message) Write-Error $message })
+}
+
+function Get-WindowsScheduledTaskEvent {
+  <#
+    .SYNOPSIS
+      Queries scheduled task lifecycle telemetry.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the ScheduledTask group.
+      Supports filtering by event ID and task name.
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all ScheduledTask group IDs.
+    .PARAMETER TaskName
+      Filter by the name of the scheduled task.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsScheduledTaskEvent -Id 106, 140, 141
+      Returns task registration, update, and deletion events.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string] $TaskName,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('ScheduledTask', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{ TaskName = $TaskName }, { param($message) Write-Error $message })
+}
+
+function Get-WindowsSysmonEvent {
+  <#
+    .SYNOPSIS
+      Queries Sysmon telemetry if the channel is available.
+    .DESCRIPTION
+      Wraps Get-WindowsEventByDefinition for the Sysmon group with
+      -SkipMissingChannel enabled by default (Sysmon is optional).
+    .PARAMETER StartTime
+      Earliest event timestamp. Defaults to 24 hours ago.
+    .PARAMETER EndTime
+      Latest event timestamp. Defaults to now.
+    .PARAMETER Id
+      Specific event IDs to return. Defaults to all Sysmon group IDs.
+    .PARAMETER ComputerName
+      Target remote computer(s).
+    .PARAMETER MaxEvents
+      Maximum events to return.
+    .PARAMETER Configuration
+      Configuration hashtable. Defaults to cached.
+    .EXAMPLE
+      PS> Get-WindowsSysmonEvent -Id 1
+      Returns Sysmon process creation events.
+    .EXAMPLE
+      PS> Get-WindowsSysmonEvent -Id 3, 22
+      Returns Sysmon network connection and DNS query events.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $false)]
+    [datetime] $StartTime = (Get-Date).AddDays(-1),
+
+    [Parameter(Mandatory = $false)]
+    [datetime] $EndTime = (Get-Date),
+
+    [Parameter(Mandatory = $false)]
+    [int[]] $Id,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int] $MaxEvents,
+
+    [Parameter(Mandatory = $false)]
+    [hashtable] $Configuration = (Import-SecurityEventConfiguration)
+  )
+  [PSFoundation.PowerShell.Security.EventQueryCompatibility]::ReadGroup('Sysmon', $StartTime, $EndTime, $Id, $ComputerName, $MaxEvents, $Configuration, @{}, { param($message) Write-Error $message })
+}
+
 function Get-UserInfo {
   <#
   .SYNOPSIS

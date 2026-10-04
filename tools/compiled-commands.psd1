@@ -15,9 +15,10 @@
   Windows     = @(
     'Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEdition', 'Get-OSProductName', 'Get-OSVersionInfo',
     'Get-SystemMemory', 'Get-SystemDisk', 'Get-Hostname', 'Get-SystemUptime', 'Get-SystemInfo', 'Get-SystemPaths',
-    'Test-HostApplicability', 'Test-Elevation', 'Convert-RobocopyExitCode', 'Test-PendingReboot', 'Get-FileLockProcess', 'Set-ScheduledTaskState'
+    'Test-HostApplicability', 'Test-Elevation', 'Convert-RobocopyExitCode', 'Test-PendingReboot', 'Get-FileLockProcess', 'Set-ScheduledTaskState', 'Get-DotNetVersion'
   )
   Interop     = @('Remove-ComObject', 'Invoke-ComGarbageCollection')
+  Security    = @('Test-WindowsEventLogChannel', 'Export-EventLog')
   Devices     = @('Get-PrintDevice', 'Get-DefaultPrintDevice', 'Set-DefaultPrintDevice', 'Get-ScanDevice')
   Packages    = @('Get-Win32Program', 'Find-Win32Program', 'Get-InstalledProgramCount', 'Uninstall-Win32Program')
 }

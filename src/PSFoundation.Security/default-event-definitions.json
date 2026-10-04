@@ -1,0 +1,877 @@
+[
+  {
+    "Id": 41,
+    "LogName": "System",
+    "ProviderName": "Microsoft-Windows-Kernel-Power",
+    "Name": "UnexpectedShutdown",
+    "Group": "BootShutdown"
+  },
+  {
+    "Id": 1001,
+    "LogName": "System",
+    "ProviderName": "BugCheck",
+    "Name": "BugCheck",
+    "Group": "BootShutdown"
+  },
+  {
+    "Id": 1074,
+    "LogName": "System",
+    "ProviderName": "User32",
+    "Name": "SystemShutdown",
+    "Group": "BootShutdown"
+  },
+  {
+    "Id": 7045,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceInstalled",
+    "Group": "Service"
+  },
+  {
+    "Id": 7034,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceTerminatedUnexpectedly2",
+    "Group": "Service"
+  },
+  {
+    "Id": 7036,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceStateChanged",
+    "Group": "Service"
+  },
+  {
+    "Id": 7040,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceStartTypeChanged",
+    "Group": "Service"
+  },
+  {
+    "Id": 6005,
+    "LogName": "System",
+    "ProviderName": "EventLog",
+    "Name": "EventLogStarted",
+    "Group": "BootShutdown"
+  },
+  {
+    "Id": 3,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "NetworkConnection",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 4,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "SysmonServiceStateChanged",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 5,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "ProcessTerminated",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 2,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileCreationTimeChanged",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 6006,
+    "LogName": "System",
+    "ProviderName": "EventLog",
+    "Name": "EventLogStopped",
+    "Group": "BootShutdown"
+  },
+  {
+    "Id": 6008,
+    "LogName": "System",
+    "ProviderName": "EventLog",
+    "Name": "UnexpectedShutdownPrevious",
+    "Group": "BootShutdown"
+  },
+  {
+    "Id": 1,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "ProcessCreation",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 7031,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceTerminatedUnexpectedly",
+    "Group": "Service"
+  },
+  {
+    "Id": 5157,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "WfpBlockedConnection",
+    "Group": "Logon"
+  },
+  {
+    "Id": 400,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "EngineStateAvailable",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 403,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "EngineStateStopped",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 5156,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "WfpAllowedConnection",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4800,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "WorkstationLocked",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4801,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "WorkstationUnlocked",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4719,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "AuditPolicyChanged",
+    "Group": "Logon"
+  },
+  {
+    "Id": 600,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "ProviderStarted",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 4106,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "ScriptBlockInvocationCompleted",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 7000,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceStartFailed",
+    "Group": "Service"
+  },
+  {
+    "Id": 7001,
+    "LogName": "System",
+    "ProviderName": "Service Control Manager",
+    "Name": "ServiceDependencyFailed",
+    "Group": "Service"
+  },
+  {
+    "Id": 4105,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "ScriptBlockInvocationStarted",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 800,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "PipelineExecuted",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 4103,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "ModuleLogging",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 4104,
+    "LogName": "Microsoft-Windows-PowerShell/Operational",
+    "ProviderName": "Microsoft-Windows-PowerShell",
+    "Name": "ScriptBlockLogging",
+    "Group": "PowerShell"
+  },
+  {
+    "Id": 26,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileDeleteDetected",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 27,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileBlockExecutable",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 28,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileBlockShredding",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 25,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "ProcessTampering",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 22,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "DnsQuery",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 23,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileDelete",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 24,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "ClipboardChanged",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 29,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileExecutableDetected",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 1000,
+    "LogName": "Application",
+    "ProviderName": "Application Error",
+    "Name": "ApplicationCrash",
+    "Group": "ApplicationCrash"
+  },
+  {
+    "Id": 1001,
+    "LogName": "Application",
+    "ProviderName": "Windows Error Reporting",
+    "Name": "WerBucketReport",
+    "Group": "ApplicationCrash"
+  },
+  {
+    "Id": 1026,
+    "LogName": "Application",
+    "ProviderName": ".NET Runtime",
+    "Name": "DotNetUnhandledException",
+    "Group": "ApplicationCrash"
+  },
+  {
+    "Id": 11724,
+    "LogName": "Application",
+    "ProviderName": "MsiInstaller",
+    "Name": "ProductRemovedSuccessfully",
+    "Group": "Installer"
+  },
+  {
+    "Id": 255,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "SysmonError",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 11707,
+    "LogName": "Application",
+    "ProviderName": "MsiInstaller",
+    "Name": "ProductInstalledSuccessfully",
+    "Group": "Installer"
+  },
+  {
+    "Id": 11708,
+    "LogName": "Application",
+    "ProviderName": "MsiInstaller",
+    "Name": "ProductInstallationFailed",
+    "Group": "Installer"
+  },
+  {
+    "Id": 21,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "WmiFilterToConsumerBinding",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 10,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "ProcessAccess",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 11,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileCreate",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 12,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "RegistryCreateDelete",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 9,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "RawAccessRead",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 6,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "DriverLoaded",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 7,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "ImageLoaded",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 8,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "CreateRemoteThread",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 13,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "RegistryValueSet",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 18,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "PipeConnected",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 19,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "WmiEventFilterActivity",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 20,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "WmiEventConsumerActivity",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 17,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "PipeCreated",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 14,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "RegistryRename",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 15,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "FileCreateStreamHash",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 16,
+    "LogName": "Microsoft-Windows-Sysmon/Operational",
+    "ProviderName": "Microsoft-Windows-Sysmon",
+    "Name": "SysmonConfigChanged",
+    "Group": "Sysmon"
+  },
+  {
+    "Id": 4776,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "NtlmCredentialValidation",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4723,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "PasswordChangeAttempt",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4724,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "PasswordResetAttempt",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4725,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "UserAccountDisabled",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4722,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "UserAccountEnabled",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 201,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "ActionCompleted",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 203,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "ActionFailedToStart",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 4720,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "UserAccountCreated",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4726,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "UserAccountDeleted",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4727,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "GlobalGroupCreated",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4728,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "MemberAddedToGlobalGroup",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4729,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "MemberRemovedFromGlobalGroup",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4689,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ProcessExited",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4738,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "UserAccountChanged",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4657,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "RegistryValueModified",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4688,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ProcessCreated",
+    "Group": "Logon"
+  },
+  {
+    "Id": 200,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "ActionStarted",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 106,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskRegistered",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 107,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskTriggeredOnSchedule",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 108,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskTriggeredByEvent",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 103,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "ActionStartFailed",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 100,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskStarted",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 101,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskStartFailed",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 102,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskCompleted",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 110,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskTriggeredByUser",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 140,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskUpdated",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 141,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskDeleted",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 142,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskDisabled",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 129,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskProcessCreated",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 111,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskTerminated",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 118,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskTriggeredOnStartup",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 119,
+    "LogName": "Microsoft-Windows-TaskScheduler/Operational",
+    "ProviderName": "Microsoft-Windows-TaskScheduler",
+    "Name": "TaskTriggeredOnLogon",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 4624,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "SuccessfulLogon",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4625,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "FailedLogon",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4634,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "AccountLogoff",
+    "Group": "Logon"
+  },
+  {
+    "Id": 5144,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ShareDeleted",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4616,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "SystemTimeChanged",
+    "Group": "Logon"
+  },
+  {
+    "Id": 5142,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ShareAdded",
+    "Group": "Logon"
+  },
+  {
+    "Id": 5143,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ShareModified",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4647,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "UserInitiatedLogoff",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4768,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "KerberosTgtRequested",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4769,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "KerberosServiceTicket",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4771,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "KerberosPreAuthFailed",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4767,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "AccountUnlocked",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4648,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ExplicitCredentialLogon",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4672,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "SpecialPrivilegesAssigned",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4740,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "AccountLocked",
+    "Group": "Logon"
+  },
+  {
+    "Id": 1102,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "AuditLogCleared",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4734,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "LocalGroupDeleted",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4756,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "MemberAddedToUniversalGroup",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4757,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "MemberRemovedFromUniversalGroup",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4733,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "MemberRemovedFromLocalGroup",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4730,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "GlobalGroupDeleted",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4731,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "LocalGroupCreated",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4732,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "MemberAddedToLocalGroup",
+    "Group": "AccountChange"
+  },
+  {
+    "Id": 4663,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ObjectAccessAttempt",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4702,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ScheduledTaskUpdated",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 4697,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ServiceInstalled",
+    "Group": "Service"
+  },
+  {
+    "Id": 5140,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ShareAccessed",
+    "Group": "Logon"
+  },
+  {
+    "Id": 4701,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ScheduledTaskDisabled",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 4698,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ScheduledTaskCreated",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 4699,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ScheduledTaskDeleted",
+    "Group": "ScheduledTask"
+  },
+  {
+    "Id": 4700,
+    "LogName": "Security",
+    "ProviderName": "Microsoft-Windows-Security-Auditing",
+    "Name": "ScheduledTaskEnabled",
+    "Group": "ScheduledTask"
+  }
+]

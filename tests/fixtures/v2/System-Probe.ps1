@@ -14,6 +14,7 @@ foreach ($command in @('Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEditi
   $observations[$command] = & $command
 }
 $observations['named-paths'] = Get-SystemPaths 'synthetic-product'
+$observations['dotnet'] = Get-DotNetVersion
 $user = Get-UserInfo
 $observations['identity'] = @($user.GetType().FullName, $user.UserName, $user.IsAdministrator, $user.SID, (Get-UserSID $user.UserName), (Test-Elevation), (& (Get-Module PSFoundation) { Read-ProcessElevation }))
 $observations['identity-extra-arguments'] = (Get-UserInfo -Unused extra).SID

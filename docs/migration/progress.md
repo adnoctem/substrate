@@ -196,6 +196,23 @@ service protection and WhatIf paths under both PowerShell engines. No real appli
 change, scheduled-task change or Office operation was performed. Physical scanner availability and privileged provider mutations still need
 their appropriate integration environments. The remaining AppX/WinGet, security, update and Office work continues after this checkpoint.
 
+## Runtime inventory and event logs checkpoint
+
+The staged module now owns 63 compiled commands and 30 C#-backed compatibility functions: 93 of 188 public functions, with all 192 exports
+retained. `DotNetManager` reads Framework registrations through `RegistryManager`; `DotNetTool` queries an explicitly selected local CLI.
+The reusable results preserve raw registry values, release evidence, prerelease versions, unknown CLI lines and native process outcomes.
+
+`PSFoundation.Security` adds native event readers, detached snapshots, EVTX export, structured queries, bounded XML parsing, semantic event
+definitions and reusable field filters. The default catalog is embedded for callers outside PowerShell. Caller-supplied JSON catalogs are
+supported; PowerShell configuration remains a safely parsed data-only hashtable. All seven event-family commands now delegate their queries
+and filtering to C#. Structured queries split large ID lists into bounded selectors. Readers and rejected records close deterministically;
+raw records returned through the compatibility API remain caller-owned, matching `Get-WinEvent`.
+
+Validation passes 218 managed tests per target (436 executions), adding only four workflow tests to the preceding checkpoint. Native read
+and export tests use the local System channel, delete their temporary EVTX files, and never clear logs. Guarded PowerShell probes cover both
+engines, the default catalog, configuration/enrichment compatibility, native queries and runtime inventory. Remote event sessions and the
+wider host matrix still require integration validation. No Defender configuration, firewall rule or production installation was changed.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

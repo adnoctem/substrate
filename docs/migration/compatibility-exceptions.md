@@ -174,3 +174,20 @@ module's configurable protected-name list is retained. Scheduled-task exclusions
 captured exact folder/name identities. Service and task discovery failures propagate rather than being reported as missing objects. Native
 provider errors replace PowerShell provider diagnostics; successful single-target result fields and WhatIf behavior remain compatible. These
 operations are not transactions: a later failure or cancellation does not roll back earlier changes.
+
+Runtime inventory preserves the historical PowerShell product labels and raw CLI output. The reusable Framework API instead reports the
+known minimum version established by Microsoft's release thresholds. CLI discovery at the PowerShell boundary now resolves applications
+only; aliases and functions named `dotnet` are not executed. Each CLI query lists the architecture visible to that executable.
+
+Event queries now pass result limits to the reader, use structured selectors for large ID lists, and resolve known IDs to configured
+channels when `-LogName` is omitted. Unknown IDs require an explicit channel. Sysmon channel checks use the requested remote machine. Field
+filtering uses the parsed event data directly, fixing calls to dictionary methods that the old ordered data did not support. PowerShell
+retains its per-channel grouping and result limit before semantic filtering; the reusable catalog also supports grouping by provider.
+Missing event properties become null during enrichment. Event configuration accepts literal data only and does not evaluate commands or
+expressions.
+
+Native log export now fails on provider errors rather than relying on a process wrapper's truth value. Existing destinations are preserved
+unless C# callers explicitly request overwrite. Export includes all matching events; a query's read limit and ordering do not limit EVTX
+exports. Export cancellation is checked around the synchronous provider call. C# readers support cancellation during reads; the PowerShell
+compatibility iterator releases its reader when enumeration stops, but cannot interrupt an in-flight native read. Returned raw records must
+be disposed by the consumer. Remote transport and lazy message rendering remain part of the pending integration matrix.

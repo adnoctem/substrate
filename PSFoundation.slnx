@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/PSFoundation.Security/PSFoundation.Security.csproj" />
     <Project Path="src/PSFoundation.Core/PSFoundation.Core.csproj" />
     <Project Path="src/PSFoundation.Packages/PSFoundation.Packages.csproj" />
     <Project Path="src/PSFoundation.Windows/PSFoundation.Windows.csproj" />
@@ -12,6 +13,7 @@
     <Project Path="src/PSFoundation.PowerShell/PSFoundation.PowerShell.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/PSFoundation.Security.Tests/PSFoundation.Security.Tests.csproj" />
     <Project Path="tests/PSFoundation.Core.Tests/PSFoundation.Core.Tests.csproj" />
     <Project Path="tests/PSFoundation.Packages.Tests/PSFoundation.Packages.Tests.csproj" />
     <Project Path="tests/PSFoundation.Windows.Tests/PSFoundation.Windows.Tests.csproj" />

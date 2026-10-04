@@ -2,6 +2,9 @@
   Diagnostics = @('Show-Color')
   Packages    = @('Install-Win32Program')
   Windows     = @('Set-ServiceStartupState')
+  Security    = @('Import-SecurityEventConfiguration', 'Get-SecurityEventGroup', 'Get-SecurityEventDefinition', 'Resolve-WindowsEventMappedField', 'ConvertFrom-WinEvent',
+    'Get-WindowsEventByDefinition', 'Get-WindowsLogonEvent', 'Get-WindowsAccountChangeEvent', 'Get-WindowsServiceEvent', 'Get-WindowsBootEvent',
+    'Get-WindowsPowerShellEvent', 'Get-WindowsScheduledTaskEvent', 'Get-WindowsSysmonEvent')
   Identity    = @('Get-UserInfo', 'Get-UserSID')
   Policies    = @('Invoke-LGPO', 'Test-LGPOInstalled')
   Networking  = @(
