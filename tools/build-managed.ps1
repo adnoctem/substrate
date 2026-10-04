@@ -30,7 +30,8 @@ $compiled = @($catalog.Values | ForEach-Object { $_ } | Sort-Object)
 $compatibilityCatalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compatibility-commands.psd1')
 $compatibility = @($compatibilityCatalog.Values | ForEach-Object { $_ } | Sort-Object)
 $retiredPrivate = @('Read-PSFPolicyString', 'Assert-PSFPolicyDelimiter', 'ConvertFrom-PSFPolicyPayload', 'ConvertTo-PSFPolicyPayload', 'Resolve-IPv6PrefixData', 'New-PSFOfficeXml',
-  'Assert-PSFOfficePath', 'Assert-PSFOfficeProtectedPath', 'New-PSFOfficeProtectedDirectory', 'Invoke-PSFOfficeTool', 'Remove-PSFOfficeWorkDirectory', 'Get-PSFOfficeMediaFile', 'Invoke-PSFOfficeConfiguration')
+  'Assert-PSFOfficePath', 'Assert-PSFOfficeProtectedPath', 'New-PSFOfficeProtectedDirectory', 'Invoke-PSFOfficeTool', 'Remove-PSFOfficeWorkDirectory', 'Get-PSFOfficeMediaFile', 'Invoke-PSFOfficeConfiguration',
+  'Test-PSFOfficeHost', 'Assert-PSFOfficeHost', 'Enter-PSFOfficeLock', 'Invoke-PSFOfficeRecovery', 'Write-PSFOfficeJson')
 if ($compiled.Count -ne @($compiled | Sort-Object -Unique).Count) { throw 'Compiled command catalog contains duplicate entries.' }
 if ($compatibility.Count -ne @($compatibility | Sort-Object -Unique).Count -or @($compatibility | Where-Object { $_ -in $compiled }).Count) { throw 'Compatibility commands must have unique owners.' }
 $encoding = New-Object Text.UTF8Encoding($true)

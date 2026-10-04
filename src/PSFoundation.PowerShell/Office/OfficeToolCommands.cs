@@ -124,14 +124,14 @@ public static partial class OfficeCompatibility
     public static PSObject? CheckDeploymentPath(string path, bool requireProtected, string objectKind)
         => PathFailure(() => { if (requireProtected) new OfficePathGuard().RequireProtected(path, objectKind); else new OfficePathGuard().ValidatePath(path); });
     public static PSObject? CreateDeploymentDirectory(string path) => PathFailure(() => new OfficePathGuard().EnsureProtectedDirectory(path));
-    private static PSObject? PathFailure(Action operation)
+    private static PSObject? PathFailure(Action operation, string fallbackReason = "UntrustedMedia")
     {
         try
         { operation(); return null; }
         catch (OperationCanceledException) { throw; }
         catch (Exception error)
         {
-            var reason = error is OfficeException office ? office.Reason.ToString() : "UntrustedMedia";
+            var reason = error is OfficeException office ? office.Reason.ToString() : fallbackReason;
             return SystemOutput.Object("ReasonCode", reason, "Detail", error.Message, "Diagnostic", PathDiagnostic(error),
                 "CleanupError", error.Data["OfficeCleanupError"], "ExitCode", error.Data["OfficeExitCode"]);
         }

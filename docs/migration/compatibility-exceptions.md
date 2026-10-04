@@ -232,3 +232,7 @@ diagnostics retain stage/path/reason information; failures originating in C# hav
 canonical enum names and schema field order. Existing manifest JSON objects and their PowerShell fingerprints are preserved. Configuration
 execution snapshots the input XML instead of temporarily modifying it, and refuses DTDs or embedded PIDKEY attributes; product keys must be
 supplied through SecureString. It bounds key input length and clears its owned character buffers after writing.
+
+Office host readiness now blocks when reboot probes fail, rather than treating incomplete evidence as a clear state. Journal writes validate
+the existing journal's protection as well as its parent and use bounded JSON parsing before atomic publication. Deployment lock disposal
+releases ownership; C# callers must acquire and dispose it on the same thread.

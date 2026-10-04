@@ -9,7 +9,7 @@ public enum OfficeChannel { Current, MonthlyEnterprise, SemiAnnual, PerpetualVL2
 public enum OfficeProduct { Standard2019Volume, ProPlus2019Volume, Standard2021Volume, ProPlus2021Volume, Standard2024Volume, ProPlus2024Volume, O365ProPlusRetail, O365BusinessRetail }
 public enum OfficeApplication { Access, Excel, Groove, Lync, OneDrive, OneNote, Outlook, PowerPoint, Publisher, Teams, Word }
 public enum OfficeLocaleSource { Default, Explicit, InstalledOffice, OperatingSystem, Recovery }
-public enum OfficeFailureReason { InvalidConfiguration, InvalidAuthority, Unsupported, InvalidContract, LocaleDiscoveryFailed, MachineIdentityUnavailable, InvalidMachineIdentity, UnknownInventory, UnsafePath, UntrustedMedia, UntrustedTool, Conflict, ToolExtractionFailed, ReprepareMedia, InvalidMedia, UnsafeManifest, MediaMismatch, MediaIntegrityFailed, MissingMedia, MissingLanguageMedia, InvalidProductKey, ConfigurationCleanupFailed, DownloadFailed }
+public enum OfficeFailureReason { InvalidConfiguration, InvalidAuthority, Unsupported, InvalidContract, LocaleDiscoveryFailed, MachineIdentityUnavailable, InvalidMachineIdentity, UnknownInventory, UnsafePath, UntrustedMedia, UntrustedTool, Conflict, ToolExtractionFailed, ReprepareMedia, InvalidMedia, UnsafeManifest, MediaMismatch, MediaIntegrityFailed, MissingMedia, MissingLanguageMedia, InvalidProductKey, ConfigurationCleanupFailed, DownloadFailed, InvalidRecoveryRecord, UnsupportedPilotRecovery, StaleMedia, DeploymentBusy, ElevationRequired, RebootRequired, PreflightFailed }
 
 public sealed class OfficeException : InvalidOperationException
 {

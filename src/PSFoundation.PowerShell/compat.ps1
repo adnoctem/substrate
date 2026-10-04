@@ -1,5 +1,39 @@
 ﻿#Requires -Version 5.0
 
+function Write-PSFOfficeJson {
+  [CmdletBinding()]
+  param ([string]$Path, [object]$Value)
+  $json = ConvertTo-Json -InputObject $Value -Depth 30
+  $failure = [PSFoundation.PowerShell.Office.OfficeCompatibility]::WriteJournal($Path, $json)
+  if ($failure) { Stop-PSFOfficeNativeFailure $failure }
+}
+
+function Test-PSFOfficeHost {
+  [CmdletBinding()]
+  [OutputType([bool])]
+  param ()
+  [PSFoundation.PowerShell.Office.OfficeCompatibility]::SupportedHost()
+}
+
+function Assert-PSFOfficeHost {
+  [CmdletBinding()]
+  param ()
+  $failure = [PSFoundation.PowerShell.Office.OfficeCompatibility]::CheckHost()
+  if ($failure) { Stop-PSFOfficeOperation $failure.ReasonCode $failure.Detail $failure.Diagnostic }
+}
+
+function Enter-PSFOfficeLock {
+  [CmdletBinding()]
+  param ()
+  try { [PSFoundation.Office.OfficeDeploymentLock]::Acquire() }
+  catch {
+    $errorValue = $_.Exception
+    while ($errorValue.InnerException -and -not $errorValue.Data.Contains('OfficeReason')) { $errorValue = $errorValue.InnerException }
+    if ($errorValue.Data.Contains('OfficeReason')) { Stop-PSFOfficeOperation $errorValue.Data['OfficeReason'] $errorValue.Message }
+    throw
+  }
+}
+
 function Invoke-PSFOfficeConfiguration {
   [CmdletBinding()]
   param ([string]$OdtPath, [xml]$Document, [string]$Directory, [ValidateSet('/download', '/configure', '/customize')][string]$Mode = '/configure', [Security.SecureString]$ProductKey)
@@ -1470,4 +1504,99 @@ function Find-NewlyWrittenObject {
   else {
     $items | Format-Table -AutoSize
   }
+}
+
+function Invoke-PSFOfficeRecovery {
+  [CmdletBinding()]
+  param (
+    [object]
+    $Recovery,
+
+    [string]
+    $OriginalAction,
+
+    [System.Management.Automation.PSCmdlet]
+    $Caller,
+
+    [string]
+    $OdtPath,
+
+    [bool]
+    $DryRun,
+
+    [bool]
+    $ForceCloseApps,
+
+    [Security.SecureString]
+    $ProductKey
+  )
+
+  Assert-PSFOfficeField $Recovery @('RunId', 'LogRoot', 'Path', 'Record') @('RunId', 'LogRoot')
+  # Reopen protected on-disk state. Caller-supplied Record is never authoritative.
+  $loaded = Get-OfficeDeploymentRecovery -RunId $Recovery.RunId -LogRoot $Recovery.LogRoot
+  $record = $loaded.Record
+  if ($record.SchemaVersion -eq 2) {
+    Stop-PSFOfficeOperation UnsupportedPilotRecovery 'Pilot journals are evidence only. Review the result or restore the VM; automatic replay is not supported.'
+  }
+  if ($record.Action -ne $OriginalAction -or $record.Plan.Action -ne $OriginalAction) {
+    Stop-PSFOfficeOperation InvalidAuthority 'This recovery command cannot resume the recorded operation.'
+  }
+  $target = ConvertTo-PSFOfficeConfiguration $record.Plan.Configuration
+  $inventory = Get-OfficeInventory
+  $verification = Test-OfficeDeployment -Configuration $target -Inventory $inventory
+  $result = New-PSFOfficeResult -Plan $record.Plan
+  $result.Action = 'Recover'
+  $result.RecoveryPath = $loaded.Path
+  $result.After = $inventory
+  $result.Verification = $verification
+  if ((Get-PSFOfficeActivity).Busy) {
+    $result.Status = 'Blocked'
+    $result.ReasonCode = 'DeploymentBusy'
+    $result.WrapperExitCode = 1
+    return $result
+  }
+  $result.RebootRequired = (Test-PendingReboot).PendingReboot
+  if ($result.RebootRequired) {
+    $result.Status = 'Blocked'
+    $result.ReasonCode = 'RebootRequired'
+    $result.WrapperExitCode = 3010
+    return $result
+  }
+  $media = Test-OfficeDeploymentMedia -SourcePath $record.Plan.SourcePath -Configuration $target
+  if (-not $media.Valid -or $media.Fingerprint -ne $record.MediaFingerprint) {
+    Stop-PSFOfficeOperation StaleMedia 'Recovery media no longer matches the recorded deployment.' (Get-PSFOfficeMediaDiagnostic $media)
+  }
+  if ($verification.Compliant) {
+    $result.Status = 'Completed'
+    $result.Phase = 'Verify'
+    $result.ReasonCode = 'AlreadyCompliant'
+    $result.AlreadyCompliant = $true
+    $result.Activation = Get-OfficeActivationStatus $target.TargetProductId
+    if ($result.Activation.Status -eq 'NotVerified') {
+      $result.ReasonCode = 'ActivationNotVerified'
+      $result.WrapperExitCode = 1
+    }
+    return $result
+  }
+  $decision = [PSFoundation.PowerShell.Office.OfficeCompatibility]::RecoveryDecision($record, $inventory, $OriginalAction)
+  if ($decision.Disposition -eq 'Blocked') {
+    $result.Status = 'Blocked'
+    $result.ReasonCode = $decision.ReasonCode
+    $result.Error = $decision.Detail
+    $result.RecoveryRequired = $decision.RecoveryRequired
+    $result.WrapperExitCode = $decision.WrapperExitCode
+    return $result
+  }
+  $parameters = @{
+    Action        = $OriginalAction
+    Configuration = $target
+    SourcePath    = $record.Plan.SourcePath
+    Inventory     = $inventory
+  }
+  if ($OriginalAction -eq 'Migrate') {
+    $parameters.RemoveProductId = @($decision.RemainingRemovalIds)
+    $parameters.RemoveMsi = [bool]$record.Plan.RemoveMsi
+  }
+  $plan = Get-OfficeDeploymentPlan @parameters
+  Invoke-PSFOfficeWorkflow -Plan $plan -ExpectedAction $OriginalAction -Caller $Caller -OdtPath $OdtPath -LogRoot $Recovery.LogRoot -DryRun $DryRun -ForceCloseApps $ForceCloseApps -ProductKey $ProductKey
 }

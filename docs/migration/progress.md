@@ -334,6 +334,22 @@ suite to 227 per target (454 executions). Native package acquisition, positive p
 need controlled integration validation. No Office installer was run. The cleanup containment check also now handles case variants and
 trailing separators when rejecting the operation parent itself.
 
+## Office lifecycle foundations
+
+Host support/readiness and the shared deployment lock now have native APIs. Readiness uses the shared Windows identity, CIM and reboot
+services; failed reboot probes block mutation instead of implying readiness. The lock releases deterministically on its acquiring thread;
+async orchestration must keep mutex ownership on one worker rather than carrying it across await.
+
+`OfficeRecoveryPolicy` evaluates fresh observations against the recorded product scope and checkpoint. It permits pre-launch continuation or
+verified completed Click-to-Run removal, rejects expanded product/MSI scope and keeps uncertain partial installations blocked. The
+compatibility coordinator delegates those decisions to C#, while reopening journals, result presentation and full execution orchestration
+are still being migrated. The native journal store bounds protected reads; checkpoint writes now use its atomic file API. The public
+recovery reader still awaits migration. JSON serialization remains at the compatibility boundary to preserve existing fingerprints.
+
+Five synthetic recovery scenarios and local host support match v1 in both guarded PowerShell hosts. One managed recovery workflow raises the
+suite to 228 per target (456 executions). Public migration ownership remains 114 of 188 functions; these private lifecycle components are
+prerequisites, not a claim that the remaining execution/recovery commands are fully native. No application was closed or installer run.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

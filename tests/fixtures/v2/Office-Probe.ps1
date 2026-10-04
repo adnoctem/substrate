@@ -8,6 +8,7 @@ $managed = (Get-Command Get-OfficeInventory).CommandType -eq 'Cmdlet'
 $observations = [ordered]@{}
 $observations['live-read-only-inventory'] = Get-OfficeInventory
 $observations['tool-source'] = Resolve-OfficeDeploymentToolSource
+$observations['host-platform'] = & $module { Test-PSFOfficeHost }
 $repo = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
 $processHost = Join-Path $repo 'build/bin/ProcessHost/Release/net48/ProcessHost.exe'
 $observations['unsigned-tool'] = Test-OfficeDeploymentTool -OdtPath $processHost
@@ -131,4 +132,40 @@ foreach ($action in @('Install', 'Migrate', 'Update', 'Remove', 'AddLanguage', '
 }
 $observations['plan-clean'] = Get-OfficeDeploymentPlan -Action Install -Configuration $target -Inventory (Read-Fixture @())
 $observations['xml-download'] = & $module { param($Target) (New-PSFOfficeXml -Action Download -Configuration $Target -MediaPath 'C:\Media\Office').OuterXml } $target
+$beforeRecovery = Read-Fixture $records
+$recoveryPlan = Get-OfficeDeploymentPlan -Action Migrate -Configuration $target -Inventory $beforeRecovery -RemoveProductId Standard2019Volume
+& $module {
+  function script:Get-OfficeInventory { $script:RecoveryProbeInventory }
+  function script:Get-OfficeDeploymentRecovery { [PSCustomObject]@{ Path = 'C:\Synthetic\recovery.json'; Record = $script:RecoveryProbeRecord } }
+  function script:Get-PSFOfficeActivity { [PSCustomObject]@{ Busy = $false; Apps = @() } }
+  function script:Test-PendingReboot { [PSCustomObject]@{ PendingReboot = $false } }
+  function script:Test-OfficeDeploymentMedia {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Test double preserves the public command name.')]
+    param ()
+    [PSCustomObject]@{ Valid = $true; Fingerprint = 'synthetic'; Manifest = [PSCustomObject]@{ Version = '16.0.10417.20095' } }
+  }
+  function script:Get-OfficeActivationStatus { [PSCustomObject]@{ Status = 'Licensed' } }
+  function script:Invoke-PSFOfficeWorkflow {
+    param ($Plan)
+    [PSCustomObject]@{ Status = 'WouldExecute'; Action = $Plan.Action; RemoveProductId = $Plan.RemoveProductId; RemoveMsi = $Plan.RemoveMsi }
+  }
+}
+foreach ($case in @('BeforeLaunch', 'Removed', 'Partial', 'Conflict', 'Complete')) {
+  $current = $beforeRecovery | ConvertTo-Json -Depth 25 | ConvertFrom-Json
+  $current.Products[0].Version = '16.0.10417.29999'
+  $phase = 'StageMedia'
+  $completed = $false
+  if ($case -eq 'Removed') { $current.Products = @(); $phase = 'Remove'; $completed = $true }
+  if ($case -eq 'Partial') { $phase = 'Migrate' }
+  if ($case -eq 'Conflict') { $current.Products[0].ProductId = 'VisioPro2019Volume' }
+  if ($case -eq 'Complete') { $current = $beforeRecovery; $phase = 'Verify'; $completed = $true }
+  $record = [PSCustomObject]@{ SchemaVersion = 1; Action = 'Migrate'; Plan = $recoveryPlan; Phase = $phase; PhaseCompleted = $completed; MediaFingerprint = 'synthetic' }
+  $observations["recovery-$case"] = & $module {
+    param ($Current, $Record)
+    $script:RecoveryProbeInventory = $Current
+    $script:RecoveryProbeRecord = $Record
+    Invoke-PSFOfficeRecovery -Recovery ([PSCustomObject]@{ RunId = '11111111111111111111111111111111'; LogRoot = 'C:\Synthetic' }) -OriginalAction Migrate -OdtPath 'C:\Synthetic\setup.exe' -DryRun $true |
+      Select-Object Status, Action, ReasonCode, Error, RecoveryRequired, WrapperExitCode, AlreadyCompliant, RemoveProductId, RemoveMsi
+  } $current $record
+}
 $observations | ConvertTo-Json -Depth 25 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
