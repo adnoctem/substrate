@@ -1,5 +1,83 @@
 ﻿#Requires -Version 5.0
 
+function Install-Win32Program {
+  <#
+  .SYNOPSIS
+    Runs a caller-selected local installer through the C# package API.
+  .DESCRIPTION
+    Retains PowerShell path validation, confirmation and result fields. Preparation and execution are provided by C#.
+  .PARAMETER Path
+    Existing executable or MSI installer.
+  .PARAMETER ArgumentList
+    Literal installer arguments.
+  .PARAMETER NoWait
+    Starts the installer without claiming completion.
+  .PARAMETER PassThru
+    Uses the legacy ExitCode status text.
+  .PARAMETER DryRun
+    Previews execution through WhatIf.
+  .PARAMETER SuccessExitCodes
+    Exit codes accepted as successful.
+  .PARAMETER RebootExitCodes
+    Successful exit codes requiring a restart.
+  .PARAMETER RunId
+    Optional caller correlation identifier.
+  .EXAMPLE
+    Install-Win32Program -Path '.\setup.exe' -ArgumentList '/quiet' -WhatIf
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)]
+    [ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
+    [string]$Path,
+    [string[]]$ArgumentList,
+    [switch]$NoWait,
+    [switch]$PassThru,
+    [switch]$DryRun,
+    [int[]]$SuccessExitCodes = @(0, 1641, 3010),
+    [int[]]$RebootExitCodes = @(1641, 3010),
+    [string]$RunId
+  )
+  if ($DryRun) { $WhatIfPreference = $true }
+  $target = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+  if (-not $PSCmdlet.ShouldProcess($target, 'Install Win32 program')) {
+    return [PSFoundation.PowerShell.Packages.ProgramCompatibility]::SkipInstall($target, $RunId, $PSBoundParameters.ContainsKey('RunId'))
+  }
+  [PSFoundation.PowerShell.Packages.ProgramCompatibility]::Install($target, $ArgumentList, $NoWait, $PassThru, $SuccessExitCodes, $RebootExitCodes, $RunId, $PSBoundParameters.ContainsKey('RunId'))
+}
+
+function Set-ServiceStartupState {
+  <#
+  .SYNOPSIS
+    Sets service startup types with confirmation and protection rules.
+  .DESCRIPTION
+    Uses native C# service inventory and mutation. Filters and protected names are checked against each resolved service.
+  .PARAMETER Name
+    Service names or wildcard patterns.
+  .PARAMETER StartupType
+    Automatic, Manual or Disabled.
+  .PARAMETER Filter
+    Exact service names to exclude.
+  .EXAMPLE
+    Set-ServiceStartupState -Name 'Fax' -StartupType Disabled -WhatIf
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param (
+    [Parameter(Mandatory = $true)][string[]]$Name,
+    [Parameter(Mandatory = $true)][ValidateSet('Automatic', 'Manual', 'Disabled')][string]$StartupType,
+    [string[]]$Filter
+  )
+  foreach ($selection in [PSFoundation.PowerShell.Windows.ServiceCompatibility]::Select($Name, $StartupType, $Filter, $script:ProtectedServiceNames)) {
+    if ($selection.SkippedResult) { $selection.SkippedResult; continue }
+    if (-not $PSCmdlet.ShouldProcess($selection.Name, "Set startup type to $StartupType")) {
+      [PSFoundation.PowerShell.Windows.ServiceCompatibility]::Result($selection.Name, 'Skipped', 'WhatIf')
+      continue
+    }
+    [PSFoundation.PowerShell.Windows.ServiceCompatibility]::Apply($selection.Name, $StartupType)
+  }
+}
+
 function Get-UserInfo {
   <#
   .SYNOPSIS

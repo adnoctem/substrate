@@ -85,8 +85,8 @@
   {
     "Command": "Get-PrintDevice",
     "Source": "devices.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PrintDevice",
       "Get-CimInstance",
@@ -100,8 +100,8 @@
   {
     "Command": "Get-DefaultPrintDevice",
     "Source": "devices.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PrintDevice",
       "Get-CimInstance",
@@ -112,8 +112,8 @@
   {
     "Command": "Set-DefaultPrintDevice",
     "Source": "devices.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-CimInstance",
       "Get-ObjectPropertyValue",
@@ -126,8 +126,8 @@
   {
     "Command": "Get-ScanDevice",
     "Source": "devices.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-ScanDevice",
       "Get-Command",
@@ -905,7 +905,7 @@
     "Command": "Install-Win32Program",
     "Source": "packages.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ConvertTo-PSFNativeArgumentString",
       "New-PackageLifecycleResult",
@@ -916,8 +916,8 @@
   {
     "Command": "Uninstall-Win32Program",
     "Source": "packages.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Find-Win32Program",
       "New-PackageLifecycleResult",
@@ -2027,8 +2027,8 @@
   {
     "Command": "Test-PendingReboot",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-CimInstance",
       "Get-ItemProperty",
@@ -2072,8 +2072,8 @@
   {
     "Command": "Get-FileLockProcess",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-Process",
       "New-OperationResult",
@@ -2102,7 +2102,7 @@
     "Command": "Set-ServiceStartupState",
     "Source": "system.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-Service",
       "New-Object",
@@ -2113,8 +2113,8 @@
   {
     "Command": "Set-ScheduledTaskState",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Disable-ScheduledTask",
       "Enable-ScheduledTask",

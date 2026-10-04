@@ -63,6 +63,8 @@
       "psfoundation.packages": {
         "type": "Project",
         "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )"
         }
       },
@@ -85,6 +87,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.Diagnostics": "[1.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )"
         }
       }
@@ -212,6 +216,8 @@
       "psfoundation.packages": {
         "type": "Project",
         "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )"
         }
       },
@@ -235,6 +241,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.Diagnostics": "[1.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )",
           "System.Security.Principal.Windows": "[5.0.0, )"
         }

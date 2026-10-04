@@ -149,3 +149,28 @@ The policy-file reader has a separate existing quirk: depending on the runtime's
 required end marker (a NUL character). The PowerShell command retains that behavior for compatibility; the reusable C# parser checks the
 marker strictly. The [policy codec checkpoint](policy-codec.md) records the details. Changing the PowerShell behavior would be a separate
 future decision.
+
+Win32 execution now supports local EXE and MSI installers explicitly, without shell associations. MSI uses the system `msiexec.exe`;
+uninstall parsing converts a leading `/I`, including an attached product code, to `/X`. A missing quiet uninstall string requires `-Force`
+before using the interactive fallback. V1 accidentally allowed that fallback with `-Quiet` alone. Native launch failures retain exceptions
+but no longer claim `Start-Process` error identities. Results describe the launched process; a bootstrapper that exits before its children
+finish needs a product-specific completion check. `-NoWait` reports only successful launch, never installation completion. These paths do
+not download or establish trust in caller-selected installers. The library does not elevate, and it does not interrupt running installers by
+default. Callers can explicitly select an interrupting process policy, accepting the risk of partial installation state.
+
+Printer and scanner output retains the existing normalized fields, using native CIM and WIA instead of PowerShell providers. The typed API
+retains printer fallback errors; the PowerShell boundary reports them through verbose output. Scanner discovery owns a separate STA worker
+and releases its COM references before completing. Cancellation cannot interrupt an in-flight WIA driver call. Restart Manager results now
+check process start time before resolving a process name, preventing attribution to a reused PID. The old import-time file-lock `Add-Type`
+binding is removed from the staged module.
+
+Pending-reboot discovery also recognizes CBS and Windows Update subkeys, and invokes the SCCM static method directly. This can find pending
+reboots that v1 missed. Typed results distinguish clear, pending, unavailable and failed probes. The existing PowerShell result remains the
+two-field `PendingReboot`/`Indicators` object; callers needing completeness evidence should use the typed result.
+
+Service startup changes resolve wildcard patterns before applying protection and exclusion rules. V1 compared those rules only against the
+original pattern, allowing a wildcard to bypass a protected service. Results and confirmation now identify each resolved service; the
+module's configurable protected-name list is retained. Scheduled-task exclusions also apply to resolved names, and mutation uses the
+captured exact folder/name identities. Service and task discovery failures propagate rather than being reported as missing objects. Native
+provider errors replace PowerShell provider diagnostics; successful single-target result fields and WhatIf behavior remain compatible. These
+operations are not transactions: a later failure or cancellation does not roll back earlier changes.

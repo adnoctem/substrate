@@ -43,6 +43,44 @@ try {
   if ($summary.OSBuild -ne (Get-OSBuildNumber) -or $summary.OSProductName -ne (Get-OSProductName)) { throw 'System aggregate differs from individual readers.' }
 }
 finally { [Threading.Thread]::CurrentThread.CurrentCulture = $oldCulture }
+$observations['printers'] = @(Get-PrintDevice | Sort-Object Name)
+$observations['default-printers'] = @(Get-DefaultPrintDevice | Sort-Object Name)
+$observations['scanners'] = @(Get-ScanDevice | Sort-Object Name)
+foreach ($printer in $observations['printers']) {
+  $observations['printer-preview-' + $printer.Name] = Set-DefaultPrintDevice -Name $printer.Name -WhatIf
+}
+$observations['reboot-shape'] = Get-Shape (Test-PendingReboot)
+$observations['service-preview'] = @(Set-ServiceStartupState -Name 'RpcSs' -StartupType Manual -WhatIf)
+$observations['service-missing'] = @(Set-ServiceStartupState -Name 'PSFoundation.Synthetic.Nonexistent' -StartupType Disabled -WhatIf)
+$observations['service-filtered'] = @(Set-ServiceStartupState -Name 'RpcSs' -StartupType Disabled -Filter 'RpcSs' -WhatIf)
+$observations['service-protected'] = @(Set-ServiceStartupState -Name 'RemoteRegistry' -StartupType Manual -WhatIf)
+$observations['task-missing'] = @(Set-ScheduledTaskState -TaskName 'PSFoundation.Synthetic.Nonexistent' -State Disabled -WhatIf)
+$observations['task-preview'] = @(Set-ScheduledTaskState -TaskName '*' -State Disabled -WhatIf)
+if ((Get-Command Set-ScheduledTaskState).CommandType -eq 'Cmdlet') {
+  $guarded = @(Set-ServiceStartupState -Name 'RemoteReg*' -StartupType Automatic -WhatIf)
+  if ($guarded.Count -ne 1 -or $guarded[0].Status -ne 'Refused') { throw 'Wildcard expansion bypassed service protection.' }
+  & (Get-Module PSFoundation) {
+    $previous = $script:ProtectedServiceNames
+    try {
+      $script:ProtectedServiceNames = @('RpcSs')
+      if ((Set-ServiceStartupState -Name 'RpcSs' -StartupType Automatic -WhatIf).Status -ne 'Refused') { throw 'Custom service protection was ignored.' }
+    }
+    finally { $script:ProtectedServiceNames = $previous }
+  }
+}
+$lockPath = Join-Path ([IO.Path]::GetTempPath()) ('PSFoundation-probe-lock-' + [Guid]::NewGuid().ToString('N'))
+try {
+  $handle = [IO.File]::Open($lockPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+  try {
+    $locked = Get-FileLockProcess -FilePath $lockPath
+    if ($locked.Status -ne 'Completed' -or @($locked.Lockers | Where-Object { $_.ProcessId -eq $PID }).Count -ne 1) { throw 'Own file lock was not found.' }
+    $observations['lock-shape'] = Get-Shape $locked
+    $observations['locker-shape'] = Get-Shape @($locked.Lockers | Where-Object { $_.ProcessId -eq $PID })[0]
+  }
+  finally { $handle.Dispose() }
+  if ((Get-FileLockProcess $lockPath).Lockers.Count -ne 0) { throw 'File lock remained after disposal.' }
+}
+finally { if ([IO.File]::Exists($lockPath)) { [IO.File]::Delete($lockPath) } }
 if ((Get-Command Get-SystemPaths).CommandType -eq 'Cmdlet') {
   foreach ($name in @('.', '..', 'trailing.')) {
     $rejected = $false

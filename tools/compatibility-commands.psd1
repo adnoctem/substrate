@@ -1,5 +1,7 @@
 ﻿@{
   Diagnostics = @('Show-Color')
+  Packages    = @('Install-Win32Program')
+  Windows     = @('Set-ServiceStartupState')
   Identity    = @('Get-UserInfo', 'Get-UserSID')
   Policies    = @('Invoke-LGPO', 'Test-LGPOInstalled')
   Networking  = @(

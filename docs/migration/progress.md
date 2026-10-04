@@ -177,6 +177,25 @@ TCP/DNS probes. The full Pester suites pass 921 tests / six existing skips in Po
 PowerShell 5.1. Each includes 16 guarded fresh-host compatibility tests, comparing parameters, help and behavior against the frozen v1
 baseline. Build succeeds with zero warnings/errors. These checks validate this workstation and do not replace the wider release matrix.
 
+## Package execution and native maintenance checkpoint
+
+The next batch moves ten more public functions onto C#: Win32 installation/uninstallation, all four device commands, pending-reboot and
+file-lock discovery, service startup changes and scheduled-task enable/disable. The staged package now contains 60 compiled commands and 17
+C#-backed compatibility functions: 77 of 188 public functions, with all 192 exports retained. `devices.ps1` and the import-time Restart
+Manager compilation are retired from the staged package; frozen v1 sources remain available as comparison fixtures.
+
+`Win32ProgramManager` separates command selection, request preparation, execution and detached launch. `DeviceManager`, `RebootManager`,
+`FileLockManager`, `ServiceManager` and `ScheduledTaskManager` provide reusable typed results and native operations, without PowerShell
+invocation inside the libraries. Service control also exposes explicit start/stop/pause/resume requests. Native resources remain owned by
+each operation; async APIs and cancellation limitations are documented where providers cannot be interrupted. PowerShell retains previews,
+confirmation, legacy result fields and its configurable service protection list.
+
+The focused workflow additions cover quoted synthetic installer execution, MSI preparation, quiet-command selection, real temporary-file
+locks, native inventory and cancellation before mutation. Existing guarded compatibility probes now also exercise the new command outputs,
+service protection and WhatIf paths under both PowerShell engines. No real application installation/uninstallation, printer change, service
+change, scheduled-task change or Office operation was performed. Physical scanner availability and privileged provider mutations still need
+their appropriate integration environments. The remaining AppX/WinGet, security, update and Office work continues after this checkpoint.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

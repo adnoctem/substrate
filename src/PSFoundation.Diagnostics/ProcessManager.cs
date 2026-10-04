@@ -14,6 +14,32 @@ namespace PSFoundation.Diagnostics;
 /// <summary>Runs Windows executables without a shell. Each call owns and closes its process and redirected stream handles.</summary>
 public sealed class ProcessManager
 {
+    /// <summary>Starts an independent process, closes the launch handle and returns its ID. No completion, output capture or termination is implied.</summary>
+    /// <remarks>The caller explicitly accepts that the child outlives this operation. No shell, elevation or credential selection is performed.</remarks>
+    public int StartDetached(string fileName, System.Collections.Generic.IEnumerable<string>? arguments = null, string? workingDirectory = null,
+        System.Collections.Generic.IReadOnlyDictionary<string, string?>? environment = null, CancellationToken cancellationToken = default)
+    {
+        var request = new ProcessRequest(fileName, arguments, workingDirectory, environment);
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            throw new PlatformNotSupportedException("Windows process execution is required.");
+        cancellationToken.ThrowIfCancellationRequested();
+        using (var process = new Process())
+        {
+            process.StartInfo = new ProcessStartInfo(request.FileName, string.Join(" ", request.Arguments.Select(QuoteArgument)))
+            { UseShellExecute = false, CreateNoWindow = true };
+            if (request.WorkingDirectory != null)
+                process.StartInfo.WorkingDirectory = request.WorkingDirectory;
+            foreach (var pair in request.Environment)
+                if (pair.Value == null)
+                    process.StartInfo.Environment.Remove(pair.Key);
+                else
+                    process.StartInfo.Environment[pair.Key] = pair.Value;
+            if (!process.Start())
+                throw new InvalidOperationException("The executable did not start.");
+            return process.Id;
+        }
+    }
+
     public ProcessResult Run(ProcessRequest request, CancellationToken cancellationToken = default)
         => RunAsync(request, cancellationToken).GetAwaiter().GetResult();
 

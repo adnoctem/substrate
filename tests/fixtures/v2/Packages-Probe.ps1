@@ -45,6 +45,20 @@ try {
   $observations['count'] = Get-InstalledProgramCount
   if ($observations['visible'].Count -ne 1 -or $observations['all'].Count -ne 3) { throw 'Synthetic inventory filtering differs.' }
   if ($observations['count'] -ne @(Get-Win32Program).Count) { throw 'Installed program count differs from inventory.' }
+  $fixtureExe = Join-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent) 'build/bin/ProcessHost/Release/net48/ProcessHost.exe'
+  $observations['install-preview'] = Install-Win32Program -Path $fixtureExe -WhatIf -RunId 'synthetic'
+  $observations['install-dry-run'] = Install-Win32Program -Path $fixtureExe -DryRun
+  $installed = Install-Win32Program -Path $fixtureExe -ArgumentList 'short-wait' -PassThru -RunId 'synthetic'
+  if ($installed.Status -ne 'ExitCode:0' -or -not $installed.Succeeded -or $installed.Duration.TotalSeconds -lt 0) { throw 'Synthetic installer failed.' }
+  $observations['install-result'] = $installed | Select-Object * -ExcludeProperty Duration
+  $synthetic = [PSCustomObject]@{ DisplayName = 'Synthetic execution'; UninstallString = ('"{0}" short-wait' -f $fixtureExe); QuietUninstallString = '' }
+  $observations['uninstall-preview'] = $synthetic | Uninstall-Win32Program -Force -WhatIf
+  $observations['uninstall-gated'] = $synthetic | Uninstall-Win32Program -Confirm:$false
+  $observations['uninstall-result'] = $synthetic | Uninstall-Win32Program -Force -Confirm:$false
+  if ((Get-Command Uninstall-Win32Program).CommandType -eq 'Cmdlet') {
+    $fallback = $synthetic | Uninstall-Win32Program -Quiet -Confirm:$false
+    if ($fallback.SkippedReason -ne 'ForceRequired') { throw 'Quiet selection authorized an interactive fallback.' }
+  }
 }
 finally {
   foreach ($path in $createdPaths) { [Microsoft.Win32.Registry]::CurrentUser.DeleteSubKeyTree($path, $false) }

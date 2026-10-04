@@ -34,7 +34,7 @@ if ($compiled.Count -ne @($compiled | Sort-Object -Unique).Count) { throw 'Compi
 if ($compatibility.Count -ne @($compatibility | Sort-Object -Unique).Count -or @($compatibility | Where-Object { $_ -in $compiled }).Count) { throw 'Compatibility commands must have unique owners.' }
 $encoding = New-Object Text.UTF8Encoding($true)
 foreach ($file in @(Get-ChildItem (Join-Path $root 'src') -File)) {
-  if ($file.Name -in @('registry.ps1', 'common.ps1', 'errors.ps1', 'log.ps1', 'policies.ps1')) { continue }
+  if ($file.Name -in @('registry.ps1', 'common.ps1', 'errors.ps1', 'log.ps1', 'policies.ps1', 'devices.ps1')) { continue }
   $destination = Join-Path $stage $file.Name
   if ($file.Extension -ne '.ps1') { Copy-Item -LiteralPath $file.FullName -Destination $destination; continue }
   $text = [IO.File]::ReadAllText($file.FullName)
@@ -42,6 +42,13 @@ foreach ($file in @(Get-ChildItem (Join-Path $root 'src') -File)) {
   $parseErrors = $null
   $ast = [Management.Automation.Language.Parser]::ParseInput($text, [ref]$tokens, [ref]$parseErrors)
   if ($parseErrors.Count) { throw "Cannot stage invalid script '$($file.Name)'." }
+  # The compiled Restart Manager API owns this binding now; remove its old top-level Add-Type block from staging only.
+  if ($file.Name -eq 'system.ps1') {
+    $binding = $ast.EndBlock.Statements | Where-Object { $_ -is [Management.Automation.Language.IfStatementAst] -and $_.Extent.Text -match 'MyCore\.Utils\.FileLockUtil' }
+    if (@($binding).Count -ne 1) { throw 'Expected one legacy Restart Manager binding.' }
+    $text = $text.Remove($binding.Extent.StartOffset, $binding.Extent.EndOffset - $binding.Extent.StartOffset)
+    $ast = [Management.Automation.Language.Parser]::ParseInput($text, [ref]$tokens, [ref]$parseErrors)
+  }
   $definitions = @($ast.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and ($node.Name -in $compiled -or $node.Name -in $compatibility -or $node.Name -in $retiredPrivate) }, $true) | Sort-Object { $_.Extent.StartOffset } -Descending)
   foreach ($definition in $definitions) { $text = $text.Remove($definition.Extent.StartOffset, $definition.Extent.EndOffset - $definition.Extent.StartOffset) }
   [IO.File]::WriteAllText($destination, $text, $encoding)

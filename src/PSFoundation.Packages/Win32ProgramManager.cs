@@ -11,7 +11,7 @@ using PSFoundation.Registry;
 namespace PSFoundation.Packages;
 
 /// <summary>Reads local uninstall registrations through the shared registry API. Does not invoke Windows Installer or repair products.</summary>
-public sealed class Win32ProgramManager
+public sealed partial class Win32ProgramManager
 {
     private const string UninstallRoot = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
     private static readonly string[] FieldNames = { "DisplayName", "DisplayVersion", "Publisher", "InstallLocation", "InstallDate",
