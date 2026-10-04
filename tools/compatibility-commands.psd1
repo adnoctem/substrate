@@ -1,7 +1,7 @@
 ﻿@{
   Diagnostics = @('Show-Color')
   Packages    = @('Install-Win32Program')
-  Office      = @('Test-OfficeDeployment')
+  Office      = @('Test-OfficeDeployment', 'Get-OfficeDeploymentPlan')
   Windows     = @('Set-ServiceStartupState')
   Security    = @('Import-SecurityEventConfiguration', 'Get-SecurityEventGroup', 'Get-SecurityEventDefinition', 'Resolve-WindowsEventMappedField', 'ConvertFrom-WinEvent',
     'Get-WindowsEventByDefinition', 'Get-WindowsLogonEvent', 'Get-WindowsAccountChangeEvent', 'Get-WindowsServiceEvent', 'Get-WindowsBootEvent',

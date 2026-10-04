@@ -269,6 +269,20 @@ read-only inventory. Native volume activation, broad Office/OS/architecture comb
 work. No Office installation, activation or removal was attempted. Deployment planning, media, execution and recovery are still being
 migrated; the complete Office workflow is not yet native.
 
+## Office planning checkpoint
+
+`OfficeDeploymentPlanner` now evaluates typed requests and detached observations without I/O. It preserves explicit removal/MSI consent,
+maintenance restrictions, recovery requirements, language transitions and missing-media blockers. Caller-supplied media outcomes support
+offline planning only; they are never execution authority. `OdtConfigurationBuilder` supplies separate operations for download, install,
+migration, removal, update, languages, application selection, update configuration and application preferences. Documents retain disabled
+CDN fallback and forced shutdown; install/migration alone request volume activation.
+
+`Get-OfficeDeploymentPlan` now delegates decisions to C#, while the compatibility boundary retains schema checks, media discovery and the
+existing PowerShell JSON fingerprint format. Private XML generation also delegates to C#. This reaches 107 of 188 public functions: 72
+compiled commands and 35 C#-backed wrappers. One additional managed workflow brings the suite to 224 per target (448 executions). Both hosts
+compare all nine plan operations, ten XML operations, exact version text and parameter/help contracts against v1. Execution, media and
+recovery are still being migrated; no real Office changes were performed.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

@@ -675,7 +675,7 @@
     "Command": "Get-OfficeDeploymentPlan",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Assert-PSFOfficeSetting",
       "ConvertTo-PSFOfficeConfiguration",

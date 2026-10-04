@@ -65,7 +65,7 @@ public sealed class GetOfficeActivationStatusCommand : SystemCommand
 }
 
 /// <summary>PowerShell object shapes retained at the module boundary; the Office library does not depend on PowerShell.</summary>
-public static class OfficeCompatibility
+public static partial class OfficeCompatibility
 {
     internal static OfficeConfiguration Target(string product, string architecture, string? channel, IEnumerable<string> languages, string? version, IEnumerable<string> excluded)
         => new OfficeConfiguration((OfficeProduct)Enum.Parse(typeof(OfficeProduct), product, true), architecture == "64" ? OfficeArchitecture.X64 : OfficeArchitecture.X86,

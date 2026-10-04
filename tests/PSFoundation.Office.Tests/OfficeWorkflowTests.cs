@@ -60,6 +60,38 @@ public sealed class OfficeWorkflowTests
         Assert.Equal(new Version("16.0.12345.1"), documented.Version);
     }
     [Fact]
+    public void PlanningAndXmlKeepRemovalConsentAndPreservationBoundaries()
+    {
+        var inventory = new OfficeInventoryManager().Analyze(Active, Registrations());
+        var target = new OfficeConfiguration(OfficeProduct.Standard2019Volume, languages: new[] { "de-de", "en-us" }, version: new Version(Build),
+            excludedApplications: new[] { OfficeApplication.Teams, OfficeApplication.Groove });
+        var planner = new OfficeDeploymentPlanner();
+        var compliant = planner.Create(new OfficeDeploymentRequest(OfficeDeploymentAction.Install, target), inventory);
+        Assert.True(compliant.Eligible);
+        Assert.Equal(OfficeDeploymentState.Compliant, compliant.State);
+        Assert.Throws<OfficeException>(() => new OfficeDeploymentRequest(OfficeDeploymentAction.Update, target, removeMsi: true));
+        var newTarget = new OfficeConfiguration(target.Product, languages: target.Languages, version: new Version("16.0.20000.1"), excludedApplications: target.ExcludedApplications);
+        var update = planner.Create(new OfficeDeploymentRequest(OfficeDeploymentAction.Update, newTarget, @"C:\Media\Office"), inventory);
+        Assert.Contains("UnverifiedMedia", update.Blockers);
+        Assert.True(planner.Create(new OfficeDeploymentRequest(OfficeDeploymentAction.Update, newTarget, @"C:\Media\Office"), inventory, new OfficePlanningMedia(true, version: newTarget.Version)).Eligible);
+        var removesPrimary = planner.Create(new OfficeDeploymentRequest(OfficeDeploymentAction.RemoveLanguage, target, languages: new[] { "de-de" }), inventory);
+        Assert.Contains("PrimaryLanguageRequiresMigration", removesPrimary.Blockers);
+        var builder = new OdtConfigurationBuilder();
+        var install = builder.Install(target, @"C:\Media\Office & tools");
+        Assert.Equal("FALSE", install.SelectSingleNode("/Configuration/Add/@AllowCdnFallback")!.Value);
+        Assert.Equal("FALSE", install.SelectSingleNode("/Configuration/Property[@Name='FORCEAPPSHUTDOWN']/@Value")!.Value);
+        Assert.Null(install.SelectSingleNode("/Configuration/RemoveMSI"));
+        Assert.NotNull(builder.Migrate(target, @"C:\Media\Office", true).SelectSingleNode("/Configuration/RemoveMSI"));
+        Assert.Throws<OfficeException>(() => builder.Install(new OfficeConfiguration(target.Product), @"C:\Media\Office"));
+        Assert.Equal("FALSE", builder.RemoveProducts(new[] { "Standard2019Volume" }).SelectSingleNode("/Configuration/Remove/@All")!.Value);
+        var preference = new OfficeApplicationPreference(RegistryPath.Parse(@"HKCU\software\microsoft\office\16.0\word\options"), "test", "<&>",
+            OfficePreferenceValueType.String, OfficePreferenceApplication.Word, "synthetic");
+        var xml = builder.SetApplicationPreferences(new[] { preference });
+        Assert.Equal("<&>", xml.SelectSingleNode("/Configuration/AppSettings/User/@Value")!.Value);
+        Assert.Null(xml.SelectSingleNode("/Configuration/Display"));
+        Assert.Equal("False", builder.SetUpdateConfiguration(new OfficeUpdateConfiguration(enabled: false)).SelectSingleNode("/Configuration/Updates/@Enabled")!.Value);
+    }
+    [Fact]
     public void LegacyMsiAndUncertainAppPathsBlockUnsupportedPreservation()
     {
         var records = Registrations();
@@ -71,6 +103,9 @@ public sealed class OfficeWorkflowTests
         Assert.Equal(OfficeRelatedRole.ClickToRunInfrastructure, Assert.Single(inventory.RelatedComponents).Role);
         Assert.Throws<OfficeException>(() => new OfficeLocaleResolver().FromInstalledOffice(inventory));
         Assert.Contains("OtherProducts", new OfficeDeploymentValidator().Evaluate(new OfficeConfiguration(OfficeProduct.Standard2019Volume), inventory).Discrepancies);
+        var migration = new OfficeDeploymentPlanner().Create(new OfficeDeploymentRequest(OfficeDeploymentAction.Migrate, new OfficeConfiguration(OfficeProduct.Standard2019Volume)), inventory);
+        Assert.Contains("MsiConsentRequired", migration.Blockers);
+        Assert.Contains("UnapprovedProducts", migration.Blockers);
         var app = Record(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WINWORD.EXE", null, "", @"\\server\share\Office16\WINWORD.EXE");
         var evidence = new OfficeAppPathInspector().Inspect(app);
         Assert.Equal(OfficeAppPathState.Uncertain, evidence.State);

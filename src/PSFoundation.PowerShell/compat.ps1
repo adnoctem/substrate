@@ -1,5 +1,92 @@
 ﻿#Requires -Version 5.0
 
+function Get-OfficeDeploymentPlan {
+  <#
+  .SYNOPSIS
+    Builds a read-only Office operation plan with explicit authority.
+  .DESCRIPTION
+    C# evaluates the requested scope and observations. PowerShell retains schema validation, media discovery and the existing fingerprint format.
+  .PARAMETER Action
+    Install, Remove, Migrate, Update or a narrowly scoped maintenance operation.
+  .PARAMETER Configuration
+    Ordered target configuration. Not required for removal.
+  .PARAMETER SourcePath
+    Prepared media package, checked without downloading.
+  .PARAMETER RemoveProductId
+    Exact Click-to-Run products selected for removal.
+  .PARAMETER RemoveMsi
+    Explicit broad MSI removal consent for migration.
+  .PARAMETER Language
+    Exact resources selected by a language operation.
+  .PARAMETER Settings
+    Update settings or application preferences.
+  .PARAMETER Inventory
+    Optional offline observation, never trusted by execution.
+  .EXAMPLE
+    Get-OfficeDeploymentPlan -Action Install -Configuration $target -SourcePath C:\Media\Office
+  #>
+  [CmdletBinding()]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('Install', 'Remove', 'Migrate', 'Update', 'SetUpdateConfiguration', 'AddLanguage', 'RemoveLanguage', 'SetApplicationSelection', 'SetApplicationPreference')]
+    [string]$Action,
+    [object]$Configuration,
+    [string]$SourcePath,
+    [string[]]$RemoveProductId = @(),
+    [switch]$RemoveMsi,
+    [string[]]$Language = @(),
+    [object]$Settings = @{},
+    [object]$Inventory
+  )
+  if ($null -eq $RemoveProductId) { $RemoveProductId = @() }
+  if ($null -eq $Language) { $Language = @() }
+  if ($Action -notin @('Remove', 'Migrate') -and ($RemoveProductId.Count -or $RemoveMsi)) {
+    Stop-PSFOfficeOperation InvalidAuthority 'This action cannot remove products.'
+  }
+  if ($Action -notin @('AddLanguage', 'RemoveLanguage') -and $Language.Count) {
+    Stop-PSFOfficeOperation InvalidAuthority 'Language selection belongs only to language operations.'
+  }
+  Assert-PSFOfficeSetting $Action $Settings
+  $selection = @(ConvertTo-PSFOfficeList $RemoveProductId)
+  $languages = @(ConvertTo-PSFOfficeList $Language -Language)
+  $target = $null
+  if ($Configuration) { $target = ConvertTo-PSFOfficeConfiguration $Configuration }
+  [PSFoundation.PowerShell.Office.OfficeCompatibility]::ValidateRequest($Action, $target, $SourcePath, [string[]]$selection, [bool]$RemoveMsi, [string[]]$languages, $Settings)
+  if (-not $Inventory) { $Inventory = Get-OfficeInventory }
+  $media = $null
+  if ($target -and $SourcePath) {
+    $media = Test-OfficeDeploymentMedia -SourcePath $SourcePath -Configuration $target
+    if ($media.Valid -and -not $target.Version) { $target.Version = $media.Manifest.Version }
+  }
+  [PSFoundation.PowerShell.Office.OfficeCompatibility]::CreatePlan($Action, $target, $SourcePath, [string[]]$selection, [bool]$RemoveMsi,
+    [string[]]$languages, $Settings, $Inventory, $media, (Get-PSFOfficeFingerprint $Inventory))
+}
+
+function New-PSFOfficeXml {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Creates an in-memory XML document.')]
+  [CmdletBinding()]
+  param (
+    [ValidateSet('Download', 'Install', 'Remove', 'Migrate', 'Update', 'AddLanguage', 'RemoveLanguage', 'SetApplicationSelection', 'SetUpdateConfiguration', 'SetApplicationPreference')]
+    [string]$Action,
+    [object]$Configuration,
+    [string]$MediaPath,
+    [string[]]$RemoveProductId = @(),
+    [bool]$RemoveMsi = $false,
+    [string[]]$Language = @(),
+    [object]$Settings = @{}
+  )
+  if ($null -eq $RemoveProductId) { $RemoveProductId = @() }
+  if ($null -eq $Language) { $Language = @() }
+  if (($Action -notin @('Remove', 'Migrate') -and ($RemoveProductId.Count -or $RemoveMsi)) -or ($Action -eq 'Remove' -and $RemoveMsi)) {
+    Stop-PSFOfficeOperation InvalidAuthority 'XML operation cannot contain the requested removal.'
+  }
+  Assert-PSFOfficeSetting $Action $Settings
+  $target = $null
+  if ($Configuration) { $target = ConvertTo-PSFOfficeConfiguration $Configuration }
+  return , [PSFoundation.PowerShell.Office.OfficeCompatibility]::CreateXml($Action, $target, $MediaPath, $RemoveProductId, $RemoveMsi, $Language, $Settings)
+}
+
 function Test-OfficeDeployment {
   <#
   .SYNOPSIS

@@ -83,4 +83,25 @@ foreach ($case in @('Complete', 'Malformed', 'Conflict', 'Empty')) {
 $inventory = Read-Fixture $records
 $target.Version = '16.0.010417.20095'
 $observations['exact-version-text'] = Test-OfficeDeployment $target $inventory | Select-Object SchemaVersion, Compliant, Discrepancies, Unknowns
+$observations['plan-exact-version-text'] = Get-OfficeDeploymentPlan -Action Install -Configuration $target -Inventory $inventory
+$target.Version = '16.0.10417.20095'
+$preference = [ordered]@{ Key = 'software\microsoft\office\16.0\word\options'; Name = 'synthetic'; Value = '<&>'; Type = 'REG_SZ'; App = 'word16'; Id = 'synthetic' }
+foreach ($action in @('Install', 'Migrate', 'Update', 'Remove', 'AddLanguage', 'RemoveLanguage', 'SetApplicationSelection', 'SetUpdateConfiguration', 'SetApplicationPreference')) {
+  $arguments = @{ Action = $action; Configuration = $target; Inventory = $inventory }
+  $xmlArguments = @{ Action = $action; Configuration = $target; MediaPath = 'C:\Media\Office & tools' }
+  switch ($action) {
+    Remove {
+      $arguments.Remove('Configuration'); $arguments.RemoveProductId = @('Standard2019Volume')
+      $xmlArguments.Remove('Configuration'); $xmlArguments.RemoveProductId = @('Standard2019Volume')
+    }
+    Migrate { $arguments.RemoveProductId = @('Standard2019Volume'); $arguments.RemoveMsi = $true; $xmlArguments.RemoveMsi = $true }
+    { $_ -in @('AddLanguage', 'RemoveLanguage') } { $arguments.Language = @('en-us'); $xmlArguments.Language = @('en-us') }
+    SetUpdateConfiguration { $arguments.Settings = [ordered]@{ Enabled = $false; Channel = 'PerpetualVL2019' }; $xmlArguments.Settings = $arguments.Settings }
+    SetApplicationPreference { $arguments.Settings = @{ Preferences = @($preference) }; $xmlArguments.Settings = $arguments.Settings }
+  }
+  $observations["plan-$action"] = Get-OfficeDeploymentPlan @arguments
+  $observations["xml-$action"] = (& $module { param($Values) (New-PSFOfficeXml @Values).OuterXml } $xmlArguments)
+}
+$observations['plan-clean'] = Get-OfficeDeploymentPlan -Action Install -Configuration $target -Inventory (Read-Fixture @())
+$observations['xml-download'] = & $module { param($Target) (New-PSFOfficeXml -Action Download -Configuration $Target -MediaPath 'C:\Media\Office').OuterXml } $target
 $observations | ConvertTo-Json -Depth 25 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
