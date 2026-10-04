@@ -57,16 +57,18 @@ public sealed class RegistrySecurityService
         }
     }
     /// <summary>Writes only selected parts. Privileges and inheritance policy are the caller's responsibility.</summary>
-    public void Write(RegistryPath path, RegistrySecurityDescriptor descriptor, RegistrySecurityParts parts)
+    public void Write(RegistryPath path, RegistrySecurityDescriptor descriptor, RegistrySecurityParts parts, bool? protectAccessRules = null)
     {
         RegistryManager.RequireNonRoot(path);
         Validate(parts);
         if (descriptor == null)
             throw new ArgumentNullException(nameof(descriptor));
+        if (protectAccessRules.HasValue && (parts & RegistrySecurityParts.Access) == 0)
+            throw new ArgumentException("Inheritance protection requires the access section.", nameof(parts));
         var rights = ((parts & (RegistrySecurityParts.Owner | RegistrySecurityParts.Group)) != 0 ? 0x80000 : 0)
             | ((parts & RegistrySecurityParts.Access) != 0 ? 0x40000 : 0) | ((parts & RegistrySecurityParts.Audit) != 0 ? 0x1000000 : 0);
         using (var key = Open(path, rights))
-            NativeRegistry.ThrowIfError(NativeRegistry.RegSetKeySecurity(key, (uint)parts, descriptor.GetBinaryForm()));
+            NativeRegistry.ThrowIfError(NativeRegistry.RegSetKeySecurity(key, (uint)parts | (protectAccessRules.HasValue ? protectAccessRules.Value ? 0x80000000u : 0x20000000u : 0u), descriptor.GetBinaryForm()));
     }
     private SafeRegistryHandle Open(RegistryPath path, int access)
     {

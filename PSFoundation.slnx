@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/PSFoundation.WinRtHost/PSFoundation.WinRtHost.csproj" />
     <Project Path="src/PSFoundation.Office/PSFoundation.Office.csproj" />
     <Project Path="src/PSFoundation.Security/PSFoundation.Security.csproj" />
     <Project Path="src/PSFoundation.Core/PSFoundation.Core.csproj" />

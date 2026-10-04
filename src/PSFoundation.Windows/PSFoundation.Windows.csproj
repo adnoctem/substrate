@@ -4,6 +4,7 @@
     <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../PSFoundation.Interop/PSFoundation.Interop.csproj" />
     <ProjectReference Include="../PSFoundation.Registry/PSFoundation.Registry.csproj" />
     <ProjectReference Include="../PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
     <ProjectReference Include="../PSFoundation.IO/PSFoundation.IO.csproj" />

@@ -247,3 +247,48 @@ No-op execution rechecks inventory before reporting success. Explicit applicatio
 termination. Cancellation between phases returns observed progress after cleanup; it never implies installer rollback. If final log writing
 fails, execution attempts to update the journal with that failure rather than leaving a completed result. PowerShell confirmation remains in
 the public wrapper; C# has no prompt or elevation policy. Full native installation/recovery and live Outlook validation remain pending.
+
+## Final domain cutover
+
+The 188-function inventory now has no legacy implementation owners. Parameter contracts remain compared with v1 in both hosts; the following
+native-provider and safety differences are intentional and still require appropriate live validation.
+
+- Windows Update uses native WUA, with exact update IDs, fresh selection, quiet installation and explicit EULA acceptance. The library never
+  reboots; the PowerShell adapter honors the existing explicit reboot switches. `Test-PSWindowsUpdateAvailable` still reports whether that
+  module is installed, but importing PSFoundation or calling the new update API no longer requires or imports it. Native errors replace
+  provider-specific diagnostics. Cancellation requests a native abort and waits for the operation to settle; it does not roll back updates.
+- AppX uses an isolated .NET Framework WinRT helper; provisioning uses the system DISM executable. Package identities are re-read before
+  removal. System-signed packages are conservatively marked `NonRemovable`, in addition to framework/resource and protected-name checks;
+  this is not an exact reproduction of the old provider's undocumented flag. `User` remains null when that provider-specific value is not
+  available. Reset explicitly clears the selected current user's application data; it does not claim to reproduce every repair or
+  registration side effect of `Reset-AppxPackage`. Provisioning does not change existing user registrations.
+- Store integration uses the documented `SearchForAllUpdatesAsync` members. The old code called a nonexistent parameterless search overload
+  and referenced unavailable fields; `ItemKind`, `CompletedInstallCount` and `TotalInstallCount` remain present as null. Microsoft's
+  [AppInstallManager documentation](https://learn.microsoft.com/en-us/uwp/api/windows.applicationmodel.store.preview.installcontrol.appinstallmanager)
+  describes restricted capability requirements: access failures are surfaced, never treated as zero updates or a successful installation.
+  Store access remains a live-validation gate, separate from ordinary AppX inventory.
+- WinGet uses the installed `winget.exe` directly, with exact selection and noninteractive flags. It does not bootstrap the
+  Microsoft.WinGet.Client module. Missing executable results use `WinGetUnavailable`; repository agreements are explicit in the C# request.
+  The PowerShell adapter retains its existing unattended-install intent by accepting source/package agreements.
+- Module cleanup removes only the exact selected directories within the requested scope/path, refuses reparse points and cannot remove a
+  parent containing newer version directories. Binary modules are included. `-All -WhatIf` no longer asks an additional destructive-action
+  question. Restores accept arrays or legacy single objects and validate names, versions and scopes before installation. The explicit
+  repository adapter uses installed providers and their trust policy; it does not bootstrap a provider or set `SkipPublisherCheck`. `-Force`
+  now also requests PSResourceGet reinstallation. Success chatter uses verbose output; repository metadata is `Unknown` when ordinary module
+  discovery cannot supply it. Cancellation/failure during deletion may leave a partially removed version.
+- Account usage reads service and scheduled-task principals through CIM, with remote credentials supplied to the session. This avoids
+  localized `schtasks` CSV headings and the old unsupported `Get-CimInstance -Credential` call. Task states use native enum names. Directory
+  credential validation uses Windows network logon; lockout events use native Event Log RPC and named event fields, rather than remoting
+  script serialization. These transports have their own remote-access requirements.
+- Certificate inventory returns detached public certificates, owned by the recipient, and formats the actual certificate-template extension
+  instead of the old accidental first-character extraction. Remote reads use Windows certificate-store access, not WinRM. Remote CurrentUser
+  requires a loaded SID hive; no interactive profile is created. Signing uses SHA-256, a caller-provided private-key certificate, no signing
+  wizard and optional Authenticode timestamps; it refuses filesystem reparse points and never changes certificate trust stores.
+- Credential files retain the v1 AES envelope and separate key file for interoperability, with protected files created before writing secret
+  bytes. The format is not authenticated encryption; publishing two files is not atomic. Ownership changes use a temporary thread token
+  instead of adjusting process-wide privileges, never delete contents as a fallback, and refuse filesystem reparse points. Recursive
+  registry ownership grants the selected SID on each processed key; missing/inaccessible keys produce a failure instead of a false
+  completion. A subtree confirmation covers the recursive operation. These changes are not transactions.
+- Elevation stays at the PowerShell boundary. The C# launcher explicitly returns the child exit code; it never exits the caller's
+  application. Script argument forwarding accepts only inert, supported data types and refuses credentials/SecureString values in process
+  arguments. Drive mapping and font installation retain explicit caller authority and do not silently elevate or restart the system.

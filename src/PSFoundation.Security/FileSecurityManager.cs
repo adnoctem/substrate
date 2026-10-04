@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using PSFoundation.IO;
+using Microsoft.Win32.SafeHandles;
 
 namespace PSFoundation.Security;
 
@@ -35,6 +36,25 @@ public sealed class FileSecurityDescriptor
 /// <summary>Native Windows file/directory security operations. Authority, privileges and link policy remain explicit caller responsibilities.</summary>
 public sealed class FileSecurityManager
 {
+    /// <summary>Creates a new file with its security applied before any bytes are written. The caller owns the stream; existing paths are refused.</summary>
+    public FileStream CreateFile(FileSystemPath path, FileSecurityDescriptor descriptor)
+    {
+        Require(path, FileSecurityParts.Access);
+        if (descriptor == null)
+            throw new ArgumentNullException(nameof(descriptor));
+        var pinned = GCHandle.Alloc(descriptor.GetBinaryForm(), GCHandleType.Pinned);
+        try
+        {
+            var attributes = new SecurityAttributes { Length = Marshal.SizeOf(typeof(SecurityAttributes)), Descriptor = pinned.AddrOfPinnedObject() };
+            var handle = CreateFileNative(path.Value, 0x40000000, 0, ref attributes, 1, 0x00200080, IntPtr.Zero);
+            if (handle.IsInvalid)
+            { var error = Marshal.GetLastWin32Error(); handle.Dispose(); throw new Win32Exception(error, "Cannot create file with explicit security."); }
+            try
+            { return new FileStream(handle, FileAccess.Write); }
+            catch { handle.Dispose(); throw; }
+        }
+        finally { pinned.Free(); }
+    }
     public FileSecurityDescriptor Read(FileSystemPath path, FileSecurityParts parts = FileSecurityParts.Owner | FileSecurityParts.Group | FileSecurityParts.Access)
     {
         Require(path, parts);
@@ -106,4 +126,7 @@ public sealed class FileSecurityManager
     [DllImport("kernel32.dll", EntryPoint = "CreateDirectoryW", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CreateDirectoryNative(string path, ref SecurityAttributes attributes);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("kernel32.dll", EntryPoint = "CreateFileW", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern SafeFileHandle CreateFileNative(string path, uint access, uint share, ref SecurityAttributes attributes, uint disposition, uint flags, IntPtr template);
 }

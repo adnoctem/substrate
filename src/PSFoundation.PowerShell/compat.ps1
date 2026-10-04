@@ -1,5 +1,303 @@
 ﻿#Requires -Version 5.0
 
+# Compatibility policy belongs to this PowerShell module, not the reusable service manager.
+$script:ProtectedServiceNames = @('RemoteAccess', 'RemoteRegistry')
+
+function Install-UPFAppxPackage {
+  <#
+  .SYNOPSIS
+    Installs or provisions a local AppX/MSIX package.
+  .DESCRIPTION
+    Uses native Windows deployment for current-user installs and system DISM for provisioning. Windows validates package signatures.
+  .PARAMETER Path
+    Local package file.
+  .PARAMETER DependencyPath
+    Local dependency package files.
+  .PARAMETER LicensePath
+    Optional provisioning license.
+  .PARAMETER Provisioned
+    Provision for future users.
+  .PARAMETER SkipLicense
+    Explicitly skip provisioning license processing.
+  .PARAMETER ForceUpdateFromAnyVersion
+    Allow a package downgrade.
+  .PARAMETER DryRun
+    Preview without applying changes.
+  .EXAMPLE
+    Install-UPFAppxPackage -Path '.\Example.msix' -DryRun
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string]$Path,
+    [string[]]$DependencyPath,
+    [string]$LicensePath,
+    [switch]$Provisioned,
+    [switch]$SkipLicense,
+    [switch]$ForceUpdateFromAnyVersion,
+    [switch]$DryRun
+  )
+  $resolved = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+  $action = if ($Provisioned) { 'Provision' } else { 'Install' }
+  if ($DryRun -or -not $PSCmdlet.ShouldProcess($resolved, "$action UPF AppX/MSIX package")) {
+    return New-PackageLifecycleResult -Target $resolved -Source 'UPFAppxPackage' -Action $action -Status 'Skipped' -SkippedReason 'WhatIf'
+  }
+  $dependencies = @($DependencyPath | ForEach-Object { $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($_) })
+  $license = if ($LicensePath) { $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($LicensePath) } else { $null }
+  [PSFoundation.PowerShell.Packages.AppxCompatibility]::Install($resolved, $dependencies, $license, $Provisioned, $SkipLicense, $ForceUpdateFromAnyVersion)
+}
+
+function Update-UPFAppxPackage {
+  <#
+  .SYNOPSIS
+    Updates a package using a local AppX/MSIX file.
+  .DESCRIPTION
+    Reuses the native install operation with explicit version replacement.
+  .PARAMETER Path
+    Local package file.
+  .PARAMETER DependencyPath
+    Dependency files.
+  .PARAMETER DryRun
+    Preview without applying changes.
+  .EXAMPLE
+    Update-UPFAppxPackage -Path '.\Example.msix' -DryRun
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string]$Path,
+    [string[]]$DependencyPath,
+    [switch]$DryRun
+  )
+  Install-UPFAppxPackage -Path $Path -DependencyPath $DependencyPath -ForceUpdateFromAnyVersion -DryRun:$DryRun -WhatIf:$WhatIfPreference
+}
+
+function Install-UPFAppxPackageSet {
+  <#
+  .SYNOPSIS
+    Installs a sequence of local AppX/MSIX packages.
+  .DESCRIPTION
+    Applies the singular native install operation with the same confirmation and result handling.
+  .PARAMETER Path
+    Package files.
+  .PARAMETER DependencyPath
+    Shared dependency files.
+  .PARAMETER Provisioned
+    Provision for future users.
+  .PARAMETER SkipLicense
+    Skip provisioning license processing.
+  .PARAMETER ForceUpdateFromAnyVersion
+    Permit version replacement.
+  .PARAMETER PassThru
+    Return lifecycle results.
+  .PARAMETER DryRun
+    Preview without applying changes.
+  .EXAMPLE
+    Install-UPFAppxPackageSet -Path '.\One.msix', '.\Two.msix' -PassThru -DryRun
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)][string[]]$Path,
+    [string[]]$DependencyPath,
+    [switch]$Provisioned,
+    [switch]$SkipLicense,
+    [switch]$ForceUpdateFromAnyVersion,
+    [switch]$PassThru,
+    [switch]$DryRun
+  )
+  $results = foreach ($item in $Path) {
+    Install-UPFAppxPackage -Path $item -DependencyPath $DependencyPath -Provisioned:$Provisioned -SkipLicense:$SkipLicense -ForceUpdateFromAnyVersion:$ForceUpdateFromAnyVersion -DryRun:$DryRun -WhatIf:$WhatIfPreference
+  }
+  if ($PassThru) { $results }
+}
+
+function Uninstall-UPFAppxPackageSet {
+  <#
+  .SYNOPSIS
+    Resolves package patterns and removes eligible AppX/MSIX packages.
+  .DESCRIPTION
+    Uses the native discovery and singular removal APIs. Protected removals require both IncludeProtected and Force.
+  .PARAMETER Pattern
+    Wildcard package patterns.
+  .PARAMETER Installed
+    Include installed packages; enabled by default.
+  .PARAMETER Provisioned
+    Include provisioning records.
+  .PARAMETER AllUsers
+    Include all user registrations.
+  .PARAMETER IncludeProtected
+    Consider protected packages.
+  .PARAMETER Force
+    Allow protected removal with IncludeProtected.
+  .PARAMETER PassThru
+    Return lifecycle results.
+  .PARAMETER DryRun
+    Preview without applying changes.
+  .EXAMPLE
+    Uninstall-UPFAppxPackageSet -Pattern 'Microsoft.Zune*' -DryRun -PassThru
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)][string[]]$Pattern,
+    [switch]$Installed,
+    [switch]$Provisioned,
+    [switch]$AllUsers,
+    [switch]$IncludeProtected,
+    [switch]$Force,
+    [switch]$PassThru,
+    [switch]$DryRun
+  )
+  $includeInstalled = $Installed -or -not $PSBoundParameters.ContainsKey('Installed')
+  $results = @(foreach ($match in Find-UPFAppxPackage -Pattern $Pattern -Installed:$includeInstalled -Provisioned:$Provisioned -AllUsers:$AllUsers -IncludeProtected:$IncludeProtected) {
+      if (-not $match.Matched) {
+        New-PackageLifecycleResult -Target $match.Pattern -Source 'UPFAppxPackage' -Action 'Resolve' -Status 'Skipped' -SkippedReason 'NoMatch'
+      }
+      else {
+        Uninstall-UPFAppxPackage -InputObject $match.Package -AllUsers:$AllUsers -IncludeProtected:$IncludeProtected -Force:$Force -DryRun:$DryRun -WhatIf:$WhatIfPreference
+      }
+    })
+  if ($PassThru) { return $results }
+  $removed = @($results | Where-Object Status -EQ 'Removed').Count
+  $skipped = @($results | Where-Object Status -EQ 'Skipped').Count
+  $failed = @($results | Where-Object Status -EQ 'Failed').Count
+  Write-Log -Message "UPF AppX/MSIX package removal complete. Removed: $removed | Skipped: $skipped | Failed: $failed" -Color $(if ($failed -gt 0) { 'Yellow' } else { 'Green' })
+}
+
+function Merge-ObjectArrays {
+  <#
+  .SYNOPSIS
+    Merges matching override properties into the base array in place.
+  .DESCRIPTION
+    Matches Name and, when supplied, Path. Changes only existing base keys.
+  .PARAMETER Base
+    Base records to modify.
+  .PARAMETER Overrides
+    Override records containing matching identity and replacement properties.
+  .EXAMPLE
+    Merge-ObjectArrays -Base $base -Overrides $overrides
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Preserves the public v1 name.')]
+  [OutputType([void])]
+  param ([Parameter(Mandatory = $true)][array]$Base, [Parameter(Mandatory = $true)][array]$Overrides)
+  [PSFoundation.PowerShell.Core.DataCompatibility]::Merge($Base, $Overrides)
+}
+
+function Get-DefaultApp {
+  <#
+  .SYNOPSIS
+    Retrieves the current user's default application command for an extension.
+  .DESCRIPTION
+    Resolves the UserChoice ProgId and its registered open command without executing it.
+  .PARAMETER FileExtension
+    File extension including its leading dot.
+  .EXAMPLE
+    Get-DefaultApp -FileExtension '.txt'
+  #>
+  [OutputType([string])]
+  param ([Parameter(Mandatory = $true)][string]$FileExtension)
+  $association = [PSFoundation.Windows.ApplicationAssociationManager]::new().Get($FileExtension)
+  if ($null -eq $association) { Write-Error "Could not retrieve default application for '$FileExtension'."; return }
+  $association.Command
+}
+
+function Request-AdministratorPrivilege {
+  <#
+  .SYNOPSIS
+    Relaunches the calling entry script through an explicit Windows UAC request.
+  .DESCRIPTION
+    Returns immediately when elevated. Otherwise forwards inert arguments to
+    the same PowerShell executable, waits and exits with the child's exit code.
+    Encoded arguments are not encrypted: never pass secrets in command arguments.
+  .PARAMETER ScriptPath
+    Entry script, defaulting to the caller's script path.
+  .PARAMETER BoundParameters
+    Named arguments including explicit switch values. Elevated is reserved.
+  .PARAMETER ArgumentList
+    Positional arguments. Only inert scalar values and arrays are accepted.
+  .PARAMETER IsElevatedRelaunch
+    Loop guard passed from the caller's Elevated switch.
+  .EXAMPLE
+    Request-AdministratorPrivilege -BoundParameters $PSBoundParameters -ArgumentList $args -IsElevatedRelaunch:$Elevated
+  #>
+  [CmdletBinding()]
+  [OutputType([void])]
+  param (
+    [string]$ScriptPath = $MyInvocation.PSCommandPath,
+    [System.Collections.IDictionary]$BoundParameters,
+    [object[]]$ArgumentList,
+    [switch]$IsElevatedRelaunch
+  )
+  if (Test-Elevation) { return }
+  if ($IsElevatedRelaunch) {
+    Write-Error -ErrorAction Continue 'Elevation was attempted but the process is still not elevated. Aborting to avoid a re-launch loop.'
+    exit 1
+  }
+  if ([string]::IsNullOrWhiteSpace($ScriptPath)) { throw 'Could not determine the script path to re-launch. Pass -ScriptPath explicitly.' }
+  $scriptFile = (Resolve-Path -LiteralPath $ScriptPath -ErrorAction Stop).ProviderPath
+  $hostExe = (Get-Process -Id $PID).Path
+  $workingDirectory = (Get-Location -PSProvider FileSystem).ProviderPath
+  try {
+    $exitCode = [PSFoundation.PowerShell.Security.ElevationCompatibility]::Run($hostExe, $scriptFile, $workingDirectory, $BoundParameters, $ArgumentList)
+    exit $exitCode
+  }
+  catch {
+    $native = $_.Exception.GetBaseException()
+    if ($native -is [System.ComponentModel.Win32Exception] -and $native.NativeErrorCode -eq 1223) {
+      Write-Error -ErrorAction Continue 'Elevation was cancelled by the user. Administrator privileges are required to continue.'
+      exit 1223
+    }
+    throw
+  }
+}
+
+function New-EncryptedCredentialFile {
+  <#
+  .SYNOPSIS
+    Stores a credential and a separate random AES key in protected files.
+  .DESCRIPTION
+    Uses the compatible v1 file format. Restricts access before writing secret
+    bytes. The caller must control both parent directories. The two file
+    replacements are not transactional; recreate the pair after a partial failure.
+  .PARAMETER Path
+    Credential destination.
+  .PARAMETER KeyPath
+    Separate key destination.
+  .PARAMETER Credential
+    Credential to store without an interactive prompt.
+  .PARAMETER UserName
+    Account name for an explicit interactive password prompt.
+  .EXAMPLE
+    New-EncryptedCredentialFile -Path '.\credential.bin' -KeyPath '.\credential.key' -Credential (Get-Credential)
+  #>
+  [OutputType([PSCustomObject])]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  param (
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$KeyPath,
+    [Parameter(Mandatory = $false)][PSCredential]$Credential,
+    [Parameter(Mandatory = $false)][string]$UserName
+  )
+  if ($null -eq $Credential -and -not $UserName) { throw 'Supply -Credential (programmatic) or -UserName (interactive password prompt).' }
+  $ownedPassword = $null
+  try {
+    if ($null -eq $Credential) {
+      $ownedPassword = Read-Host -Prompt "Password for '$UserName'" -AsSecureString
+      $Credential = [PSCredential]::new($UserName, $ownedPassword)
+    }
+    if (-not $PSCmdlet.ShouldProcess("$Path / $KeyPath", 'Write encrypted credential files')) {
+      if ($WhatIfPreference) { New-OperationResult -Target $Path -Source 'CredentialFile' -Action 'Write' -Status 'DryRun' -Detail 'No files written.' }
+      return
+    }
+    $destination = [PSFoundation.IO.FileSystemPath]::Parse($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path))
+    $key = [PSFoundation.IO.FileSystemPath]::Parse($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($KeyPath))
+    [PSFoundation.Security.CredentialFileManager]::new().Write($destination, $key, $Credential.UserName, $Credential.Password, $true)
+    New-OperationResult -Target $Path -Source 'CredentialFile' -Action 'Write' -Status 'Completed' -Detail 'Credential stored with a random AES key; key file written separately.'
+  }
+  finally { if ($null -ne $ownedPassword) { $ownedPassword.Dispose() } }
+}
+
 function Get-OfficeDeploymentRecovery {
   <#
   .SYNOPSIS
@@ -2504,4 +2802,219 @@ function Resume-OfficeMigration {
     }
     Invoke-PSFOfficeRecovery @parameters
   }
+}
+
+function Convert-Quote {
+  <#
+  .SYNOPSIS
+    Converts single quotes to double quotes or vice versa in a specified file.
+  .DESCRIPTION
+    This function reads the content of a file and replaces all single quotes with double quotes or all double quotes with single quotes, based on the specified parameter. It is useful for standardizing quote usage in configuration files, scripts, or any text files.
+  .PARAMETER Path
+    The full path to the file that needs to be processed. The file must exist and be accessible for reading and writing.
+  .PARAMETER To
+    Specifies the type of quote conversion to perform. Acceptable values are "Single" for converting double quotes to single quotes and "Double" for converting single quotes to double quotes. The default value is "Double".
+  .EXAMPLE
+    PS> Convert-Quote -Path 'C:\config.txt' -To 'Single'
+    This command converts all double quotes in the file 'C:\config.txt' to single quotes.
+  .EXAMPLE
+    PS> Convert-Quote -Path 'C:\config.txt' -To 'Double'
+    This command converts all single quotes in the file 'C:\config.txt' to double quotes.
+  .LINK
+    https://github.com/adnoctem/winkit/blob/main/lib/data.ps1
+  .NOTES
+    Author: MVProwess <info@mvprowess.com>
+    License: MIT
+    #>
+
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Function merges two object arrays; existing public name is intentionally plural.')]
+  [OutputType([void])]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("Single", "Double")]
+    [string]$To = "Double"
+  )
+  $content = Get-Content -Path $Path -Raw
+  $converted = [PSFoundation.Core.TextConverter]::ConvertQuotes([string]$content, [PSFoundation.Core.QuoteStyle]$To)
+  Set-Content -Path $Path -Value $converted
+
+}
+
+function New-DriveMapping {
+  <#
+    .SYNOPSIS
+      New-DriveMapping - Persistently maps a local folder to a drive letter.
+    .DESCRIPTION
+      Creates a persistent mapping of a local folder (e.g. C:\Development) to a
+      drive letter (e.g. D:) via the DOS Devices registry key, plus a matching
+      Explorer volume-label entry under DriveIcons.
+
+      The mapping only takes effect for the current session once the registry
+      value is read at logon; a reboot is required for it to become visible to
+      Explorer and most applications. Unlike the reference implementation, this
+      function NEVER reboots by default - a restart only happens when -Restart
+      is explicitly supplied.
+
+      Requires elevation (writes HKLM registry values).
+    .PARAMETER DriveLetter
+      Drive letter to map to Path. Must not be a physical volume, and must not
+      already be mapped (unless -Force).
+    .PARAMETER Path
+      Folder path to map to DriveLetter. Must exist and must not be a root-level
+      folder.
+    .PARAMETER SourceDriveLabel
+      Label to apply to the source drive in Explorer. Default: current volume
+      label (or the existing DriveIcons label when the volume has none).
+    .PARAMETER DriveLabel
+      Volume label for the mapped drive. Default: leaf folder name of Path.
+    .PARAMETER Restart
+      When supplied, restarts the machine after the mapping is created. A
+      library function never reboots the machine silently - this is opt-in.
+    .PARAMETER Force
+      Override an existing mapping on DriveLetter, and override the source
+      drive's DriveIcons label.
+    .OUTPUTS
+      PSCustomObject - New-OperationResult-shaped result.
+    .EXAMPLE
+      PS> New-DriveMapping -DriveLetter 'D' -Path 'C:\Development'
+    .LINK
+      https://github.com/adnoctem/winkit/lib/system.ps1
+    .NOTES
+      Author: MVProwess <info@mvprowess.com>
+      License: MIT
+  #>
+
+  [OutputType([PSCustomObject])]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  param (
+    [Parameter(Mandatory = $true, Position = 0)]
+    [ValidateLength(1, 1)]
+    [ValidatePattern('[A-Z]')]
+    [ValidateScript({
+        if (($null -ne (Get-Volume $_ -ErrorAction SilentlyContinue))) {
+          throw 'DriveLetter cannot be a physical volume'
+        }
+        $true
+      })]
+    [string]
+    $DriveLetter,
+
+    [Parameter(Mandatory = $true, Position = 1)]
+    [ValidateScript({
+        if ((Test-Path -LiteralPath $_) -and ((Split-Path -Path $_ -Leaf) -ne $_)) {
+          return $true
+        }
+        throw 'Path does not exist or is a root level folder'
+      })]
+    [string]
+    $Path,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $SourceDriveLabel,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $DriveLabel,
+
+    [Parameter(Mandatory = $false)]
+    [switch]
+    $Restart,
+
+    [Parameter(Mandatory = $false)]
+    [switch]
+    $Force
+  )
+  if (-not (Test-Elevation)) { throw 'New-DriveMapping requires an elevated process (administrator token).' }
+  $manager = [PSFoundation.Windows.DriveMappingManager]::new()
+  $directory = [PSFoundation.IO.FileSystemPath]::Parse([IO.Path]::GetFullPath($Path))
+  $plan = $manager.Prepare([char]$DriveLetter.ToUpperInvariant(), $directory, $DriveLabel, $SourceDriveLabel, [bool]$Force)
+  if (-not $PSCmdlet.ShouldProcess("$DriveLetter`:", "Map folder '$Path' to drive letter")) {
+    if ($WhatIfPreference) { New-OperationResult -Target "$DriveLetter`:" -Source 'DOS Devices' -Action CreateMapping -Status DryRun -Detail "Would map '$Path' to drive letter '$DriveLetter`:'." }
+    return
+  }
+  $result = $manager.Create($plan.DriveLetter, $plan.Directory, $plan.Label, $plan.SourceLabel, [bool]$Force, [Threading.CancellationToken]::None)
+  if ($Restart) { Restart-Computer -Force }
+  New-OperationResult -Target "$($result.DriveLetter):" -Source 'DOS Devices' -Action CreateMapping -Status Completed -Detail "Mapped '$Path' to drive letter '$($result.DriveLetter):'." -Property @{ Path = $result.Directory.Value; DriveLabel = $result.Label }
+
+}
+
+function Remove-DriveMapping {
+  <#
+    .SYNOPSIS
+      Remove-DriveMapping - Removes a persistent folder-to-drive-letter mapping.
+    .DESCRIPTION
+      Removes a mapping created by New-DriveMapping: deletes the DOS Devices
+      value, removes the mapped drive's DriveIcons label, and - when the removed
+      mapping was the last one to its source drive - restores the source
+      drive's volume label.
+
+      Never reboots by default; a restart only happens when -Restart is
+      explicitly supplied.
+
+      Requires elevation (writes HKLM registry values).
+    .PARAMETER DriveLetter
+      The mapped drive letter to remove. Must currently be mapped.
+    .PARAMETER SourceDriveLabel
+      Label to restore on the source drive. Default: the label previously
+      stored in DriveIcons, or 'System'/'Data' based on the drive role.
+    .PARAMETER Restart
+      When supplied, restarts the machine after the mapping is removed.
+    .PARAMETER Force
+      Force restoring the source drive label even when other mappings to the
+      source drive remain.
+    .OUTPUTS
+      PSCustomObject - New-OperationResult-shaped result.
+    .EXAMPLE
+      PS> Remove-DriveMapping -DriveLetter 'D'
+    .LINK
+      https://github.com/adnoctem/winkit/lib/system.ps1
+    .NOTES
+      Author: MVProwess <info@mvprowess.com>
+      License: MIT
+  #>
+
+  [OutputType([PSCustomObject])]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+  param (
+    [Parameter(Mandatory = $true, Position = 0)]
+    [ValidateLength(1, 1)]
+    [ValidatePattern('[A-Z]')]
+    [ValidateScript({
+        $value = Get-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices' -Name "$_`:" -ErrorAction SilentlyContinue
+        if ($null -eq $value) {
+          throw 'Drive letter not found or does not represent a mapped drive'
+        }
+        $true
+      })]
+    [string]
+    $DriveLetter,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $SourceDriveLabel,
+
+    [Parameter(Mandatory = $false)]
+    [switch]
+    $Restart,
+
+    [Parameter(Mandatory = $false)]
+    [switch]
+    $Force
+  )
+  if (-not (Test-Elevation)) { throw 'Remove-DriveMapping requires an elevated process (administrator token).' }
+  $manager = [PSFoundation.Windows.DriveMappingManager]::new()
+  $mapping = $manager.Get([char]$DriveLetter.ToUpperInvariant())
+  if (-not $mapping) { throw "Drive letter '$DriveLetter`:' is not a mapped drive" }
+  if (-not $PSCmdlet.ShouldProcess("$DriveLetter`:", 'Remove drive letter mapping')) {
+    if ($WhatIfPreference) { New-OperationResult -Target "$DriveLetter`:" -Source 'DOS Devices' -Action RemoveMapping -Status DryRun -Detail "Would remove mapping for drive letter '$DriveLetter`:'." }
+    return
+  }
+  $label = $manager.Remove($mapping.DriveLetter, $SourceDriveLabel, [bool]$Force, [Threading.CancellationToken]::None)
+  if ($Restart) { Restart-Computer -Force }
+  New-OperationResult -Target "$($mapping.DriveLetter):" -Source 'DOS Devices' -Action RemoveMapping -Status Completed -Detail "Removed mapping for drive letter '$($mapping.DriveLetter):'." -Property @{ SourceDriveLabel = $label }
+
 }

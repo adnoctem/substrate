@@ -1,11 +1,39 @@
 # v2 implementation checkpoint
 
+## Current status: implementation complete
+
+As of 2026-10-05, all **188 public functions** have a migrated owner: **128 compiled cmdlets and 60 C#-backed compatibility functions**. All
+four aliases remain, for 192 exports. The staged module contains the assemblies, loader, `compat.ps1`, and the security configuration; no
+frozen v1 implementation scripts are shipped. The historical checkpoints below record how we arrived here.
+
+The final implementation pass covers Windows Update, AppX/MSIX, Store and WinGet integration, module maintenance, directory and account
+discovery, firewall rules, ownership, credentials, certificates/signing, prerequisites, drive mappings, fonts and data helpers. Owned
+functionality uses focused managers; separately maintained executables remain tools. Windows Update uses WUA directly and the staged
+manifest no longer imports PSWindowsUpdate. Removing that dependency also prevents its aliases from shadowing our new cmdlets.
+
+AppX/Store calls run through the shipped x64 .NET Framework WinRT helper, keeping the same native implementation usable from both PowerShell
+hosts. Other C# applications using these APIs must deploy that helper beside `PSFoundation.Packages.dll`, or explicitly supply its path.
+Module repository installation uses an explicit provider interface, with an implementation in the PowerShell adapter for an already
+installed/configured PSResourceGet or PowerShellGet provider. The domain library has no PowerShell dependency, provider bootstrap or
+repository trust policy.
+
+This is implementation completion, **not a production or release-validation claim**. Local checks and compatibility observations are
+recorded below; live mutation, restricted Store access, remote credentials and the runtime matrix still need validation. See
+[the compatibility notes](compatibility-exceptions.md#final-domain-cutover) for deliberate behavior changes.
+
+Final local validation: the solution builds with zero warnings/errors, **237 managed tests pass per target** (474 executions), and all **24
+packaged PowerShell checks** pass across Windows PowerShell 5.1 and PowerShell 7, including targeted reruns after the final import and
+service-policy corrections. Only five focused managed tests and two fresh-host workflow checks were added in this pass. The guarded probes
+exercise native AppX inventory, public certificate reads, bidirectional PowerShell/AES credential compatibility, synthetic module cleanup,
+prerequisite reports and update WhatIf guards. They do not install real packages or change machine policy. Formatting and lint pass;
+pre-commit remains the required final commit gate.
+
 ## Baseline and branch
 
 - Frozen source: v1.8.7, `d2d1498275806684b44169504146302d54b7a084`.
 - Main CI/release freeze: `ba47a1e1ca6997012f244c7994193358f3f0e90b`; local only, not pushed.
 - Development branch: `MVProwess/v2`. The supplied `v2.md` is carried on this branch only.
-- Scope: 188 public functions, four aliases, 19 source domains. This is an incremental rewrite, not a completed v2 release.
+- Scope: 188 public functions, four aliases, 19 source domains. Implementation is complete; v2 release validation remains outstanding.
 
 ## Accepted compatibility design
 
@@ -385,7 +413,8 @@ existing reports, removal no-ops and action guards. Legacy Windows PowerShell HT
 fingerprints are both recognized. No Office application was closed and no Office installer was run. Real Microsoft acquisition, protected
 package staging, live Outlook and installation/recovery still require controlled integration validation.
 
-Pause here for the maintainer's Office review. Do not continue the remaining domains until that review resumes implementation.
+The maintainer reviewed and accepted this checkpoint, then authorized completing the remaining domains. Prioritize complete implementations
+and workflow/compatibility checks; expand fine-grained coverage after the migration. Live validation is planned separately.
 
 ## Local automation
 
@@ -396,6 +425,34 @@ command forms for the scoped rules to match. Project rules require a trusted pro
 restarted Codex, the absolute launcher ran the registry builds, formatting, lint and test commands successfully.
 
 ## Next work
+
+Implementation ownership is complete. Start the tooling pass next, then perform live validation against the built package. Keep the frozen
+v1 sources only as the comparison baseline until the repository/tooling cleanup deliberately removes that dependency.
+
+Live validation priorities:
+
+- Office/Outlook: actual install, migration, cancellation/recovery and repair workflows on disposable or recoverable machines. No native
+  Office deployment was performed on the development workstation during this rewrite.
+- Windows Update: real scan, exact update selection, hide/unhide, installation/uninstallation, cancellation and reboot reporting on a VM.
+  The normal host probes only preview synthetic update identities; they never install, scan for or hide real updates.
+- AppX/MSIX: install, register, provision, reset data and remove a disposable signed package; confirm all-user inventory/protection
+  behavior. Verify Store API access on the target host separately: Microsoft documents AppInstallManager as capability-restricted. Local
+  AppX inventory success does not establish Store access or update success. Verify installed WinGet/provider versions and repository policy
+  too.
+- Directory and certificates: remote authenticated discovery, loaded-user store selection and failure diagnostics; sign disposable scripts
+  with a test certificate and timestamp service. Never use a production signing key in automated tests.
+- Finish the XML comment/help generation pass and the supported OS/runtime packaging matrix before declaring a v2 release.
+
+Deferred test coverage after the implementation pass:
+
+- Remote reachability against configured and unavailable WSMan/CredSSP endpoints, cancellation during native calls, and credential failures.
+- Drive mapping creation/removal, label preservation, fonts and permissions in a disposable VM with restricted ACLs and partial failures.
+- Additional data-conversion edge cases and culture variants; keep current lightweight tests focused on ordinary functional behavior.
+- Windows Update callback/error/cancellation combinations, DISM output variants and interrupted package operations.
+- Module provider dependency/trust failures, prerelease restore manifests, certificate timestamps and remote certificate-store permissions.
+- Credential pair replacement failures and concurrent filesystem changes; the legacy AES pair is not authenticated or transactional.
+- Locale-specific SFC diagnostics and bounded CBS-tail reading; broader task, firewall and group-policy failure cases after live smoke
+  tests.
 
 After the C# migration, upgrade developer tooling and the `PSFoundation.ps1` interface, including scheduled vendor-tool update PRs alongside
 the existing dependency workflow. This is deferred work, not an active CI automation:
@@ -408,7 +465,5 @@ the existing dependency workflow. This is deferred work, not an active CI automa
 - Test download integrity failures, package layout, source metadata and supported PowerShell/runtime packaging in CI. Keep scheduled
   upstream checks separate from deterministic offline tests; never fetch real vendor tools during ordinary unit tests.
 
-The maintainer has authorized continuation beyond registry. Continue with verified tools, native inventory, then dependent system/security,
-package/update, Office and interop workflows. Preserve Office safety and recovery contracts. Audit native alternatives to PSWindowsUpdate,
-WinGet, PowerShell module management and other provider dependencies before cutting those commands over. Keep winkit unchanged. Publishing
-remains disabled and requires a separate v2 release decision. No complete v2 or native Office validation is claimed.
+Keep winkit unchanged. Publishing remains disabled and requires a separate v2 release decision. Local commits are authorized; pushing is
+not.

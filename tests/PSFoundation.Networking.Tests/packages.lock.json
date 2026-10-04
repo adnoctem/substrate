@@ -130,6 +130,16 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "psfoundation.diagnostics": {
+        "type": "Project"
+      },
+      "psfoundation.interop": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Registry": "[1.0.0, )"
+        }
+      },
       "psfoundation.io": {
         "type": "Project"
       },
@@ -137,6 +147,14 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )"
+        }
+      },
+      "psfoundation.registry": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
         }
       }
@@ -266,6 +284,16 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "psfoundation.diagnostics": {
+        "type": "Project"
+      },
+      "psfoundation.interop": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Registry": "[1.0.0, )"
+        }
+      },
       "psfoundation.io": {
         "type": "Project"
       },
@@ -273,6 +301,14 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )"
+        }
+      },
+      "psfoundation.registry": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
         }
       }

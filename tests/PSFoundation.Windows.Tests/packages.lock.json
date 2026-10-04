@@ -156,6 +156,7 @@
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )"
         }
       }
@@ -311,6 +312,7 @@
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )"
         }
       }

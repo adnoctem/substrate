@@ -61,7 +61,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
-          "PSFoundation.IO": "[1.0.0, )"
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )"
         }
       },
       "psfoundation.office": {
@@ -109,6 +110,7 @@
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )"
         }
       }
@@ -189,6 +191,33 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
+      "System.DirectoryServices": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "lAS54Y3KO1XV68akGa0/GJeddkkuuiv2CtcSkMiTmLHQ6o6kFbKpw4DmJZADF7a6KjPwYxmZnH4D3eGicrJdcg==",
+        "dependencies": {
+          "System.IO.FileSystem.AccessControl": "5.0.0",
+          "System.Security.AccessControl": "5.0.0",
+          "System.Security.Permissions": "5.0.0",
+          "System.Security.Principal.Windows": "5.0.0"
+        }
+      },
+      "System.Drawing.Common": {
+        "type": "Transitive",
+        "resolved": "5.0.3",
+        "contentHash": "rEQZuslijqdsO0pkJn7LtGBaMc//YVA8de0meGihkg9oLPaN+w+/Pb5d71lgp0YjPoKgBKNMvdq0IPnoW4PEng=="
+      },
+      "System.IO.FileSystem.AccessControl": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "SxHB3nuNrpptVk+vZ/F+7OHEpoHUIKKMl02bUmYHQr1r+glbZQxs7pRtsf4ENO29TVm2TH3AEeep2fJcy92oYw==",
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Memory": "4.5.4",
+          "System.Security.AccessControl": "5.0.0",
+          "System.Security.Principal.Windows": "5.0.0"
+        }
+      },
       "System.Memory": {
         "type": "Transitive",
         "resolved": "4.5.4",
@@ -217,6 +246,14 @@
           "System.Security.Principal.Windows": "5.0.0"
         }
       },
+      "System.Security.Permissions": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "uE8juAhEkp7KDBCdjDIE3H9R1HJuEHqeqX8nLX9gmYKWwsqk3T5qZlPx8qle5DPKimC/Fy3AFTdV7HamgCh9qQ==",
+        "dependencies": {
+          "System.Security.AccessControl": "5.0.0"
+        }
+      },
       "System.Security.Principal.Windows": {
         "type": "Transitive",
         "resolved": "5.0.0",
@@ -242,7 +279,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
-          "PSFoundation.IO": "[1.0.0, )"
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )"
         }
       },
       "psfoundation.office": {
@@ -283,7 +321,9 @@
         "dependencies": {
           "PSFoundation.IO": "[1.0.0, )",
           "PSFoundation.Windows": "[1.0.0, )",
-          "System.Diagnostics.EventLog": "[4.7.0, )"
+          "System.Diagnostics.EventLog": "[4.7.0, )",
+          "System.DirectoryServices": "[5.0.0, )",
+          "System.Drawing.Common": "[5.0.3, )"
         }
       },
       "psfoundation.windows": {
@@ -292,6 +332,7 @@
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Interop": "[1.0.0, )",
           "PSFoundation.Registry": "[1.0.0, )",
           "System.Security.Principal.Windows": "[5.0.0, )"
         }
@@ -312,6 +353,17 @@
         "type": "Transitive",
         "resolved": "5.0.0",
         "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg==",
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Memory": "4.5.4",
+          "System.Security.AccessControl": "5.0.0",
+          "System.Security.Principal.Windows": "5.0.0"
+        }
+      },
+      "System.IO.FileSystem.AccessControl": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "SxHB3nuNrpptVk+vZ/F+7OHEpoHUIKKMl02bUmYHQr1r+glbZQxs7pRtsf4ENO29TVm2TH3AEeep2fJcy92oYw==",
         "dependencies": {
           "System.Buffers": "4.5.1",
           "System.Memory": "4.5.4",

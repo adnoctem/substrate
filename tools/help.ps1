@@ -17,8 +17,17 @@ function Write-PSFCompiledHelp {
       if ($null -eq $help) {
         # A leading .NET in prose is mistaken for a help directive by the v1 parser.
         $helpText = $function.Extent.Text -replace '(?im)^(\s*)\.NET\b', '$1The .NET'
-        $helpAst = [Management.Automation.Language.Parser]::ParseInput($helpText, [ref]$tokens, [ref]$errors)
+        $helpAst = [Management.Automation.Language.Parser]::ParseInput($helpText, [ref]$null, [ref]$null)
         $help = $helpAst.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] }, $true).GetHelpContent()
+      }
+      if ($null -eq $help) {
+        # Some v1 functions put attributes before their help block. Parse the actual
+        # comment in a normal help position without changing the frozen source.
+        $comment = @($tokens | Where-Object { $_.Kind -eq 'Comment' -and $_.Text -match '(?im)^\s*\.SYNOPSIS' -and $_.Extent.StartOffset -ge $function.Extent.StartOffset -and $_.Extent.EndOffset -le $function.Extent.EndOffset } | Select-Object -First 1)
+        if ($comment.Count -ne 0) {
+          $helpAst = [Management.Automation.Language.Parser]::ParseInput(("function HelpCapture {`n" + $comment[0].Text + "`nparam()`n}"), [ref]$null, [ref]$null)
+          $help = $helpAst.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] }, $true).GetHelpContent()
+        }
       }
       $name = [Security.SecurityElement]::Escape($function.Name)
       $synopsis = [Security.SecurityElement]::Escape($help.Synopsis)

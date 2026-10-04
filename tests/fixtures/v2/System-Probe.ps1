@@ -16,7 +16,8 @@ foreach ($command in @('Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEditi
 $observations['named-paths'] = Get-SystemPaths 'synthetic-product'
 $observations['dotnet'] = Get-DotNetVersion
 $user = Get-UserInfo
-$observations['identity'] = @($user.GetType().FullName, $user.UserName, $user.IsAdministrator, $user.SID, (Get-UserSID $user.UserName), (Test-Elevation), (& (Get-Module PSFoundation) { Read-ProcessElevation }))
+$nativeElevation = if ('PSFoundation.Windows.IdentityManager' -as [type]) { [PSFoundation.Windows.IdentityManager]::new().IsElevated() } else { & (Get-Module PSFoundation) { Read-ProcessElevation } }
+$observations['identity'] = @($user.GetType().FullName, $user.UserName, $user.IsAdministrator, $user.SID, (Get-UserSID $user.UserName), (Test-Elevation), $nativeElevation)
 $observations['identity-extra-arguments'] = (Get-UserInfo -Unused extra).SID
 $observations['applicability'] = @(Test-HostApplicability; Test-HostApplicability -MinBuild 0; Test-HostApplicability -MaxBuild 0; Test-HostApplicability -Edition @(Get-OSEdition); Test-HostApplicability -Edition 'synthetic-edition'; Test-HostApplicability -Bitness x64; Test-HostApplicability -Bitness x86; Test-HostApplicability -Edition @())
 $observations['robocopy'] = @(-1..33 | ForEach-Object { Convert-RobocopyExitCode $_ })
