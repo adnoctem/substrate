@@ -205,3 +205,9 @@ retains non-executable actions with null executable/argument fields instead of f
 File searches use literal filesystem paths and do not traverse directory reparse points. C# results report skipped points and read failures;
 the legacy presentation wrapper reports them through verbose output. This avoids junction loops and makes partial scans inspectable. The
 exclusive write-time window, sort order, selected file fields and each PowerShell edition's mode text are retained.
+
+Offline-join package files now replace existing content atomically instead of writing over an untruncated stream. This removes stale
+trailing bytes left by a shorter replacement. New files retain the established BOM/text/terminator format. Native provisioning now frees its
+returned buffer explicitly and restores the caller's prior impersonation context. The PowerShell default reuse flag, confirmation level,
+credential binding and structured result fields remain. Cancellation before the native call prevents provisioning; cancellation during an
+accepted call does not hide its outcome or imply rollback of an AD account change.

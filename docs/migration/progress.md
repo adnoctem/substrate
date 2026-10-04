@@ -230,6 +230,26 @@ newly migrated commands, parameter contracts, read-only task/WMI inspection, fil
 were validated for cancellation before invocation; actual exclusion changes require a disposable integration machine and were not executed.
 Remote CIM sessions, Defender provider mutations and diverse WMI consumer registrations remain integration work.
 
+## Offline domain provisioning checkpoint
+
+The staged module now owns 69 compiled commands and 33 C#-backed compatibility functions: 102 of 188 public functions, retaining all 192
+exports.
+
+`OfflineDomainJoinManager` now owns the native provisioning call, optional credential context and package file writing. Typed requests can
+also include certificate templates and machine policies. C# defaults to no account reuse; the PowerShell adapter explicitly retains its
+existing reuse option. The library never joins the local machine or prompts for credentials. Native buffers and credential tokens are
+released deterministically, and impersonation restores the previous identity rather than discarding a caller's existing context.
+
+`New-OfflineDomainJoinBlob` and `New-DjoinFile` are compiled adapters. The staged package no longer compiles the old provisioning binding at
+import. Package writes retain the UTF-16LE BOM/terminator format and now replace existing content atomically, fixing stale trailing bytes
+when overwriting a longer package. The caller remains responsible for protecting the credential-bearing package and its destination
+directory.
+
+The batch adds one synthetic provisioning workflow test: 221 managed tests per target (442 executions). Both PowerShell hosts verify preview
+results, package bytes, overwrite behavior and parameter/help contracts. No AD account is created or reused, and no domain join is
+attempted. Live provisioning, optional certificate/policy inclusion and credential impersonation require a disposable domain integration
+environment.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

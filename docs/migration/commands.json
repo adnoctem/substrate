@@ -1246,8 +1246,8 @@
   {
     "Command": "New-OfflineDomainJoinBlob",
     "Source": "provisioning.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "New-OperationResult"
     ]
@@ -1255,8 +1255,8 @@
   {
     "Command": "New-DjoinFile",
     "Source": "provisioning.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "New-OperationResult"
     ]

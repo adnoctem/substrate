@@ -57,6 +57,24 @@ $observations['service-filtered'] = @(Set-ServiceStartupState -Name 'RpcSs' -Sta
 $observations['service-protected'] = @(Set-ServiceStartupState -Name 'RemoteRegistry' -StartupType Manual -WhatIf)
 $observations['task-missing'] = @(Set-ScheduledTaskState -TaskName 'PSFoundation.Synthetic.Nonexistent' -State Disabled -WhatIf)
 $observations['task-preview'] = @(Set-ScheduledTaskState -TaskName '*' -State Disabled -WhatIf)
+$syntheticComputer = 'SYNTHETIC'
+$observations['provision-preview'] = New-OfflineDomainJoinBlob -ComputerName $syntheticComputer -Domain example.invalid -WhatIf
+$joinDirectory = Join-Path ([IO.Path]::GetTempPath()) ('PSFoundation-probe-join-' + [Guid]::NewGuid().ToString('N'))
+$null = [IO.Directory]::CreateDirectory($joinDirectory)
+try {
+  $joinPath = Join-Path $joinDirectory 'synthetic.djoin'
+  $preview = New-DjoinFile -Blob 'Synthetic test package' -DestinationFile $joinPath -WhatIf
+  $observations['join-file-preview'] = $preview | Select-Object Source, Action, Status, Detail
+  if ([IO.File]::Exists($joinPath)) { throw 'Provisioning preview wrote a file.' }
+  $written = New-DjoinFile -Blob 'Synthetic test package' -DestinationFile $joinPath -Confirm:$false
+  $observations['join-file-result'] = $written | Select-Object Source, Action, Status, Detail
+  $observations['join-file-bytes'] = [Convert]::ToBase64String([IO.File]::ReadAllBytes($joinPath))
+  if ((Get-Command New-DjoinFile).CommandType -eq 'Cmdlet') {
+    $null = New-DjoinFile -Blob 'new' -DestinationFile $joinPath -Confirm:$false
+    if ([PSFoundation.Windows.DomainJoinPackageCodec]::Decode([IO.File]::ReadAllBytes($joinPath)) -ne 'new') { throw 'Package replacement retained old trailing bytes.' }
+  }
+}
+finally { [IO.Directory]::Delete($joinDirectory, $true) }
 if ((Get-Command Set-ScheduledTaskState).CommandType -eq 'Cmdlet') {
   $guarded = @(Set-ServiceStartupState -Name 'RemoteReg*' -StartupType Automatic -WhatIf)
   if ($guarded.Count -ne 1 -or $guarded[0].Status -ne 'Refused') { throw 'Wildcard expansion bypassed service protection.' }
