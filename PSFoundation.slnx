@@ -3,6 +3,7 @@
     <Project Path="src/PSFoundation.Core/PSFoundation.Core.csproj" />
     <Project Path="src/PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
     <Project Path="src/PSFoundation.IO/PSFoundation.IO.csproj" />
+    <Project Path="src/PSFoundation.Policies/PSFoundation.Policies.csproj" />
     <Project Path="src/PSFoundation.Networking/PSFoundation.Networking.csproj" />
     <Project Path="src/PSFoundation.Registry/PSFoundation.Registry.csproj" />
     <Project Path="src/PSFoundation.PowerShell/PSFoundation.PowerShell.csproj" />
@@ -11,6 +12,7 @@
     <Project Path="tests/PSFoundation.Core.Tests/PSFoundation.Core.Tests.csproj" />
     <Project Path="tests/PSFoundation.Diagnostics.Tests/PSFoundation.Diagnostics.Tests.csproj" />
     <Project Path="tests/PSFoundation.IO.Tests/PSFoundation.IO.Tests.csproj" />
+    <Project Path="tests/PSFoundation.Policies.Tests/PSFoundation.Policies.Tests.csproj" />
     <Project Path="tests/PSFoundation.Networking.Tests/PSFoundation.Networking.Tests.csproj" />
     <Project Path="tests/fixtures/process/ProcessHost.csproj" />
     <Project Path="tests/PSFoundation.Registry.Tests/PSFoundation.Registry.Tests.csproj" />

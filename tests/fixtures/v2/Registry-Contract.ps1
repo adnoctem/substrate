@@ -7,7 +7,11 @@ $root = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Pare
 $catalog = Import-PowerShellDataFile (Join-Path $root 'tools/compiled-commands.psd1')
 $contract = Get-PSFApiContract -ModulePath $ModulePath
 $compiled = @($catalog.Values | ForEach-Object { $_ })
-$contract.Commands = @($contract.Commands | Where-Object Name -In $compiled)
+$compatibilityCatalog = Import-PowerShellDataFile (Join-Path $root 'tools/compatibility-commands.psd1')
+$compatibility = @($compatibilityCatalog.Values | ForEach-Object { $_ })
+# Show-Color deliberately adds discoverable common parameters and an explicit catch-all argument list.
+# Its unchanged palette and unused-argument behavior, plus completion, are checked in Network-Probe.ps1.
+$contract.Commands = @($contract.Commands | Where-Object { $_.Name -in @($compiled + $compatibility) -and $_.Name -ne 'Show-Color' })
 foreach ($command in $contract.Commands) {
   # CommandType changes deliberately; compare everything else, including validation.
   $command.Kind = 'MigratedCommand'
@@ -32,7 +36,12 @@ if ((Get-Command ConvertTo-RegistryProviderPath).CommandType -eq 'Cmdlet') {
     $help = Get-Help "PSFoundation\$command" -Full
     if (-not $help.Synopsis -or $help.Synopsis.Contains('[[')) { throw "Missing help: $command" }
   }
-  foreach ($script in @('registry.ps1', 'common.ps1', 'errors.ps1')) {
+  foreach ($command in $compatibility) {
+    $owners = @(Get-Command -Name $command -Module PSFoundation -All)
+    if ($owners.Count -ne 1 -or $owners[0].CommandType -ne 'Function' -or (Split-Path $owners[0].ScriptBlock.File -Leaf) -ne 'compat.ps1') { throw "Invalid compatibility owner: $command" }
+    if (-not (Get-Help "PSFoundation\$command").Synopsis) { throw "Missing compatibility help: $command" }
+  }
+  foreach ($script in @('registry.ps1', 'common.ps1', 'errors.ps1', 'log.ps1')) {
     if (Test-Path (Join-Path (Split-Path $ModulePath -Parent) $script)) { throw "Migrated legacy implementation remains in staged module: $script" }
   }
 }

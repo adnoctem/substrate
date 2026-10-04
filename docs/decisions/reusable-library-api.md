@@ -14,8 +14,11 @@ operating-system independence: the registry implementation is a Windows capabili
 - Keep implementation details internal. Legacy semantics remain in the internal `PSFoundation.Registry.Compatibility` namespace, with friend
   access for adapters and tests. They are not exported C# types. The public registry API does not expose provider paths, console colors,
   script comparison quirks, string statuses or PowerShell types.
-- Use `Manager` for a convenient domain entry point, `Service` for a focused responsibility, and specific names such as `Parser`,
-  `Resolver`, `Watcher` or `CommandRunner` where they describe the work. Do not add a suffix mechanically or move all code into one manager.
+- Use `Manager` for capabilities PSFoundation owns, such as `RegistryManager`, `NetworkManager` and a future `PolicyManager` for policy
+  compilation, decompilation, snapshots and files. Use `Tool` for integration with separately maintained vendor applications: `LgpoTool` and
+  the future `OdtTool`. PSFoundation owns the integration, not those executables. Use `Service` for a focused responsibility and specific
+  names such as `Parser`, `Resolver`, `Watcher` or `CommandRunner` where they describe the work. Do not add suffixes mechanically or move
+  all code into one manager. This distinction supersedes the earlier blanket rename of LGPO to Manager.
 
 ## Host independence
 
@@ -33,6 +36,12 @@ operating-system independence: the registry implementation is a Windows capabili
 
 ## Shared foundations
 
+The networking iteration also accepts one `compat.ps1` for legacy PowerShell functions whose extra-argument behavior cannot be reproduced by
+direct C# cmdlets. These wrappers contain parameter declarations, stream handling and calls into C#; reusable domain logic stays in C#.
+`NetworkManager` handles reads/calculations and `NetworkValidator` handles pure validation. `Show-Color` intentionally gains standard
+PowerShell parameters and explicit capture of unused arguments for completion. See
+[the compatibility notes](../migration/compatibility-exceptions.md).
+
 Logging accepts structured events with explicitly supplied destinations. Filesystem and registry paths remain distinct types; PowerShell
 provider interpretation belongs at the compatibility boundary. `PSFoundation.Core` contains only demonstrably shared primitives.
 `PSFoundation.Diagnostics`, `PSFoundation.IO` and `PSFoundation.Networking` provide focused reusable foundations. The old ordered operation
@@ -43,3 +52,10 @@ The expanded C# library surface is an approved addition to the original compatib
 comments during implementation: ownership, cancellation, partial writes, destructive effects, concurrency, platform limits and compatibility
 quirks. Complete public XML documentation and examples in a separate pass after the C# API and PowerShell compatibility stabilize. That
 documentation pass remains a v2 release gate; existing PowerShell help stays available throughout migration.
+
+## Documentation delivery
+
+The maintainer selected generated API references: C# documentation comments feed DocFX for .NET reference pages; PowerShell metadata and
+Markdown help feed PlatyPS for command reference and Get-Help. Handwritten Markdown is reserved for tutorials, architecture, troubleshooting
+and migration evidence. Do not add further handwritten API reference files. The full comment pass and generation pipeline are deferred until
+the end of the implementation; retain essential contract comments and the existing help packaging in the meantime.

@@ -7,6 +7,14 @@
 - Development branch: `MVProwess/v2`. The supplied `v2.md` is carried on this branch only.
 - Scope: 188 public functions, four aliases, 19 source domains. This is an incremental rewrite, not a completed v2 release.
 
+## Accepted compatibility design
+
+The maintainer selected small PowerShell wrappers in one `compat.ps1`, with C# doing the actual work. `NetworkManager` and
+`NetworkValidator` provide the reusable networking API. `Show-Color` intentionally adds explicit argument capture and standard PowerShell
+flags for completion. See
+[the accepted decision and precise compatibility exceptions](compatibility-exceptions.md#accepted-decision-handling-extra-arguments). There
+is no pending choice on this topic.
+
 ## Build and execution proof
 
 The .NET 10.0.401 SDK is pinned. Build, restore, binaries, NuGet packages, staged modules and test reports use `build/`; release archives
@@ -48,19 +56,62 @@ The full Pester suites were rerun on this iteration: 911 passed / six existing s
 in Windows PowerShell 5.1, with no failures. Both hosts passed formatting and lint. The final C# regression covers preserving partial-write
 evidence when an unsupported native value appears during restoration.
 
-The shared-foundation and registry-policy slices bring the staged package to 30 compiled commands, with 158 public functions still using the
-legacy implementation. All public commands from `common.ps1`, `registry.ps1` and `errors.ps1` are compiled; those scripts are excluded from
-staging. The package retains 192 exports. See [the foundation checkpoint](foundations.md), [the policy codec checkpoint](policy-codec.md)
-and the generated [command inventory](commands.json). Regenerate the inventory through `baseline -Inventory` after a cutover. It records
-each pinned public function, its source, direct command dependencies and current migration status.
+The foundation, registry-policy, networking and LGPO slices bring the staged package to 31 compiled commands and 13 C#-backed compatibility
+functions, with 144 public functions still using legacy implementations. All public commands from `common.ps1`, `registry.ps1`, `errors.ps1`
+and `log.ps1` are migrated; those scripts are excluded from staging. The package retains 192 exports. See
+[the foundation checkpoint](foundations.md), [the policy codec checkpoint](policy-codec.md),
+[the networking API guide](../networking-api.md) and the generated [command inventory](commands.json). Regenerate the inventory through
+`baseline -Inventory` after a cutover. It records each pinned public function, its source, direct command dependencies and current migration
+status, distinguishing compiled cmdlets, compatibility functions and legacy functions.
 
 The policy checkpoint passes 136 managed tests per target (272 executions). Full Pester results are 915 passed / six existing skips in
 PowerShell 7 and 918 passed / three existing skips in Windows PowerShell 5.1. Both hosts compare the staged command contracts and behavior
 with the pinned baseline; see the policy checkpoint for the final boundary refinements and validation scope.
 
+The networking checkpoint passes 145 managed tests per target (290 executions), including native adapter reads without PowerShell. The
+fresh-host package suite passes all 12 tests; networking compares 297 observations per host with v1, including address calculations, missing
+values, errors, aliases, extra arguments and returned CIM object types. `Show-Color` also has explicit parameter/completion checks. The
+current build reports zero warnings and errors. These checks cover local inventory on the development workstation; provider failures, other
+Windows versions and the wider release matrix still require integration validation.
+
+Full Pester validation for this checkpoint passes 917 tests / six existing skips in PowerShell 7 and 920 tests / three existing skips in
+Windows PowerShell 5.1, with no failures. The full documentation-comment pass remains deferred until the internal APIs stabilize.
+
 C# formatting now runs through `format -Managed` and pre-commit. Build warnings are errors, CI restores enforce lock files, and the feature
 workflow builds the staged module before running C# and PowerShell package tests. Full module migration, analyzer policy beyond compiler
 warnings, runtime-only machine checks, actual elevated hive validation and the release matrix remain pending.
+
+## LGPO and verified downloads
+
+The LGPO and download slice adds `PSFoundation.Policies` with explicit request preparation and policy execution, plus verified HTTPS
+downloads in `PSFoundation.Networking`. The managed suites pass 158 tests per target (316 executions). Tests use a locally built process
+fixture and simulated HTTP responses; they do not apply real policies or download/execute vendor tools. `Resolve-LGPOSource` is compiled;
+`Invoke-LGPO` and `Test-LGPOInstalled` use the shared compatibility script. The public integration is named `LgpoTool`: Tool is reserved for
+separately maintained vendor applications, including the future `OdtTool`. PSFoundation-owned policy file/snapshot operations can use
+`PolicyManager`. Installer and availability command migration remains pending; the missing source pin is now resolved as recorded below. See
+[the compatibility notes](compatibility-exceptions.md) for the deliberate source-metadata update.
+
+### Reviewed LGPO package, 2026-10-04
+
+The maintainer supplied the original LGPO ZIP and extracted files. The ZIP contains exactly `LGPO_30/LGPO.exe`, `LGPO_30/LGPO.pdf` and
+`LGPO_30/Microsoft Security Compliance Toolkit - Standalone Use Terms.pdf`. The executable inside the archive matches the separately
+extracted executable byte-for-byte by SHA-256. No vendor executable was run and no policy was applied.
+
+- ZIP: 531635 bytes; SHA-256 `CB7159D134A0A1E7B1ED2ADA9A3CE8CE8F4DE391D14403D55438AF824247CC55`.
+- Executable: 481144 bytes; SHA-256 `0C97F29543418B30340C4FF5D930D31E6196DD59C2CC74B6B890FA7B90C910C7`.
+- File version: `3.0.2004.13001`.
+- Windows Authenticode result: `Valid`, signed by Microsoft Corporation, with a Microsoft Time-Stamp Service countersignature.
+- Signer certificate thumbprint: `62009AAABDAE749FD47D19150958329BF6FF4B34` (review evidence, not a permanent certificate-rotation policy).
+
+The supplied ZIP's recorded download URL matches the existing Microsoft catalog URL. Microsoft's
+[Security Compliance Toolkit download page](https://www.microsoft.com/en-us/download/details.aspx?id=55319) also lists the LGPO archive at
+519.2 KB. This review pins the supplied bytes; it does not claim that a fresh download was compared. Future downloads must match the ZIP
+pin. The C# source catalog also records the executable pin, file version and verification date; the existing PowerShell result shape stays
+unchanged, with `Sha256` referring to the ZIP.
+
+Documentation generation is deferred to the final pass: C# comments through DocFX, PowerShell metadata and Markdown help through PlatyPS.
+Further handwritten Markdown is for architecture, tutorials, troubleshooting and migration evidence, not API references. The existing help
+packaging remains until that final pipeline is established.
 
 ## Local automation
 
@@ -72,7 +123,18 @@ restarted Codex, the absolute launcher ran the registry builds, formatting, lint
 
 ## Next work
 
-The maintainer has authorized continuation beyond registry. Continue with policy codecs and verified tools, native inventory, then dependent
-system/security, package/update, Office and interop workflows. Preserve Office safety and recovery contracts. Audit native alternatives to
-PSWindowsUpdate, WinGet, PowerShell module management and other provider dependencies before cutting those commands over. Keep winkit
-unchanged. Publishing remains disabled and requires a separate v2 release decision. No complete v2 or native Office validation is claimed.
+After the C# migration, upgrade developer tooling and the `PSFoundation.ps1` interface, including scheduled vendor-tool update PRs alongside
+the existing dependency workflow. This is deferred work, not an active CI automation:
+
+- Check official LGPO/ODT download locations for availability and release changes; distinguish URL reachability from content trust.
+- Validate HTTPS source/redirect policy, archive paths and size limits, and Microsoft Authenticode publisher/chain/timestamp before
+  proposing new archive and executable pins. Inspect candidates without running them or applying policies.
+- Open an automated PR containing old/new URLs, hashes, versions, signature evidence and the test results. Reuse or update an existing PR
+  for the same candidate. Changed hashes must never be silently accepted or auto-merged; failed verification must fail the check.
+- Test download integrity failures, package layout, source metadata and supported PowerShell/runtime packaging in CI. Keep scheduled
+  upstream checks separate from deterministic offline tests; never fetch real vendor tools during ordinary unit tests.
+
+The maintainer has authorized continuation beyond registry. Continue with verified tools, native inventory, then dependent system/security,
+package/update, Office and interop workflows. Preserve Office safety and recovery contracts. Audit native alternatives to PSWindowsUpdate,
+WinGet, PowerShell module management and other provider dependencies before cutting those commands over. Keep winkit unchanged. Publishing
+remains disabled and requires a separate v2 release decision. No complete v2 or native Office validation is claimed.

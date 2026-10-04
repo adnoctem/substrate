@@ -1,24 +1,59 @@
-# v2 compatibility ledger
+# v2 PowerShell compatibility notes
 
-The pinned v1 contract remains the oracle. Implementation allowances must be narrow, linked to evidence, and accounted for before release.
+The aim is to move the implementation to C# while keeping existing PowerShell scripts working. We compare the new commands with the saved
+v1.8.7 implementation to check that. This document explains the places where the rewrite needs special care or a decision from you.
 
-## Exercised implementation allowances
+## Accepted decision: handling extra arguments
 
-- Functions become cmdlets. Registry and foundation fresh-host tests verify one exported owner, binding, output and help.
-- The script binder's implementation attribute and C# nullable annotations are ignored, while parameter behavior and validation remain
-  compared. `Add-OperationResult.Results` uses an internal conversion attribute to preserve collection identity; its behavior is compared
-  against v1 with empty, populated and fixed-size collections.
-- Error identifiers are compared before the implementing-command context suffix. Exception type, message, category, target and termination
-  remain compared. Full suffix matching by consumers remains a release review item.
-- `Test-IPv4Address` and `Test-IPv6Address` can report inactive `ConfirmImpact=Medium` as script functions versus `None` as compiled
-  cmdlets. Only these names and values are normalized, and only with `SupportsShouldProcess=false`.
+**Selected: keep small PowerShell functions in one `compat.ps1` and let C# do the work.**
 
-The policy codec also characterizes an existing globalization quirk, preserved only at the PowerShell boundary. See the
-[policy codec checkpoint](policy-codec.md); the reusable C# parser validates terminators ordinally.
+The maintainer selected option 1 below on 2026-10-04. The public C# networking API uses `NetworkManager` for reads and calculations and
+`NetworkValidator` for validation. Other applications use these classes directly, without PowerShell. The explanation below records why we
+retain a few script functions rather than turning every exported name into a C# cmdlet.
 
-## Decision needed: basic function binding
+### What does "binding" mean?
 
-The frozen metadata identifies 12 public functions without PowerShell common parameters:
+It means how PowerShell connects the arguments you type to a command's parameters. For example, when you run
+`Get-IPAddress -AddressFamily IPv4`, PowerShell must work out what `-AddressFamily` means and whether the supplied value is allowed.
+
+PowerShell has simple script functions and more strictly checked commands. A command implemented directly in C# is called a **cmdlet** and
+uses the stricter rules automatically. You still call it by its normal PowerShell name; callers do not write C#.
+
+These 12 existing functions use the simpler rules. One consequence is that they can accept extra arguments without reporting a mistake.
+Their implementations do not use those extra arguments. A C# cmdlet rejects an unknown parameter instead.
+
+### A concrete example
+
+`Show-Color` lists the available console colors. It has no parameter called `-Typo`:
+
+```powershell
+Show-Color -Typo
+```
+
+Today, that still lists the colors: the extra argument is ignored. If we expose it directly as a C# cmdlet, PowerShell reports that `-Typo`
+is not a recognized parameter, and the command does not run. The normal call, `Show-Color`, should continue to work in either design.
+
+C# cmdlets also automatically accept standard PowerShell options such as `-Verbose` and `-ErrorAction`. PowerShell calls these **common
+parameters**. Adding support for `-Verbose` does not itself make a command print extra messages; the implementation must provide them.
+
+### The two options
+
+| Choice                           | What we would build                                                                                                             | Effect on existing callers                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **1. Preserve today's behavior** | Keep a small PowerShell function for each of these 12 names. It accepts arguments as before and calls C# to do the actual work. | Existing argument handling stays the same, including ignored extras.                        |
+| **2. Use C# cmdlets directly**   | Implement each public command directly in C#, without that small PowerShell function in front.                                  | Unknown parameters become errors, and standard options such as `-Verbose` become available. |
+
+The small function in option 1 is what the earlier document called a **wrapper**. It is an adapter for existing callers, not a second
+implementation of the networking or user logic. Both options keep the command names and aim to preserve their documented arguments and
+results. We must also test how objects passed through a PowerShell pipeline reach these commands before replacing them.
+
+**Option 1 is accepted.** Its cost is retaining small PowerShell entry points. The networking functions keep their existing parameter
+declarations and ignored extra arguments. All address calculations and adapter queries execute in C#.
+
+The original v2 outline asked for both unchanged argument handling and every public command implemented directly in C#. These 12 commands
+are where those two wishes conflict. This decision resolves that conflict; no further choice is pending here.
+
+### Which commands are affected?
 
 - `Get-BroadcastAddress`
 - `Get-DefaultGateway`
@@ -33,17 +68,69 @@ The frozen metadata identifies 12 public functions without PowerShell common par
 - `Get-UserInfo`
 - `Show-Color`
 
-`v2.md` asks for both compiled public cmdlets and preservation of binding. For these functions, those requirements conflict: compiled
-cmdlets automatically expose common parameters and reject unknown parameters; basic functions accept unused arguments. Pipeline binding also
-needs characterization before cutover. The two networking alias pairs resolve to functions in this list.
+The alternative names (aliases) for the two network-prefix commands would follow the same choice.
 
-Two concrete resolutions are available:
+**Implemented:** the ten networking getters and `Show-Color` now live in the staged `compat.ps1`. `Get-UserInfo` will join it when the
+identity implementation is migrated. Windows PowerShell 5.1 remains supported. The two IP validation commands were already compiled; they
+retain legacy acceptance rules while the public `NetworkValidator` uses strict address parsing.
 
-1. Preserve exact public binding with minimal PowerShell parameter-forwarding wrappers, and keep all substantive implementation in C#. This
-   relaxes the requirement that public commands be compiled for these 12 commands only.
-2. Expose standard compiled cmdlets, retaining documented named/positional arguments, outputs and domain behavior. This deliberately changes
-   common-parameter and unknown-argument handling, and requires an approved compatibility exception plus explicit tests and release notes.
+### Show-Color: explicit parameters and completion
 
-No resolution has been applied. The 12 functions remain legacy implementations in the staged package while independent domains continue. The
-source evidence is `tests/fixtures/Api/core.json` and `desktop.json`, captured from `d2d1498275806684b44169504146302d54b7a084`. This is a
-public binding decision, not a restriction on designing reusable C# networking or user services.
+`Show-Color` intentionally gains standard PowerShell parameters, including `-Verbose`, `-ErrorAction` and `-InformationAction`. PowerShell
+can now complete those names. Its declared `ArgumentList` parameter captures unused remaining arguments, so `Show-Color -Typo` still lists
+the palette. Standard parameters now have their usual effect; no color filter is introduced. `-Verbose` alone does not add messages.
+
+C# provides the palette; `compat.ps1` writes it to the host. This keeps console presentation at the PowerShell boundary. Tests explicitly
+check the new parameter declarations and completion, rather than requiring `Show-Color` to have v1's empty parameter list.
+
+### Networking: improved C# rules and preserved script behavior
+
+The reusable API validates contiguous subnet masks and handles IPv6 prefixes that do not fall on byte boundaries. Legacy script behavior
+remains isolated in internal compatibility code: v1 accepts some invalid masks and can throw on an IPv6 prefix such as `/65`. The wrappers
+retain those outcomes for now. Address selection also retains the legacy distinction between the preferred IPv6 address and the first
+address with a prefix. Callers of the public C# API can select a specific address from the snapshot and calculate its prefix directly.
+
+Native provider failures remain errors in the new implementation. Successful local reads and synthetic address/error cases are compared
+against v1 in both hosts; unavailable or failing Windows network providers still need dedicated integration validation before release.
+
+## Technical notes for implementation and review
+
+The LGPO slice also uses `compat.ps1` for `Invoke-LGPO` and `Test-LGPOInstalled`. This preserves `ValidateScript`, confirmation and
+PowerShell provider/empty-path behavior while C# handles filesystem checks and process execution. The application wrapper retains the v1
+wait-for-completion policy; stopping a running policy process could leave partial changes. Ordinary C# callers choose their own explicit
+timeout and interruption policy.
+
+LGPO process arguments are now quoted independently, so paths containing spaces reach the executable intact. Output text, exit codes,
+timestamps, host-specific empty-output values and launch errors are compared against v1. Transient `Get-Content` provider metadata on v1's
+output strings is not reproduced: results contain the captured text, without references to deleted temporary log files. The comparison probe
+strips those provider annotations before serialization to avoid recursively serializing provider state.
+
+The frozen v1 LGPO source digest is `PLACEHOLDER_REPLACE_ON_FIRST_VENDORING`. Following the maintainer's supplied-package review on
+2026-10-04, the C# catalog and staged `Resolve-LGPOSource` now expose the reviewed ZIP hash and updated `LastVerified` date. These two
+values intentionally differ from the baseline; the comparison probe asserts their new values explicitly before comparing the remaining
+contract. The executable has a separate pin in the C# catalog. The frozen v1 source remains unchanged. `Install-LGPO` and
+`Test-LGPOSourceAvailability` still use legacy implementations, calling the migrated source resolver in the staged module. The new
+verified-download service never executes content or treats a successful HTTP response as proof of trust.
+
+These notes record details for the implementation and tests; they are not additional choices you need to make now.
+
+The list above comes from the saved command descriptions in `tests/fixtures/Api/core.json` and `desktop.json`, captured from v1.8.7 commit
+`d2d1498275806684b44169504146302d54b7a084`. Those descriptions show that the 12 functions do not expose common parameters.
+
+Our comparisons already account for these specific differences between script functions and C# cmdlets:
+
+- PowerShell reports a different command type: `Function` becomes `Cmdlet`. Tests still check that each migrated name refers to exactly one
+  command, with the expected parameters, results and help.
+- Some internal parameter annotations differ between PowerShell and C#. Tests ignore those implementation details, but still compare
+  parameter behavior. In particular, `Add-OperationResult.Results` has a conversion helper that preserves the caller's original collection;
+  tests cover empty, populated and fixed-size collections.
+- An error identifier can end with the name of the script function or C# class that produced it. Tests compare the identifier before that
+  suffix, plus the exception type, message, category, affected object and whether execution stops. Callers that match the entire identifier
+  still need review before release.
+- `Test-IPv4Address` and `Test-IPv6Address` can report a different confirmation setting in their command descriptions (`Medium` versus
+  `None`). Neither command supports confirmation prompts. Tests allow only this specific description difference for these two commands.
+
+The policy-file reader has a separate existing quirk: depending on the runtime's text-comparison rules, v1 can accept a string missing its
+required end marker (a NUL character). The PowerShell command retains that behavior for compatibility; the reusable C# parser checks the
+marker strictly. The [policy codec checkpoint](policy-codec.md) records the details. Changing the PowerShell behavior would be a separate
+future decision.

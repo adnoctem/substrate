@@ -48,13 +48,16 @@ Write-Output "Captured $($contract.Commands.Count) exports from v1.8.7 to $path"
 if ($Inventory) {
   $catalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands.psd1')
   $compiled = @($catalog.Values | ForEach-Object { $_ })
+  $compatibilityCatalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compatibility-commands.psd1')
+  $compatibility = @($compatibilityCatalog.Values | ForEach-Object { $_ })
   $rows = foreach ($file in Get-ChildItem (Join-Path $destination 'src') -Filter '*.ps1') {
     $ast = [Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$null)
     foreach ($function in $ast.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
       if ($function.Name -notin $contract.Commands.Name) { continue }
       $calls = @($function.Body.FindAll({ param($node) $node -is [Management.Automation.Language.CommandAst] }, $true) |
           ForEach-Object { $_.GetCommandName() } | Where-Object { $_ } | Sort-Object -Unique)
-      [PSCustomObject][ordered]@{ Command = $function.Name; Source = $file.Name; Compiled = $function.Name -in $compiled; Calls = $calls }
+      $implementation = if ($function.Name -in $compiled) { 'CompiledCmdlet' } elseif ($function.Name -in $compatibility) { 'CompatibilityFunction' } else { 'LegacyFunction' }
+      [PSCustomObject][ordered]@{ Command = $function.Name; Source = $file.Name; Compiled = $function.Name -in $compiled; Implementation = $implementation; Calls = $calls }
     }
   }
   $inventoryPath = Join-Path $root 'docs/migration/commands.json'

@@ -3,6 +3,7 @@
     "Command": "Resolve-LongPath",
     "Source": "common.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Add-Type",
       "New-Object",
@@ -13,12 +14,14 @@
     "Command": "New-OperationResult",
     "Source": "common.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
     "Command": "Add-OperationResult",
     "Source": "common.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "New-OperationResult"
     ]
@@ -27,6 +30,7 @@
     "Command": "Write-OperationResultLog",
     "Source": "common.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-Json",
       "Get-Date",
@@ -40,6 +44,7 @@
     "Command": "Export-RegistrySettingState",
     "Source": "common.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-PSFRegistryValueState",
       "Get-RegistryValue",
@@ -52,6 +57,7 @@
     "Command": "ConvertTo-RegistrySettingResult",
     "Source": "common.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-RegistryValue",
       "New-OperationResult",
@@ -63,6 +69,7 @@
     "Command": "Convert-Quote",
     "Source": "data.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Content",
       "Set-Content"
@@ -72,12 +79,14 @@
     "Command": "Merge-ObjectArrays",
     "Source": "data.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Get-PrintDevice",
     "Source": "devices.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-PrintDevice",
       "Get-CimInstance",
@@ -92,6 +101,7 @@
     "Command": "Get-DefaultPrintDevice",
     "Source": "devices.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-PrintDevice",
       "Get-CimInstance",
@@ -103,6 +113,7 @@
     "Command": "Set-DefaultPrintDevice",
     "Source": "devices.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-CimInstance",
       "Get-ObjectPropertyValue",
@@ -116,6 +127,7 @@
     "Command": "Get-ScanDevice",
     "Source": "devices.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-ScanDevice",
       "Get-Command",
@@ -128,6 +140,7 @@
     "Command": "Get-ErrorTranslation",
     "Source": "errors.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PSFErrorCode",
       "Select-Object",
@@ -138,18 +151,21 @@
     "Command": "Remove-ComObject",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Invoke-ComGarbageCollection",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Get-OutlookInstallation",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemProperty",
       "Join-Path",
@@ -165,6 +181,7 @@
     "Command": "Get-OutlookRepairToolInfo",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Item",
       "Resolve-LongPath"
@@ -174,6 +191,7 @@
     "Command": "Find-OutlookRepairTool",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-OutlookInstallation",
@@ -185,6 +203,7 @@
     "Command": "Connect-Outlook",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-Object"
     ]
@@ -193,6 +212,7 @@
     "Command": "Get-OutlookStoreRoot",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Remove-ComObject",
       "Write-Verbose"
@@ -202,6 +222,7 @@
     "Command": "Add-OutlookStoreRoot",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Remove-ComObject"
     ]
@@ -210,6 +231,7 @@
     "Command": "Open-OutlookPstStore",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-PSFOutlookPstRoot",
       "Get-PSFOutlookPstSnapshot",
@@ -224,6 +246,7 @@
     "Command": "Close-OutlookPstStore",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-Object",
       "Remove-ComObject",
@@ -234,6 +257,7 @@
     "Command": "Get-OutlookSubFolder",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Remove-ComObject"
     ]
@@ -242,6 +266,7 @@
     "Command": "Get-OutlookStandardFolderIdentity",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-Object",
       "Remove-ComObject"
@@ -251,6 +276,7 @@
     "Command": "Get-OutlookFolderPlan",
     "Source": "interop.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-FolderDecision",
       "Get-FolderTreePlan",
@@ -265,6 +291,7 @@
     "Command": "Show-Color",
     "Source": "log.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ForEach-Object",
       "Write-Host"
@@ -274,6 +301,7 @@
     "Command": "Write-Log",
     "Source": "log.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-Date",
       "Write-Host"
@@ -283,6 +311,7 @@
     "Command": "Get-PSModule",
     "Source": "maintenance.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-Json",
       "Get-Item",
@@ -305,6 +334,7 @@
     "Command": "Remove-PSModule",
     "Source": "maintenance.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Get-Module",
@@ -327,6 +357,7 @@
     "Command": "Add-PSModule",
     "Source": "maintenance.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-Json",
       "Ensure-PSResourceGet",
@@ -344,6 +375,7 @@
     "Command": "Get-DefaultNetworkAdapter",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-CimInstance",
       "Get-NetAdapter",
@@ -358,6 +390,7 @@
     "Command": "Get-IPAddress",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-DefaultNetworkAdapter",
       "Select-Object",
@@ -369,6 +402,7 @@
     "Command": "Get-SubnetMask",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-DefaultNetworkAdapter",
       "Write-Log"
@@ -378,6 +412,7 @@
     "Command": "Get-DefaultGateway",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-DefaultNetworkAdapter",
       "Select-Object",
@@ -389,6 +424,7 @@
     "Command": "Get-DNSServer",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-DefaultNetworkAdapter",
       "Where-Object",
@@ -399,6 +435,7 @@
     "Command": "Get-MACAddress",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-DefaultNetworkAdapter",
       "Write-Log"
@@ -408,6 +445,7 @@
     "Command": "Get-NetworkPrefix",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ForEach-Object",
       "Get-DefaultNetworkAdapter",
@@ -421,6 +459,7 @@
     "Command": "Get-NetworkPrefixCIDR",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ForEach-Object",
       "Get-DefaultNetworkAdapter",
@@ -434,6 +473,7 @@
     "Command": "Get-BroadcastAddress",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "ForEach-Object",
       "Get-DefaultNetworkAdapter",
@@ -445,6 +485,7 @@
     "Command": "Get-MulticastAddress",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-DefaultNetworkAdapter",
       "Get-IPAddress"
@@ -454,12 +495,14 @@
     "Command": "Test-IPv4Address",
     "Source": "networking.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
     "Command": "Test-IPv6Address",
     "Source": "networking.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Test-IPv4Address",
       "Where-Object"
@@ -469,6 +512,7 @@
     "Command": "Test-RemoteHostReachability",
     "Source": "networking.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-CimInstance",
       "New-OperationResult",
@@ -485,6 +529,7 @@
     "Command": "Install-Office",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -494,6 +539,7 @@
     "Command": "Uninstall-Office",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -503,6 +549,7 @@
     "Command": "Switch-OfficeDeployment",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -512,6 +559,7 @@
     "Command": "Update-Office",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -521,6 +569,7 @@
     "Command": "Set-OfficeUpdateConfiguration",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -530,6 +579,7 @@
     "Command": "Add-OfficeLanguage",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -539,6 +589,7 @@
     "Command": "Remove-OfficeLanguage",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -548,6 +599,7 @@
     "Command": "Set-OfficeApplicationSelection",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -557,6 +609,7 @@
     "Command": "Set-OfficeApplicationPreference",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -566,6 +619,7 @@
     "Command": "New-OfficeDeploymentConfiguration",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-PSFOfficeList",
       "Get-OfficeInventory",
@@ -580,6 +634,7 @@
     "Command": "Get-OfficeInventory",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Get-PSFOfficeAppPathEvidence",
@@ -597,6 +652,7 @@
     "Command": "Test-OfficeDeployment",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-PSFOfficeConfiguration",
       "Get-OfficeInventory",
@@ -609,6 +665,7 @@
     "Command": "Get-OfficeActivationStatus",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-CimInstance",
       "Where-Object"
@@ -618,6 +675,7 @@
     "Command": "Get-OfficeDeploymentPlan",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Assert-PSFOfficeSetting",
       "ConvertTo-PSFOfficeConfiguration",
@@ -639,12 +697,14 @@
     "Command": "Resolve-OfficeDeploymentToolSource",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Test-OfficeDeploymentToolSourceAvailability",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Date",
       "Invoke-WebRequest",
@@ -655,6 +715,7 @@
     "Command": "Test-OfficeDeploymentTool",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Assert-PSFOfficePath",
       "Get-AuthenticodeSignature",
@@ -665,6 +726,7 @@
     "Command": "Get-OfficeDeploymentToolHelp",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeTool"
     ]
@@ -673,6 +735,7 @@
     "Command": "Install-OfficeDeploymentTool",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Assert-PSFOfficePath",
       "Get-AuthenticodeSignature",
@@ -692,6 +755,7 @@
     "Command": "Test-OfficeDeploymentMedia",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Assert-PSFOfficeField",
       "Assert-PSFOfficeProtectedPath",
@@ -715,6 +779,7 @@
     "Command": "Save-OfficeDeploymentMedia",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Assert-PSFOfficePath",
       "Assert-PSFOfficeProtectedPath",
@@ -743,6 +808,7 @@
     "Command": "Get-OfficeDeploymentRecovery",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Assert-PSFOfficeField",
       "Assert-PSFOfficeProtectedPath",
@@ -760,6 +826,7 @@
     "Command": "Resume-OfficeInstallation",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeRecovery"
     ]
@@ -768,6 +835,7 @@
     "Command": "Resume-OfficeMigration",
     "Source": "office.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-PSFOfficeRecovery"
     ]
@@ -776,6 +844,7 @@
     "Command": "New-PackageLifecycleResult",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-ErrorTranslation",
@@ -786,6 +855,7 @@
     "Command": "Get-InstalledProgramCount",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Win32Program"
     ]
@@ -794,6 +864,7 @@
     "Command": "Get-AppxPackageCount",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-UPFAppxPackage"
     ]
@@ -802,6 +873,7 @@
     "Command": "Get-PackageCount",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-AppxPackageCount",
       "Get-InstalledProgramCount"
@@ -811,6 +883,7 @@
     "Command": "Get-Win32Program",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-RegistryKey",
       "Get-RegistryValue",
@@ -822,6 +895,7 @@
     "Command": "Find-Win32Program",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-RegistryValue",
       "Get-Win32Program"
@@ -831,6 +905,7 @@
     "Command": "Install-Win32Program",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-PSFNativeArgumentString",
       "New-PackageLifecycleResult",
@@ -842,6 +917,7 @@
     "Command": "Uninstall-Win32Program",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Find-Win32Program",
       "New-PackageLifecycleResult",
@@ -852,6 +928,7 @@
     "Command": "Get-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-AppxPackage",
       "Get-AppxProvisionedPackage",
@@ -864,6 +941,7 @@
     "Command": "Find-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-UPFAppxPackage",
       "Test-UPFAppxPackageRemovalSafety"
@@ -873,6 +951,7 @@
     "Command": "Test-UPFAppxPackageRemovalSafety",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Where-Object"
     ]
@@ -881,6 +960,7 @@
     "Command": "Install-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-AppxPackage",
       "Add-AppxProvisionedPackage",
@@ -892,6 +972,7 @@
     "Command": "Update-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Install-UPFAppxPackage",
       "Test-Path"
@@ -901,6 +982,7 @@
     "Command": "Repair-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-AppxPackage",
       "Get-UPFAppxPackage",
@@ -914,6 +996,7 @@
     "Command": "Reset-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-UPFAppxPackage",
@@ -925,6 +1008,7 @@
     "Command": "Uninstall-UPFAppxPackage",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-PackageLifecycleResult",
       "Remove-AppxPackage",
@@ -936,6 +1020,7 @@
     "Command": "Uninstall-UPFAppxPackageSet",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Find-UPFAppxPackage",
       "New-Object",
@@ -949,6 +1034,7 @@
     "Command": "Install-UPFAppxPackageSet",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Install-UPFAppxPackage"
     ]
@@ -957,6 +1043,7 @@
     "Command": "Install-Win32ProgramFromWinGet",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-Module",
@@ -968,6 +1055,7 @@
     "Command": "Update-Win32ProgramFromWinGet",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-Module",
@@ -979,6 +1067,7 @@
     "Command": "Uninstall-Win32ProgramFromWinGet",
     "Source": "packages.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-Module",
@@ -990,12 +1079,14 @@
     "Command": "Test-Elevation",
     "Source": "permissions.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Request-AdministratorPrivilege",
     "Source": "permissions.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-PSFElevationLiteral",
       "Get-CimInstance",
@@ -1012,6 +1103,7 @@
     "Command": "Set-RegistryOwner",
     "Source": "permissions.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-UserSID",
       "Invoke-RegistryOwnershipTakeover",
@@ -1024,6 +1116,7 @@
     "Command": "Set-ItemOwner",
     "Source": "permissions.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Item",
       "Join-Path",
@@ -1040,6 +1133,7 @@
     "Command": "New-EncryptedCredentialFile",
     "Source": "permissions.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-SecureString",
       "Get-Acl",
@@ -1055,6 +1149,7 @@
     "Command": "Get-EncryptedCredentialFile",
     "Source": "permissions.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-SecureString",
       "Get-Content",
@@ -1064,13 +1159,15 @@
   {
     "Command": "Resolve-LGPOSource",
     "Source": "policies.ps1",
-    "Compiled": false,
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
     "Command": "Test-LGPOSourceAvailability",
     "Source": "policies.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Date",
       "Invoke-WebRequest",
@@ -1081,6 +1178,7 @@
     "Command": "Install-LGPO",
     "Source": "policies.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Copy-Item",
       "Expand-Archive",
@@ -1103,6 +1201,7 @@
     "Command": "Test-LGPOInstalled",
     "Source": "policies.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Join-Path",
       "Test-Path"
@@ -1112,6 +1211,7 @@
     "Command": "Invoke-LGPO",
     "Source": "policies.ps1",
     "Compiled": false,
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Get-Content",
       "Get-Date",
@@ -1126,6 +1226,7 @@
     "Command": "ConvertFrom-RegistryPolicy",
     "Source": "policies.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Assert-PSFPolicyDelimiter",
       "ConvertFrom-PSFPolicyPayload",
@@ -1136,6 +1237,7 @@
     "Command": "ConvertTo-RegistryPolicy",
     "Source": "policies.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PSFPolicyPayload",
       "Join-Path"
@@ -1145,6 +1247,7 @@
     "Command": "New-OfflineDomainJoinBlob",
     "Source": "provisioning.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-OperationResult"
     ]
@@ -1153,6 +1256,7 @@
     "Command": "New-DjoinFile",
     "Source": "provisioning.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-OperationResult"
     ]
@@ -1161,6 +1265,7 @@
     "Command": "ConvertTo-RegistryProviderPath",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Write-Error"
     ]
@@ -1169,6 +1274,7 @@
     "Command": "Resolve-RegistryPath",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Write-Error"
@@ -1178,6 +1284,7 @@
     "Command": "Compare-RegistrySettingState",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PSFRegistryState",
       "Get-PSFRegistryValueState",
@@ -1188,6 +1295,7 @@
     "Command": "Restore-RegistrySettingState",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Compare-RegistrySettingState",
       "ConvertTo-Json",
@@ -1202,6 +1310,7 @@
     "Command": "Get-RegistryKey",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "ForEach-Object",
@@ -1216,6 +1325,7 @@
     "Command": "Set-RegistryKey",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "New-Item",
@@ -1228,6 +1338,7 @@
     "Command": "Remove-RegistryKey",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Remove-Item",
@@ -1240,6 +1351,7 @@
     "Command": "Get-RegistryValue",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Get-ItemPropertyValue",
@@ -1252,6 +1364,7 @@
     "Command": "Set-RegistryValue",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Get-ItemPropertyValue",
@@ -1267,6 +1380,7 @@
     "Command": "Remove-RegistryValue",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Get-ItemPropertyValue",
@@ -1280,6 +1394,7 @@
     "Command": "Test-RegistryPath",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Test-Path"
@@ -1289,6 +1404,7 @@
     "Command": "Test-RegistryValue",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Get-ItemPropertyValue",
@@ -1299,6 +1415,7 @@
     "Command": "Get-RegistryValueKind",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-RegistryProviderPath",
       "Resolve-RegistryPath",
@@ -1312,6 +1429,7 @@
     "Command": "Mount-DefaultUserHive",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Join-Path",
       "reg.exe",
@@ -1323,6 +1441,7 @@
     "Command": "Dismount-DefaultUserHive",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "reg.exe",
       "Start-Sleep",
@@ -1334,6 +1453,7 @@
     "Command": "Export-RegistryKey",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Invoke-PSFRegistryFileCommand",
       "Write-Error"
@@ -1343,6 +1463,7 @@
     "Command": "Search-RegistryKey",
     "Source": "registry.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Invoke-PSFRegistryFileCommand",
       "Write-Error"
@@ -1352,6 +1473,7 @@
     "Command": "Get-DefenderThreatDetection",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-Member",
       "ConvertTo-Json",
@@ -1370,6 +1492,7 @@
     "Command": "Get-DefenderThreat",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-Member",
       "ConvertTo-Json",
@@ -1386,12 +1509,14 @@
     "Command": "Get-DefenderThreatDescriptionURL",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Add-DefenderExclusion",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-MpPreference",
       "New-OperationResult"
@@ -1401,6 +1526,7 @@
     "Command": "Enable-WSLFirewallRule",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-NetFirewallRule",
       "New-NetFirewallRule",
@@ -1411,6 +1537,7 @@
     "Command": "Disable-JetBrainsFirewallRule",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-OperationResult",
       "Disable-NetFirewallRule",
@@ -1424,6 +1551,7 @@
     "Command": "Find-NewlyWrittenObject",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertTo-Json",
       "Format-Table",
@@ -1441,6 +1569,7 @@
     "Command": "Invoke-SafeProcess",
     "Source": "security.ps1",
     "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ConvertTo-PSFNativeArgumentString",
       "New-Object",
@@ -1453,6 +1582,7 @@
     "Command": "Export-EventLog",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Invoke-SafeProcess",
       "Out-File",
@@ -1465,6 +1595,7 @@
     "Command": "Get-ScheduledTaskAction",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Get-ScheduledTask",
@@ -1475,6 +1606,7 @@
     "Command": "Get-WMIPersistence",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-CimInstance"
     ]
@@ -1483,6 +1615,7 @@
     "Command": "Import-SecurityEventConfiguration",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-PowerShellDataFile",
       "Join-Path",
@@ -1493,6 +1626,7 @@
     "Command": "Get-SecurityEventGroup",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-SecurityEventConfiguration"
     ]
@@ -1501,6 +1635,7 @@
     "Command": "Get-SecurityEventDefinition",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-SecurityEventConfiguration",
       "New-Object"
@@ -1510,6 +1645,7 @@
     "Command": "Test-WindowsEventLogChannel",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-WinEvent"
     ]
@@ -1518,6 +1654,7 @@
     "Command": "Get-WindowsEventByDefinition",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Get-Date",
@@ -1536,6 +1673,7 @@
     "Command": "Resolve-WindowsEventMappedField",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-SecurityEventConfiguration"
     ]
@@ -1544,6 +1682,7 @@
     "Command": "ConvertFrom-WinEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-SecurityEventConfiguration",
       "Resolve-WindowsEventMappedField"
@@ -1553,6 +1692,7 @@
     "Command": "Get-WindowsLogonEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1566,6 +1706,7 @@
     "Command": "Get-WindowsAccountChangeEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1579,6 +1720,7 @@
     "Command": "Get-WindowsServiceEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1592,6 +1734,7 @@
     "Command": "Get-WindowsBootEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1605,6 +1748,7 @@
     "Command": "Get-WindowsPowerShellEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1618,6 +1762,7 @@
     "Command": "Get-WindowsScheduledTaskEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1631,6 +1776,7 @@
     "Command": "Get-WindowsSysmonEvent",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-WinEvent",
       "Get-Date",
@@ -1646,6 +1792,7 @@
     "Command": "Get-CertificateInventory",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-Member",
       "ForEach-Object",
@@ -1660,6 +1807,7 @@
     "Command": "Set-ScriptSignature",
     "Source": "security.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Get-ChildItem",
@@ -1673,6 +1821,7 @@
     "Command": "Get-DefaultApp",
     "Source": "settings.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemProperty",
       "Write-Error"
@@ -1682,6 +1831,7 @@
     "Command": "Get-OSBuildNumber",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemPropertyValue"
     ]
@@ -1690,6 +1840,7 @@
     "Command": "Get-OSDisplayVersion",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemPropertyValue",
       "Write-Verbose"
@@ -1699,6 +1850,7 @@
     "Command": "Get-OSEdition",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemPropertyValue"
     ]
@@ -1707,6 +1859,7 @@
     "Command": "Get-OSProductName",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemProperty",
       "Resolve-WindowsProductName"
@@ -1716,6 +1869,7 @@
     "Command": "Get-OSVersionInfo",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemProperty",
       "Resolve-WindowsProductName",
@@ -1726,6 +1880,7 @@
     "Command": "Get-SystemMemory",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Format-SysInfoInvariant",
       "New-Object",
@@ -1736,6 +1891,7 @@
     "Command": "Get-SystemDisk",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Format-SysInfoInvariant",
       "Get-CimAssociatedInstance",
@@ -1748,6 +1904,7 @@
     "Command": "Get-Hostname",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Write-Verbose"
     ]
@@ -1756,6 +1913,7 @@
     "Command": "Get-SystemUptime",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Format-SysInfoInvariant"
     ]
@@ -1764,6 +1922,7 @@
     "Command": "Get-SystemInfo",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Format-SysInfoInvariant",
@@ -1778,6 +1937,7 @@
     "Command": "Get-SystemPaths",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Join-Path"
     ]
@@ -1786,6 +1946,7 @@
     "Command": "Test-HostApplicability",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-OSBuildNumber",
       "Get-OSEdition"
@@ -1795,6 +1956,7 @@
     "Command": "Get-HostPrerequisiteReport",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Command",
       "Get-Module",
@@ -1811,6 +1973,7 @@
     "Command": "Get-DotNetVersion",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "dotnet",
       "ForEach-Object",
@@ -1825,6 +1988,7 @@
     "Command": "New-DriveMapping",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemProperty",
       "Get-ItemPropertyValue",
@@ -1845,6 +2009,7 @@
     "Command": "Remove-DriveMapping",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ItemProperty",
       "Get-ItemPropertyValue",
@@ -1863,6 +2028,7 @@
     "Command": "Test-PendingReboot",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-CimInstance",
       "Get-ItemProperty",
@@ -1875,6 +2041,7 @@
     "Command": "Test-SystemFileIntegrity",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Content",
       "Join-Path",
@@ -1886,12 +2053,14 @@
     "Command": "Convert-RobocopyExitCode",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": []
   },
   {
     "Command": "Find-ServiceAccountUsage",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ConvertFrom-Csv",
       "Get-CimInstance",
@@ -1904,6 +2073,7 @@
     "Command": "Get-FileLockProcess",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Process",
       "New-OperationResult",
@@ -1915,6 +2085,7 @@
     "Command": "Install-Font",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Copy-Item",
       "Get-ChildItem",
@@ -1931,6 +2102,7 @@
     "Command": "Set-ServiceStartupState",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Service",
       "New-Object",
@@ -1942,6 +2114,7 @@
     "Command": "Set-ScheduledTaskState",
     "Source": "system.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Disable-ScheduledTask",
       "Enable-ScheduledTask",
@@ -1954,6 +2127,7 @@
     "Command": "Test-PSWindowsUpdateAvailable",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Module"
     ]
@@ -1962,6 +2136,7 @@
     "Command": "Get-WindowsUpdate",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-Module",
       "PSWindowsUpdate\\Get-PSFProviderWindowsUpdate",
@@ -1974,6 +2149,7 @@
     "Command": "Install-WindowsUpdate",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "ForEach-Object",
       "Get-PSFWindowsUpdateId",
@@ -1990,6 +2166,7 @@
     "Command": "Hide-WindowsUpdate",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-PSFWindowsUpdateId",
       "Get-WindowsUpdate",
@@ -2005,6 +2182,7 @@
     "Command": "Get-WindowsUpdateHistory",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-Module",
       "PSWindowsUpdate\\Get-PSFProviderWUHistory",
@@ -2017,6 +2195,7 @@
     "Command": "Uninstall-WindowsUpdate",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-WindowsUpdateHistory",
       "Import-Module",
@@ -2030,6 +2209,7 @@
     "Command": "Test-WindowsUpdateRebootRequired",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-Module",
       "PSWindowsUpdate\\Get-PSFProviderWURebootStatus",
@@ -2041,6 +2221,7 @@
     "Command": "Get-WindowsUpdateConfiguration",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Import-Module",
       "PSWindowsUpdate\\Get-PSFProviderWUSettings",
@@ -2052,6 +2233,7 @@
     "Command": "Get-MSStoreUpdate",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "_awaitWinRt",
       "_getAppInstallManager",
@@ -2062,6 +2244,7 @@
     "Command": "Install-MSStoreUpdate",
     "Source": "updates.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "_awaitWinRt",
       "_getAppInstallManager",
@@ -2076,6 +2259,7 @@
     "Command": "Get-UserInfo",
     "Source": "user.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-Object"
     ]
@@ -2084,6 +2268,7 @@
     "Command": "Get-UserSID",
     "Source": "user.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "New-Object",
       "Write-Error"
@@ -2093,6 +2278,7 @@
     "Command": "Test-ADCredential",
     "Source": "user.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Add-Type",
       "Write-Verbose"
@@ -2102,6 +2288,7 @@
     "Command": "Get-ADAccountLockoutSource",
     "Source": "user.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-Date",
       "Get-WinEvent",
@@ -2116,6 +2303,7 @@
     "Command": "Get-ADFSMORoleHolder",
     "Source": "user.ps1",
     "Compiled": false,
+    "Implementation": "LegacyFunction",
     "Calls": [
       "Get-ADDomain",
       "Get-ADForest",

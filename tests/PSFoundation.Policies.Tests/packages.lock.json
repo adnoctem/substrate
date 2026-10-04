@@ -45,25 +45,6 @@
         "resolved": "17.14.1",
         "contentHash": "pmTrhfFIoplzFVbhVwUquT+77CbGH+h4/3mBpdmIlYtBi9nAB+kKI6dN3A/nV4DFi3wLLx/BlHIPK+MkbQ6Tpg=="
       },
-      "Microsoft.Management.Infrastructure": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "cGZi0q5IujCTVYKo9h22Pw+UwfZDV82HXO8HTxMG2HqntPlT3Ls8jY6punLp4YzCypJNpfCAu2kae3TIyuAiJw==",
-        "dependencies": {
-          "Microsoft.Management.Infrastructure.Runtime.Unix": "3.0.0",
-          "Microsoft.Management.Infrastructure.Runtime.Win": "3.0.0"
-        }
-      },
-      "Microsoft.Management.Infrastructure.Runtime.Unix": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "QZE3uEDvZ0m7LabQvcmNOYHp7v1QPBVMpB/ild0WEE8zqUVAP5y9rRI5we37ImI1bQmW5pZ+3HNC70POPm0jBQ=="
-      },
-      "Microsoft.Management.Infrastructure.Runtime.Win": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "uwMyWN33+iQ8Wm/n1yoPXgFoiYNd0HzJyoqSVhaQZyJfaQrJR3udgcIHjqa1qbc3lS6kvfuUMN4TrF4U4refCQ=="
-      },
       "Microsoft.NETFramework.ReferenceAssemblies.net48": {
         "type": "Transitive",
         "resolved": "1.0.3",
@@ -130,13 +111,16 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "psfoundation.diagnostics": {
+        "type": "Project"
+      },
       "psfoundation.io": {
         "type": "Project"
       },
-      "psfoundation.networking": {
+      "psfoundation.policies": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
         }
       }
@@ -182,25 +166,6 @@
         "type": "Transitive",
         "resolved": "17.14.1",
         "contentHash": "pmTrhfFIoplzFVbhVwUquT+77CbGH+h4/3mBpdmIlYtBi9nAB+kKI6dN3A/nV4DFi3wLLx/BlHIPK+MkbQ6Tpg=="
-      },
-      "Microsoft.Management.Infrastructure": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "cGZi0q5IujCTVYKo9h22Pw+UwfZDV82HXO8HTxMG2HqntPlT3Ls8jY6punLp4YzCypJNpfCAu2kae3TIyuAiJw==",
-        "dependencies": {
-          "Microsoft.Management.Infrastructure.Runtime.Unix": "3.0.0",
-          "Microsoft.Management.Infrastructure.Runtime.Win": "3.0.0"
-        }
-      },
-      "Microsoft.Management.Infrastructure.Runtime.Unix": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "QZE3uEDvZ0m7LabQvcmNOYHp7v1QPBVMpB/ild0WEE8zqUVAP5y9rRI5we37ImI1bQmW5pZ+3HNC70POPm0jBQ=="
-      },
-      "Microsoft.Management.Infrastructure.Runtime.Win": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "uwMyWN33+iQ8Wm/n1yoPXgFoiYNd0HzJyoqSVhaQZyJfaQrJR3udgcIHjqa1qbc3lS6kvfuUMN4TrF4U4refCQ=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies.net461": {
         "type": "Transitive",
@@ -266,13 +231,16 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "psfoundation.diagnostics": {
+        "type": "Project"
+      },
       "psfoundation.io": {
         "type": "Project"
       },
-      "psfoundation.networking": {
+      "psfoundation.policies": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
         }
       }

@@ -16,6 +16,7 @@ function Convert-Error {
 
 function Add-Observation {
   param ([string]$Name, [scriptblock]$Action)
+  [IO.File]::WriteAllText($ReportPath + '.progress', $Name)
   $records = New-Object 'Collections.Generic.List[object]'
   $terminated = $false
   try {
@@ -122,4 +123,47 @@ Add-Observation 'malformed-short-multi' {
   ConvertTo-RegistryPolicy $raw $path -Force
   ConvertFrom-RegistryPolicy $path
 }
+Add-Observation 'lgpo-source' {
+  foreach ($source in @((Resolve-LGPOSource), (Resolve-LGPOSource -Source 'sct-lgpo-standalone'))) {
+    if ((Get-Command Resolve-LGPOSource).CommandType -eq 'Cmdlet') {
+      if ($source.Sha256 -cne 'CB7159D134A0A1E7B1ED2ADA9A3CE8CE8F4DE391D14403D55438AF824247CC55' -or $source.LastVerified -cne '2026-10-04') {
+        throw 'LGPO source must expose the reviewed ZIP pin and verification date.'
+      }
+    }
+    # The reviewed source pin/date intentionally replace the frozen placeholder. Compare all other fields and types normally.
+    $source.Sha256 = '<reviewed-source-pin>'
+    $source.LastVerified = '<reviewed-source-date>'
+    $source
+  }
+}
+Add-Observation 'lgpo-installed' {
+  Test-LGPOInstalled -Path $path
+  Test-LGPOInstalled -Path $scratch
+  Test-LGPOInstalled -Path (Join-Path $scratch 'missing.exe')
+  Test-LGPOInstalled -Path ''
+  Test-LGPOInstalled -Path 'UnknownDrive:\missing.exe'
+}
+Add-Observation 'lgpo-provider-paths' { Test-LGPOInstalled -Path 'Env:PATH'; Test-LGPOInstalled -Path 'UnknownDrive:\missing.exe' }
+$executable = Join-Path $root 'build/bin/ProcessHost/Release/net48/ProcessHost.exe'
+$policyInput = Join-Path $scratch 'lgpo.txt'
+[IO.File]::WriteAllText($policyInput, 'ok')
+Add-Observation 'lgpo-whatif' { Invoke-LGPO -PolicyPath $policyInput -LgpoExe $executable -WhatIf }
+Add-Observation 'lgpo-missing-executable' { Invoke-LGPO -PolicyPath $policyInput -LgpoExe (Join-Path $scratch 'missing.exe') }
+Add-Observation 'lgpo-invalid-policy' { Invoke-LGPO -PolicyPath (Join-Path $scratch 'missing.txt') -LgpoExe $executable }
+Add-Observation 'lgpo-invalid-executable' { Invoke-LGPO -PolicyPath $policyInput -LgpoExe $policyInput }
+foreach ($mode in @('text', 'backup', 'failure')) {
+  if ($mode -eq 'failure') { [IO.File]::WriteAllText($policyInput, 'fail') }
+  $inputPath = if ($mode -eq 'backup') { $scratch } else { $policyInput }
+  Add-Observation "lgpo-apply:$mode" {
+    $result = Invoke-LGPO -PolicyPath $inputPath -LgpoExe $executable
+    # Get-Content in v1 attaches provider objects to strings. Capture text separately to avoid serializing provider object graphs.
+    if ($null -ne $result.StdOut) { $result.StdOut = [string]::Concat('', [string]$result.StdOut) }
+    if ($null -ne $result.StdErr) { $result.StdErr = [string]::Concat('', [string]$result.StdErr) }
+    if ($result.AppliedAt.Kind -ne [DateTimeKind]::Utc) { throw 'LGPO timestamp must be UTC.' }
+    $result.AppliedAt = [datetime]'2026-01-01T00:00:00Z'
+    $result
+  }
+}
+Remove-Item -LiteralPath $policyInput
 $observations | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
+Remove-Item -LiteralPath ($ReportPath + '.progress')

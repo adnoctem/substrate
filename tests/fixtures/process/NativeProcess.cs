@@ -9,6 +9,14 @@ public static class NativeProcess
     {
         switch (args[0])
         {
+            case "/g":
+            case "/t":
+                Console.WriteLine(args[0]);
+                for (int i = 1; i < args.Length; i++)
+                    Console.WriteLine("ARG:" + Convert.ToBase64String(Encoding.UTF8.GetBytes(args[i])));
+                if (System.IO.File.Exists(args[1]) && System.IO.File.ReadAllText(args[1]) == "fail")
+                { Console.Error.WriteLine("Synthetic failure"); return 7; }
+                return 0;
             case "short-wait":
                 Thread.Sleep(1000);
                 Console.WriteLine("finished");

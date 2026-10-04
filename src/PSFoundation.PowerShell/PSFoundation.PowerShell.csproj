@@ -10,6 +10,7 @@
     <ProjectReference Include="../PSFoundation.Core/PSFoundation.Core.csproj" />
     <ProjectReference Include="../PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
     <ProjectReference Include="../PSFoundation.IO/PSFoundation.IO.csproj" />
+    <ProjectReference Include="../PSFoundation.Policies/PSFoundation.Policies.csproj" />
     <ProjectReference Include="../PSFoundation.Networking/PSFoundation.Networking.csproj" />
     <ProjectReference Include="../PSFoundation.Registry/PSFoundation.Registry.csproj" />
   </ItemGroup>

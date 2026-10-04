@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/PSFoundation.Policies/PSFoundation.Policies.csproj" />
+  </ItemGroup>
+</Project>
