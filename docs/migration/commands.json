@@ -529,7 +529,7 @@
     "Command": "Install-Office",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -539,7 +539,7 @@
     "Command": "Uninstall-Office",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -549,7 +549,7 @@
     "Command": "Switch-OfficeDeployment",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -559,7 +559,7 @@
     "Command": "Update-Office",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -569,7 +569,7 @@
     "Command": "Set-OfficeUpdateConfiguration",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -579,7 +579,7 @@
     "Command": "Add-OfficeLanguage",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -589,7 +589,7 @@
     "Command": "Remove-OfficeLanguage",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -599,7 +599,7 @@
     "Command": "Set-OfficeApplicationSelection",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -609,7 +609,7 @@
     "Command": "Set-OfficeApplicationPreference",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeWorkflow",
       "Join-Path"
@@ -808,7 +808,7 @@
     "Command": "Get-OfficeDeploymentRecovery",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Assert-PSFOfficeField",
       "Assert-PSFOfficeProtectedPath",
@@ -826,7 +826,7 @@
     "Command": "Resume-OfficeInstallation",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeRecovery"
     ]
@@ -835,7 +835,7 @@
     "Command": "Resume-OfficeMigration",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Invoke-PSFOfficeRecovery"
     ]

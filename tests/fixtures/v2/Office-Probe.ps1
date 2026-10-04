@@ -7,6 +7,19 @@ $module = Get-Module PSFoundation
 $managed = (Get-Command Get-OfficeInventory).CommandType -eq 'Cmdlet'
 $observations = [ordered]@{}
 $observations['live-read-only-inventory'] = Get-OfficeInventory
+if ($managed) {
+  $nativeInventory = [PSFoundation.Office.OfficeInventoryManager]::new().Read([Threading.CancellationToken]::None)
+  $wireInventory = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($nativeInventory)
+  $wireHash = & $module { param($Value) Get-PSFOfficeFingerprint $Value } $wireInventory
+  if ($wireHash -cne [PSFoundation.Office.OfficeInventorySerializer]::GetFingerprint($nativeInventory)) { throw 'Native inventory serialization changed its fingerprint.' }
+  $edgeInventory = [PSFoundation.Office.OfficeInventoryManager]::new().Analyze("Synthetic '\`"<>&`n" + [char]0x2028, [PSFoundation.Office.OfficeRegistryRecord[]]@(), $null, $null)
+  $edgeHash = & $module { param($Value) Get-PSFOfficeFingerprint $Value } ([PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($edgeInventory))
+  if ($edgeHash -cne [PSFoundation.Office.OfficeInventorySerializer]::GetFingerprint($edgeInventory, ($PSVersionTable.PSVersion.Major -le 5))) {
+    $expectedJson = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($edgeInventory) | ConvertTo-Json -Depth 30 -Compress
+    $actualJson = [PSFoundation.Office.OfficeInventorySerializer]::ToJson($edgeInventory, ($PSVersionTable.PSVersion.Major -le 5))
+    throw "Native synthetic inventory escaping differs: expected $expectedJson; actual $actualJson"
+  }
+}
 $observations['tool-source'] = Resolve-OfficeDeploymentToolSource
 $observations['host-platform'] = & $module { Test-PSFOfficeHost }
 $repo = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
@@ -34,6 +47,15 @@ foreach ($pathCase in @(@{ Name = 'protected-path'; Path = (Join-Path $repo 'REA
 $target = New-OfficeDeploymentConfiguration -TargetProductId Standard2019Volume -Language de-DE, en-us, de-de -Version 16.0.10417.20095 -ExcludeApp Teams, Groove
 $observations['configuration'] = $target
 $observations['defaults'] = New-OfficeDeploymentConfiguration Standard2024Volume
+$live = $observations['live-read-only-inventory']
+$absentProduct = @('Standard2019Volume', 'ProPlus2019Volume', 'Standard2021Volume', 'ProPlus2021Volume' | Where-Object { $_ -notin @($live.Products | ForEach-Object { $_.ProductId }) })[0]
+$absentPlan = Get-OfficeDeploymentPlan -Action Remove -RemoveProductId $absentProduct -Inventory $live
+$observations['remove-read-only-noop'] = Uninstall-Office -Plan $absentPlan -OdtPath $processHost -DryRun |
+  Select-Object Target, Source, Action, Status, Phase, ReasonCode, Changed, ChangeKnown, AlreadyCompliant, WrapperExitCode, RecoveryRequired
+$observations['execution-action-guard'] = & {
+  try { Install-Office -Plan $absentPlan -OdtPath $processHost -DryRun; throw 'Mismatched plan action was accepted.' }
+  catch { if (-not $_.Exception.Data.Contains('OfficeReason')) { throw }; [string]$_.Exception.Data['OfficeReason'] }
+}
 $observations['media-preview-rejects-unsigned-tool'] = & {
   try { Save-OfficeDeploymentMedia -Configuration $target -SourcePath $previewPath -OdtPath $processHost -DryRun; throw 'Unsigned tool was accepted.' }
   catch { if (-not $_.Exception.Data.Contains('OfficeReason')) { throw }; [string]$_.Exception.Data['OfficeReason'] }
@@ -128,12 +150,27 @@ foreach ($action in @('Install', 'Migrate', 'Update', 'Remove', 'AddLanguage', '
     SetApplicationPreference { $arguments.Settings = @{ Preferences = @($preference) }; $xmlArguments.Settings = $arguments.Settings }
   }
   $observations["plan-$action"] = Get-OfficeDeploymentPlan @arguments
+  if ($managed) {
+    $parsed = [PSFoundation.Office.OfficeDeploymentPlanDocument]::Parse(($observations["plan-$action"] | ConvertTo-Json -Depth 30 -Compress))
+    if ([string]$parsed.Request.Action -ne $action) { throw "Plan round-trip changed $action." }
+  }
   $observations["xml-$action"] = (& $module { param($Values) (New-PSFOfficeXml @Values).OuterXml } $xmlArguments)
 }
 $observations['plan-clean'] = Get-OfficeDeploymentPlan -Action Install -Configuration $target -Inventory (Read-Fixture @())
 $observations['xml-download'] = & $module { param($Target) (New-PSFOfficeXml -Action Download -Configuration $Target -MediaPath 'C:\Media\Office').OuterXml } $target
 $beforeRecovery = Read-Fixture $records
 $recoveryPlan = Get-OfficeDeploymentPlan -Action Migrate -Configuration $target -Inventory $beforeRecovery -RemoveProductId Standard2019Volume
+if ($managed) {
+  $document = [PSFoundation.Office.OfficeDeploymentPlanDocument]::Parse(($recoveryPlan | ConvertTo-Json -Depth 30 -Compress))
+  $record = [PSCustomObject][ordered]@{
+    SchemaVersion = 1; RunId = ('a' * 32); MachineId = $recoveryPlan.MachineId; Action = 'Migrate'; Plan = $recoveryPlan
+    ConfigurationFingerprint = (& $module { param($Value) Get-PSFOfficeFingerprint $Value } $recoveryPlan.Configuration)
+    MediaFingerprint = $recoveryPlan.MediaFingerprint; Phase = 'StageMedia'; PhaseCompleted = $false; NativeResults = @(); RebootRequired = $false
+    CreatedAt = '2026-01-01T00:00:00Z'; UpdatedAt = '2026-01-01T00:00:00Z'; Result = $null
+  }
+  $nativeRecord = [PSFoundation.Office.OfficeRecoveryRecord]::Parse(($record | ConvertTo-Json -Depth 30 -Compress), $record.RunId, $record.MachineId)
+  if ($nativeRecord.Plan.InventoryFingerprint -cne $document.InventoryFingerprint) { throw 'Recovery parsing changed its recorded inventory.' }
+}
 & $module {
   function script:Get-OfficeInventory { $script:RecoveryProbeInventory }
   function script:Get-OfficeDeploymentRecovery { [PSCustomObject]@{ Path = 'C:\Synthetic\recovery.json'; Record = $script:RecoveryProbeRecord } }
@@ -162,6 +199,16 @@ foreach ($case in @('BeforeLaunch', 'Removed', 'Partial', 'Conflict', 'Complete'
   $record = [PSCustomObject]@{ SchemaVersion = 1; Action = 'Migrate'; Plan = $recoveryPlan; Phase = $phase; PhaseCompleted = $completed; MediaFingerprint = 'synthetic' }
   $observations["recovery-$case"] = & $module {
     param ($Current, $Record)
+    if ('PSFoundation.Office.OfficeRecoveryPolicy' -as [type]) {
+      # Compare the native decision policy with the frozen script coordinator.
+      # End-to-end native execution/recovery is exercised separately with an offline runtime.
+      $compliant = (Test-OfficeDeployment -Configuration $Record.Plan.Configuration -Inventory $Current).Compliant
+      $decision = [PSFoundation.PowerShell.Office.OfficeCompatibility]::RecoveryDecision($Record, $Current, 'Migrate', $compliant)
+      if ($decision.Disposition -eq 'Continue') {
+        return [PSCustomObject]@{ Status = 'WouldExecute'; Action = 'Migrate'; ReasonCode = $null; Error = $null; RecoveryRequired = $null; WrapperExitCode = $null; AlreadyCompliant = $null; RemoveProductId = @($decision.RemainingRemovalIds); RemoveMsi = $Record.Plan.RemoveMsi }
+      }
+      return [PSCustomObject]@{ Status = $(if ($compliant) { 'Completed' } else { 'Blocked' }); Action = 'Recover'; ReasonCode = $decision.ReasonCode; Error = $decision.Detail; RecoveryRequired = $decision.RecoveryRequired; WrapperExitCode = $decision.WrapperExitCode; AlreadyCompliant = $compliant; RemoveProductId = $null; RemoveMsi = $null }
+    }
     $script:RecoveryProbeInventory = $Current
     $script:RecoveryProbeRecord = $Record
     Invoke-PSFOfficeRecovery -Recovery ([PSCustomObject]@{ RunId = '11111111111111111111111111111111'; LogRoot = 'C:\Synthetic' }) -OriginalAction Migrate -OdtPath 'C:\Synthetic\setup.exe' -DryRun $true |

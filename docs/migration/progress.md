@@ -366,8 +366,26 @@ header helper remains private. Two managed workflow tests bring the suite to 230
 comparisons cover discovery, modern/2007 identities, folder planning and synthetic PST ownership without activating Outlook. The Framework
 interop build avoids a netstandard registry assembly mismatch caught by the Windows PowerShell check.
 
-The next review boundary is the complete Office API. Finish its deployment orchestration and recovery reader before continuing other
-domains.
+## Complete Office implementation: review pause
+
+All 24 public Office functions now delegate their work to C#. `OfficeDeploymentManager` exposes separate install, remove, migrate, update,
+language, application-selection, update-settings and preference operations, plus preview and the two supported recovery operations. Sync and
+async entry points accept cancellation. The PowerShell layer retains parameter binding, confirmation, warnings and report presentation;
+`office.ps1` is no longer staged. This reaches 137 of 188 functions: 88 compiled commands and 49 C#-backed compatibility functions.
+
+Native execution rechecks machine/inventory/media before mutation and under the shared lock, stages verified content in protected storage,
+records each phase atomically and verifies the resulting installation. Cancellation after launch waits for ODT, records its exit and
+prevents another phase. A removal requesting reboot stops migration. Recovery reopens protected journals and accepts only pre-launch or
+verified completed-removal continuation; uncertain partial installations and schema-2 pilot replay remain blocked. Caller-supplied records
+never grant authority. Keys stay out of plans, journals, logs and process arguments.
+
+Two managed lifecycle tests cover whole migrations, failure/cleanup, cancellation, journal integrity and continuation, bringing the suite to
+232 per target (464 executions). Guarded PowerShell 5.1/7 checks cover public metadata, all nine plan formats, inventory fingerprints,
+existing reports, removal no-ops and action guards. Legacy Windows PowerShell HTML-escaped fingerprints and modern standard JSON
+fingerprints are both recognized. No Office application was closed and no Office installer was run. Real Microsoft acquisition, protected
+package staging, live Outlook and installation/recovery still require controlled integration validation.
+
+Pause here for the maintainer's Office review. Do not continue the remaining domains until that review resumes implementation.
 
 ## Local automation
 

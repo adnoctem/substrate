@@ -236,3 +236,14 @@ supplied through SecureString. It bounds key input length and clears its owned c
 Office host readiness now blocks when reboot probes fail, rather than treating incomplete evidence as a clear state. Journal writes validate
 the existing journal's protection as well as its parent and use bounded JSON parsing before atomic publication. Deployment lock disposal
 releases ownership; C# callers must acquire and dispose it on the same thread.
+
+Office orchestration and journal reading now run entirely in C#. Imported records require data-only bounded JSON and reject duplicate fields
+and serializer type metadata. Fingerprint validation recognizes the existing Windows PowerShell HTML escaping and PowerShell 7 standard
+escaping; fresh native records use standard JSON. Recovery diagnostics keep structured stage/category information but have no script source
+line. Removal verification now names selected products that remain and MSI registrations that changed instead of returning an unexplained
+noncompliant assessment. Durable reports retain nested evidence rather than truncating it at the former JSONL depth of eight.
+
+No-op execution rechecks inventory before reporting success. Explicit application closure matches PID, name and start time again before
+termination. Cancellation between phases returns observed progress after cleanup; it never implies installer rollback. If final log writing
+fails, execution attempts to update the journal with that failure rather than leaving a completed result. PowerShell confirmation remains in
+the public wrapper; C# has no prompt or elevation policy. Full native installation/recovery and live Outlook validation remain pending.

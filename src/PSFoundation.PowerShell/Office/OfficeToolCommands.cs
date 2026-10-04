@@ -138,6 +138,9 @@ public static partial class OfficeCompatibility
     }
     private static PSObject? PathDiagnostic(Exception error)
     {
+        if (error.Data["OfficeDiagnostic"] is OfficeRecoveryDiagnostic recovery)
+            return SystemOutput.Object("Stage", recovery.Stage, "Category", recovery.Category, "ObjectKind", recovery.ObjectKind,
+                "Path", recovery.Path, "ExceptionType", recovery.ExceptionType, "Function", "Get-OfficeDeploymentRecovery", "ScriptPath", null, "Line", 0);
         while (!(error.Data["OfficeDiagnostic"] is OfficePathDiagnostic) && error.InnerException != null)
             error = error.InnerException;
         if (error.Data["OfficeDiagnostic"] is OfficePathDiagnostic detail)

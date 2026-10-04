@@ -1,7 +1,9 @@
 ﻿@{
   Diagnostics = @('Show-Color')
   Packages    = @('Install-Win32Program')
-  Office      = @('Test-OfficeDeployment', 'Get-OfficeDeploymentPlan', 'Test-OfficeDeploymentMedia', 'Save-OfficeDeploymentMedia')
+  Office      = @('Test-OfficeDeployment', 'Get-OfficeDeploymentPlan', 'Test-OfficeDeploymentMedia', 'Save-OfficeDeploymentMedia', 'Get-OfficeDeploymentRecovery',
+    'Install-Office', 'Uninstall-Office', 'Switch-OfficeDeployment', 'Update-Office', 'Set-OfficeUpdateConfiguration', 'Add-OfficeLanguage', 'Remove-OfficeLanguage',
+    'Set-OfficeApplicationSelection', 'Set-OfficeApplicationPreference', 'Resume-OfficeInstallation', 'Resume-OfficeMigration')
   Windows     = @('Set-ServiceStartupState')
   Security    = @('Import-SecurityEventConfiguration', 'Get-SecurityEventGroup', 'Get-SecurityEventDefinition', 'Resolve-WindowsEventMappedField', 'ConvertFrom-WinEvent',
     'Get-WindowsEventByDefinition', 'Get-WindowsLogonEvent', 'Get-WindowsAccountChangeEvent', 'Get-WindowsServiceEvent', 'Get-WindowsBootEvent',

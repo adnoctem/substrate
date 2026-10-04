@@ -1,5 +1,29 @@
 ﻿#Requires -Version 5.0
 
+function Get-OfficeDeploymentRecovery {
+  <#
+  .SYNOPSIS
+    Reads a protected Office recovery record without resuming it.
+  .DESCRIPTION
+    Uses the native journal reader to validate schema, identity, scope and fingerprints. A checkpoint does not authorize replay.
+  .PARAMETER RunId
+    Run identifier returned by an Office operation.
+  .PARAMETER LogRoot
+    Protected local recovery directory.
+  .EXAMPLE
+    Get-OfficeDeploymentRecovery -RunId $result.RunId
+  #>
+  [CmdletBinding()]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true)][ValidatePattern('^[a-fA-F0-9]{32}$')][string]$RunId,
+    [string]$LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office')
+  )
+  $outcome = [PSFoundation.PowerShell.Office.OfficeCompatibility]::ReadRecovery($RunId, $LogRoot)
+  if ($outcome.Failure) { Stop-PSFOfficeNativeFailure $outcome.Failure }
+  [PSCustomObject]@{ RunId = $RunId; LogRoot = $LogRoot; Path = Join-Path $LogRoot ($RunId + '.json'); Record = ConvertFrom-Json -InputObject $outcome.Json }
+}
+
 function Get-TransportMessageId {
   [CmdletBinding()]
   [OutputType([string])]
@@ -1513,97 +1537,971 @@ function Find-NewlyWrittenObject {
   }
 }
 
-function Invoke-PSFOfficeRecovery {
+
+
+function Invoke-PSFOfficeWorkflow {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Uses the public command PSCmdlet for confirmation before native execution.')]
   [CmdletBinding()]
+  param ([object]$Plan, [string]$ExpectedAction, [System.Management.Automation.PSCmdlet]$Caller,
+    [string]$OdtPath, [string]$LogRoot, [bool]$DryRun, [bool]$ForceCloseApps, [Security.SecureString]$ProductKey)
+
+  $metadata = Get-PSFOfficeExecutionContext | ConvertTo-Json -Depth 30 -Compress
+  $response = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Deployment(($Plan | ConvertTo-Json -Depth 30 -Compress), $ExpectedAction, $OdtPath, $LogRoot, $ForceCloseApps, $ProductKey, $true, $metadata)
+  if ($response.Failure) { Stop-PSFOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }
+  $result = $response.Json | ConvertFrom-Json
+  foreach ($warning in $result.Plan.Warnings) { Write-Warning $warning }
+  if ($result.Status -ne 'Preview' -or $DryRun) { return $result }
+  $fresh = $result.Plan
+  $description = "$ExpectedAction; remove [$($fresh.RemoveProductId -join ',')]; ALL supported MSI: $($fresh.RemoveMsi); force-close apps: $ForceCloseApps"
+  if ($fresh.Configuration) { $description += "; target $($fresh.Configuration.TargetProductId) $($fresh.Configuration.Version); languages [$($fresh.Configuration.Language -join ',')]" }
+  if (-not $Caller.ShouldProcess($fresh.MachineId, $description)) { return $result }
+  $response = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Deployment(($fresh | ConvertTo-Json -Depth 30 -Compress), $ExpectedAction, $OdtPath, $LogRoot, $ForceCloseApps, $ProductKey, $false, $metadata)
+  if ($response.Failure) { Stop-PSFOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }
+  $response.Json | ConvertFrom-Json
+}
+
+function Invoke-PSFOfficeRecovery {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Uses the public command PSCmdlet for confirmation before reopening evidence and executing.')]
+  [CmdletBinding()]
+  param ([object]$Recovery, [string]$OriginalAction, [System.Management.Automation.PSCmdlet]$Caller,
+    [string]$OdtPath, [bool]$DryRun, [bool]$ForceCloseApps, [Security.SecureString]$ProductKey)
+
+  Assert-PSFOfficeField $Recovery @('RunId', 'LogRoot', 'Path', 'Record') @('RunId', 'LogRoot')
+  $metadata = Get-PSFOfficeExecutionContext | ConvertTo-Json -Depth 30 -Compress
+  $response = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Recover($Recovery.RunId, $OriginalAction, $OdtPath, $Recovery.LogRoot, $ForceCloseApps, $ProductKey, $true, $metadata)
+  if ($response.Failure) { Stop-PSFOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }
+  $result = $response.Json | ConvertFrom-Json
+  foreach ($warning in $result.Plan.Warnings) { Write-Warning $warning }
+  if ($result.Status -ne 'Preview' -or $DryRun) { return $result }
+  $plan = $result.Plan
+  $description = "Resume $OriginalAction; remove [$($plan.RemoveProductId -join ',')]; ALL supported MSI: $($plan.RemoveMsi); force-close apps: $ForceCloseApps; target $($plan.Configuration.TargetProductId) $($plan.Configuration.Version); languages [$($plan.Configuration.Language -join ',')]"
+  if (-not $Caller.ShouldProcess($plan.MachineId, $description)) { return $result }
+  # The native manager reopens and validates the journal; caller-supplied Record is never authority.
+  $response = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Recover($Recovery.RunId, $OriginalAction, $OdtPath, $Recovery.LogRoot, $ForceCloseApps, $ProductKey, $false, $metadata)
+  if ($response.Failure) { Stop-PSFOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }
+  $response.Json | ConvertFrom-Json
+}
+
+function Install-Office {
+  <#
+    .SYNOPSIS
+      Installs Office only on a clean machine or returns a verified compliant no-op.
+    .DESCRIPTION
+      Accepts only an Install plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .PARAMETER ProductKey
+      Optional SecureString volume key; never serialized or passed on a command line.
+    .EXAMPLE
+      $plan | Install-Office -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
   param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
     [object]
-    $Recovery,
+    $Plan,
 
-    [string]
-    $OriginalAction,
-
-    [System.Management.Automation.PSCmdlet]
-    $Caller,
-
+    [Parameter(Mandatory = $true)]
     [string]
     $OdtPath,
 
-    [bool]
-    $DryRun,
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
 
-    [bool]
+    [switch]
     $ForceCloseApps,
+
+    [switch]
+    $DryRun,
 
     [Security.SecureString]
     $ProductKey
   )
 
-  Assert-PSFOfficeField $Recovery @('RunId', 'LogRoot', 'Path', 'Record') @('RunId', 'LogRoot')
-  # Reopen protected on-disk state. Caller-supplied Record is never authoritative.
-  $loaded = Get-OfficeDeploymentRecovery -RunId $Recovery.RunId -LogRoot $Recovery.LogRoot
-  $record = $loaded.Record
-  if ($record.SchemaVersion -eq 2) {
-    Stop-PSFOfficeOperation UnsupportedPilotRecovery 'Pilot journals are evidence only. Review the result or restore the VM; automatic replay is not supported.'
-  }
-  if ($record.Action -ne $OriginalAction -or $record.Plan.Action -ne $OriginalAction) {
-    Stop-PSFOfficeOperation InvalidAuthority 'This recovery command cannot resume the recorded operation.'
-  }
-  $target = ConvertTo-PSFOfficeConfiguration $record.Plan.Configuration
-  $inventory = Get-OfficeInventory
-  $verification = Test-OfficeDeployment -Configuration $target -Inventory $inventory
-  $result = New-PSFOfficeResult -Plan $record.Plan
-  $result.Action = 'Recover'
-  $result.RecoveryPath = $loaded.Path
-  $result.After = $inventory
-  $result.Verification = $verification
-  if ((Get-PSFOfficeActivity).Busy) {
-    $result.Status = 'Blocked'
-    $result.ReasonCode = 'DeploymentBusy'
-    $result.WrapperExitCode = 1
-    return $result
-  }
-  $result.RebootRequired = (Test-PendingReboot).PendingReboot
-  if ($result.RebootRequired) {
-    $result.Status = 'Blocked'
-    $result.ReasonCode = 'RebootRequired'
-    $result.WrapperExitCode = 3010
-    return $result
-  }
-  $media = Test-OfficeDeploymentMedia -SourcePath $record.Plan.SourcePath -Configuration $target
-  if (-not $media.Valid -or $media.Fingerprint -ne $record.MediaFingerprint) {
-    Stop-PSFOfficeOperation StaleMedia 'Recovery media no longer matches the recorded deployment.' (Get-PSFOfficeMediaDiagnostic $media)
-  }
-  if ($verification.Compliant) {
-    $result.Status = 'Completed'
-    $result.Phase = 'Verify'
-    $result.ReasonCode = 'AlreadyCompliant'
-    $result.AlreadyCompliant = $true
-    $result.Activation = Get-OfficeActivationStatus $target.TargetProductId
-    if ($result.Activation.Status -eq 'NotVerified') {
-      $result.ReasonCode = 'ActivationNotVerified'
-      $result.WrapperExitCode = 1
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'Install'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+      ProductKey     = $ProductKey
     }
-    return $result
+    Invoke-PSFOfficeWorkflow @parameters
   }
-  $decision = [PSFoundation.PowerShell.Office.OfficeCompatibility]::RecoveryDecision($record, $inventory, $OriginalAction)
-  if ($decision.Disposition -eq 'Blocked') {
-    $result.Status = 'Blocked'
-    $result.ReasonCode = $decision.ReasonCode
-    $result.Error = $decision.Detail
-    $result.RecoveryRequired = $decision.RecoveryRequired
-    $result.WrapperExitCode = $decision.WrapperExitCode
-    return $result
+}
+
+function Uninstall-Office {
+  <#
+    .SYNOPSIS
+      Removes only explicitly selected Click-to-Run products.
+    .DESCRIPTION
+      Accepts only a Remove plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Uninstall-Office -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'Remove'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Switch-OfficeDeployment {
+  <#
+    .SYNOPSIS
+      Executes an approved replacement after staging and verifying all destination media.
+    .DESCRIPTION
+      Accepts only a Migrate plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .PARAMETER ProductKey
+      Optional SecureString volume key; never serialized or passed on a command line.
+    .EXAMPLE
+      $plan | Switch-OfficeDeployment -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun,
+
+    [Security.SecureString]
+    $ProductKey
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'Migrate'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+      ProductKey     = $ProductKey
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Update-Office {
+  <#
+    .SYNOPSIS
+      Updates a pinned Office build while preserving other deployment dimensions.
+    .DESCRIPTION
+      Accepts only an Update plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Update-Office -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'Update'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Set-OfficeUpdateConfiguration {
+  <#
+    .SYNOPSIS
+      Applies explicitly selected update settings without installing Office.
+    .DESCRIPTION
+      Accepts only a SetUpdateConfiguration plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Set-OfficeUpdateConfiguration -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'SetUpdateConfiguration'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Add-OfficeLanguage {
+  <#
+    .SYNOPSIS
+      Adds selected full-UI languages while preserving primary language and existing resources.
+    .DESCRIPTION
+      Accepts only an AddLanguage plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Add-OfficeLanguage -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'AddLanguage'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Remove-OfficeLanguage {
+  <#
+    .SYNOPSIS
+      Removes selected non-primary languages without removing the suite.
+    .DESCRIPTION
+      Accepts only a RemoveLanguage plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Remove-OfficeLanguage -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'RemoveLanguage'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Set-OfficeApplicationSelection {
+  <#
+    .SYNOPSIS
+      Changes application exclusions while preserving product, build, architecture, and languages.
+    .DESCRIPTION
+      Accepts only a SetApplicationSelection plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Set-OfficeApplicationSelection -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'SetApplicationSelection'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Set-OfficeApplicationPreference {
+  <#
+    .SYNOPSIS
+      Applies validated Office preferences to existing and future users through ODT customize.
+    .DESCRIPTION
+      Accepts only a SetApplicationPreference plan. Revalidates current inventory and media before
+      confirmation and again under the shared deployment lock. Returns one final
+      result after cleanup. Native failures may have changed machine state.
+    .PARAMETER Plan
+      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
+    .PARAMETER OdtPath
+      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
+    .PARAMETER LogRoot
+      Local Administrators/SYSTEM-only journal and log directory.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize closing Office applications across sessions.
+    .PARAMETER DryRun
+      Return a read-only preview without journals, staging, or installer invocation.
+    .EXAMPLE
+      $plan | Set-OfficeApplicationPreference -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Plan,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+
+    [switch]
+    $ForceCloseApps,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Plan           = $Plan
+      ExpectedAction = 'SetApplicationPreference'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      LogRoot        = $LogRoot
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+    }
+    Invoke-PSFOfficeWorkflow @parameters
+  }
+}
+
+function Stop-PSFOfficeOperation {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Throws a structured exception without changing machine state.')]
+  [CmdletBinding()]
+  param (
+    [string]
+    $Reason,
+
+    [string]
+    $Message,
+
+    [object]
+    $Diagnostic
+  )
+
+  $exception = New-Object InvalidOperationException($Message)
+  $exception.Data['OfficeReason'] = $Reason
+  if ($Diagnostic) { $exception.Data['OfficeDiagnostic'] = $Diagnostic }
+  throw $exception
+}
+
+function Get-PSFOfficeMediaDiagnostic {
+  [CmdletBinding()]
+  param (
+    [object]
+    $Assessment
+  )
+
+  # A valid assessment with a changed fingerprint is not a validation failure.
+  # Older/minimal assessments need not contain the optional diagnostic field.
+  if ($null -ne $Assessment -and -not $Assessment.Valid) {
+    if ($Assessment -is [Collections.IDictionary]) { return $Assessment['Diagnostic'] }
+    $property = $Assessment.PSObject.Properties['Diagnostic']
+    if ($property) { return $property.Value }
+  }
+}
+
+function Assert-PSFOfficeField {
+  [CmdletBinding()]
+  param (
+    [object]
+    $InputObject,
+
+    [string[]]
+    $Allowed,
+
+    [string[]]
+    $Required = @()
+  )
+
+  if ($null -eq $InputObject -or $InputObject -is [string]) {
+    Stop-PSFOfficeOperation InvalidContract 'An Office contract must be a data object.'
+  }
+  if ($InputObject -is [Collections.IDictionary]) {
+    $names = @($InputObject.Keys)
+  }
+  else {
+    $names = @($InputObject.PSObject.Properties | ForEach-Object { $_.Name })
+  }
+  foreach ($name in $names) {
+    if ($name -notin $Allowed) {
+      Stop-PSFOfficeOperation InvalidContract "Unexpected Office contract field: $name."
+    }
+  }
+  foreach ($name in $Required) {
+    if ($name -notin $names) {
+      Stop-PSFOfficeOperation InvalidContract "Missing Office contract field: $name."
+    }
+  }
+}
+
+function ConvertTo-PSFOfficeList {
+  [CmdletBinding()]
+  param (
+    [AllowEmptyCollection()]
+    [string[]]
+    $Value,
+
+    [switch]
+    $Language
+  )
+
+  $seen = New-Object 'Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach ($item in $Value) {
+    if ([string]::IsNullOrWhiteSpace($item)) {
+      Stop-PSFOfficeOperation InvalidConfiguration 'Empty identifiers are not allowed.'
+    }
+    $normalized = $item.Trim()
+    if ($Language) {
+      $normalized = $normalized.ToLowerInvariant()
+      # Deliberately bounded full-UI language support; no inferred proofing/LIP conversion.
+      if ($normalized -notin @(
+          'en-us',
+          'de-de',
+          'fr-fr',
+          'es-es',
+          'it-it',
+          'nl-nl',
+          'pt-br',
+          'pt-pt',
+          'ja-jp',
+          'ko-kr',
+          'zh-cn',
+          'zh-tw',
+          'pl-pl',
+          'cs-cz',
+          'da-dk',
+          'fi-fi',
+          'sv-se',
+          'nb-no',
+          'hu-hu',
+          'tr-tr',
+          'el-gr',
+          'ro-ro',
+          'sk-sk',
+          'sl-si',
+          'hr-hr',
+          'bg-bg',
+          'et-ee',
+          'lv-lv',
+          'lt-lt'
+        )) {
+        Stop-PSFOfficeOperation Unsupported "Language '$normalized' is outside the supported full-UI language catalog."
+      }
+    }
+    elseif ($normalized -notmatch '^[A-Za-z0-9]+$') {
+      Stop-PSFOfficeOperation InvalidConfiguration 'Product/application identifiers must be alphanumeric.'
+    }
+    if ($seen.Add($normalized)) {
+      $normalized
+    }
+  }
+}
+
+function Get-PSFOfficeFingerprint {
+  [CmdletBinding()]
+  param (
+    [object]
+    $InputObject
+  )
+
+  $json = ConvertTo-Json -InputObject $InputObject -Depth 30 -Compress
+  $sha = [Security.Cryptography.SHA256]::Create()
+  try {
+    ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($json)))).Replace('-', '').ToLowerInvariant()
+  }
+  finally {
+    $sha.Dispose()
+  }
+}
+
+function ConvertTo-PSFOfficeConfiguration {
+  [CmdletBinding()]
+  param (
+    [object]
+    $Configuration
+  )
+
+  $fields = @(
+    'SchemaVersion',
+    'TargetProductId',
+    'Architecture',
+    'Channel',
+    'Language',
+    'PrimaryLanguage',
+    'Version',
+    'ExcludeApp',
+    'RequestedLanguages',
+    'LocaleSource',
+    'LocaleEvidence'
+  )
+  Assert-PSFOfficeField $Configuration $fields $fields
+  if ($Configuration.SchemaVersion -ne 1) {
+    Stop-PSFOfficeOperation InvalidContract 'Unsupported configuration schema.'
   }
   $parameters = @{
-    Action        = $OriginalAction
-    Configuration = $target
-    SourcePath    = $record.Plan.SourcePath
-    Inventory     = $inventory
+    TargetProductId = $Configuration.TargetProductId
+    Architecture    = $Configuration.Architecture
+    Channel         = $Configuration.Channel
+    Language        = @($Configuration.Language)
+    ExcludeApp      = @($Configuration.ExcludeApp)
   }
-  if ($OriginalAction -eq 'Migrate') {
-    $parameters.RemoveProductId = @($decision.RemainingRemovalIds)
-    $parameters.RemoveMsi = [bool]$record.Plan.RemoveMsi
+  if ($Configuration.Version) {
+    $parameters.Version = $Configuration.Version
   }
-  $plan = Get-OfficeDeploymentPlan @parameters
-  Invoke-PSFOfficeWorkflow -Plan $plan -ExpectedAction $OriginalAction -Caller $Caller -OdtPath $OdtPath -LogRoot $Recovery.LogRoot -DryRun $DryRun -ForceCloseApps $ForceCloseApps -ProductKey $ProductKey
+  $normalized = New-OfficeDeploymentConfiguration @parameters
+  if ($Configuration.PrimaryLanguage -ne $normalized.PrimaryLanguage) {
+    Stop-PSFOfficeOperation InvalidContract 'PrimaryLanguage must equal the first ordered language.'
+  }
+  if ($Configuration.LocaleSource -notin @('Default', 'Explicit', 'InstalledOffice', 'OperatingSystem', 'Recovery')) {
+    Stop-PSFOfficeOperation InvalidContract 'Invalid locale source.'
+  }
+  $normalized.RequestedLanguages = @($Configuration.RequestedLanguages | ForEach-Object { [string]$_ })
+  $normalized.LocaleSource = [string]$Configuration.LocaleSource
+  $normalized.LocaleEvidence = @($Configuration.LocaleEvidence | ForEach-Object { [string]$_ })
+  $normalized
+}
+
+function Assert-PSFOfficeSetting {
+  [CmdletBinding()]
+  param (
+    [string]
+    $Action,
+
+    [object]
+    $Settings
+  )
+
+  $allowed = @()
+  switch ($Action) {
+    'SetUpdateConfiguration' { $allowed = @('Enabled', 'UpdatePath', 'TargetVersion', 'Channel') }
+    'SetApplicationPreference' { $allowed = @('Preferences') }
+  }
+  Assert-PSFOfficeField $Settings $allowed
+  if ($Settings -is [Collections.IDictionary]) {
+    $names = @($Settings.Keys)
+  }
+  else {
+    $names = @($Settings.PSObject.Properties | ForEach-Object { $_.Name })
+  }
+  if ($Action -eq 'SetUpdateConfiguration') {
+    if (-not $names.Count) {
+      Stop-PSFOfficeOperation InvalidConfiguration 'Specify at least one update setting.'
+    }
+    if ('Enabled' -in $names -and $Settings.Enabled -isnot [bool]) {
+      Stop-PSFOfficeOperation InvalidConfiguration 'Enabled must be a Boolean.'
+    }
+    if ('UpdatePath' -in $names -and [string]$Settings.UpdatePath -notmatch '^(https://|[A-Za-z]:\\|\\\\)') {
+      Stop-PSFOfficeOperation InvalidConfiguration 'UpdatePath must be HTTPS or an absolute local/UNC path.'
+    }
+    if ('TargetVersion' -in $names -and [string]$Settings.TargetVersion -notmatch '^16\.0\.\d+\.\d+$') {
+      Stop-PSFOfficeOperation InvalidConfiguration 'TargetVersion must be an exact Office build.'
+    }
+    if ('Channel' -in $names -and $Settings.Channel -notin @(
+        'Current',
+        'MonthlyEnterprise',
+        'SemiAnnual',
+        'PerpetualVL2019',
+        'PerpetualVL2021',
+        'PerpetualVL2024'
+      )) {
+      Stop-PSFOfficeOperation InvalidConfiguration 'Unsupported update channel.'
+    }
+  }
+  elseif ($Action -eq 'SetApplicationPreference') {
+    if ('Preferences' -notin $names -or -not @($Settings.Preferences).Count) {
+      Stop-PSFOfficeOperation InvalidConfiguration 'At least one application preference is required.'
+    }
+    foreach ($preference in $Settings.Preferences) {
+      Assert-PSFOfficeField $preference @('Key', 'Name', 'Value', 'Type', 'App', 'Id') @('Key', 'Name', 'Value', 'Type', 'App', 'Id')
+      if ($preference.Key -notmatch '^software\\microsoft\\office\\16\.0\\(word|excel|powerpoint|outlook|access|onenote)(\\[a-z0-9 _-]+)+$' -or
+        $preference.Type -notin @('REG_DWORD', 'REG_SZ') -or
+        $preference.App -notin @('word16', 'excel16', 'ppt16', 'outlook16', 'access16', 'onenote16') -or
+        $preference.Name -notmatch '^[a-zA-Z0-9 _-]+$' -or $preference.Id -notmatch '^[a-zA-Z0-9_-]+$') {
+        Stop-PSFOfficeOperation InvalidConfiguration 'Application preference is outside the supported Office preference schema.'
+      }
+      if ($preference.Value -isnot [string] -and $preference.Value -isnot [int] -and $preference.Value -isnot [long]) {
+        Stop-PSFOfficeOperation InvalidConfiguration 'Preference values must be strings or integers.'
+      }
+      if ($preference.Type -eq 'REG_DWORD' -and [string]$preference.Value -notmatch '^\d{1,10}$') {
+        Stop-PSFOfficeOperation InvalidConfiguration 'REG_DWORD requires an unsigned decimal value.'
+      }
+      if ($preference.Type -eq 'REG_DWORD' -and [long]$preference.Value -gt [uint32]::MaxValue) {
+        Stop-PSFOfficeOperation InvalidConfiguration 'REG_DWORD exceeds the unsigned 32-bit range.'
+      }
+    }
+  }
+}
+
+function Get-PSFOfficeExecutionContext {
+  [CmdletBinding()]
+  param ()
+
+  $module = $ExecutionContext.SessionState.Module
+  [PSCustomObject]@{
+    ModuleVersion     = if ($module -and $module.Name -eq 'PSFoundation') { [string]$module.Version } else { $null }
+    ModulePath        = if ($module -and $module.Name -eq 'PSFoundation') { $module.Path } else { $PSCommandPath }
+    PowerShellVersion = [string]$PSVersionTable.PSVersion
+    PowerShellEdition = [string]$PSVersionTable.PSEdition
+    ProcessBitness    = [IntPtr]::Size * 8
+  }
+}
+
+
+
+function Resume-OfficeInstallation {
+  <#
+    .SYNOPSIS
+      Verifies or continues the same interrupted Office installation.
+    .DESCRIPTION
+      Reopens a protected Install journal. Fully compliant targets are verified
+      without reinstalling. Pre-launch work may continue. Uncertain partial ODT
+      installations return UnsupportedRecoveryState pending disposable-VM validation.
+      This command cannot inherit migration or removal authority.
+    .PARAMETER Recovery
+      Recovery descriptor from Get-OfficeDeploymentRecovery.
+    .PARAMETER OdtPath
+      Existing verified ODT setup.exe for supported continuation.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize application closure during continuation.
+    .PARAMETER ProductKey
+      Fresh SecureString volume key when needed; never loaded from a journal.
+    .PARAMETER DryRun
+      Preview continuation without writes or process invocation.
+    .EXAMPLE
+      $recovery | Resume-OfficeInstallation -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Shared lifecycle calls the supplied PSCmdlet ShouldProcess before mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Recovery,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [switch]
+    $ForceCloseApps,
+
+    [Security.SecureString]
+    $ProductKey,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Recovery       = $Recovery
+      OriginalAction = 'Install'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+      ProductKey     = $ProductKey
+    }
+    Invoke-PSFOfficeRecovery @parameters
+  }
+}
+
+function Resume-OfficeMigration {
+  <#
+    .SYNOPSIS
+      Verifies or continues an explicitly authorized Office migration.
+    .DESCRIPTION
+      Reopens a protected Migrate journal, checks current products against its
+      original scope, and confirms the revised outstanding plan. Never expands
+      removal to newly discovered products or resumes across a pending reboot.
+    .PARAMETER Recovery
+      Recovery descriptor from Get-OfficeDeploymentRecovery.
+    .PARAMETER OdtPath
+      Existing verified ODT setup.exe for supported continuation.
+    .PARAMETER ForceCloseApps
+      Explicitly authorize application closure during continuation.
+    .PARAMETER ProductKey
+      Fresh SecureString volume key when needed; never persisted.
+    .PARAMETER DryRun
+      Preview continuation without writes or process invocation.
+    .EXAMPLE
+      $recovery | Resume-OfficeMigration -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Shared lifecycle calls the supplied PSCmdlet ShouldProcess before mutation.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+    [object]
+    $Recovery,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OdtPath,
+
+    [switch]
+    $ForceCloseApps,
+
+    [Security.SecureString]
+    $ProductKey,
+
+    [switch]
+    $DryRun
+  )
+
+  process {
+    $parameters = @{
+      Recovery       = $Recovery
+      OriginalAction = 'Migrate'
+      Caller         = $PSCmdlet
+      OdtPath        = $OdtPath
+      DryRun         = [bool]$DryRun
+      ForceCloseApps = [bool]$ForceCloseApps
+      ProductKey     = $ProductKey
+    }
+    Invoke-PSFOfficeRecovery @parameters
+  }
 }
