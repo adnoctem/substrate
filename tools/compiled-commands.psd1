@@ -18,4 +18,5 @@
     'Test-HostApplicability', 'Test-Elevation', 'Convert-RobocopyExitCode'
   )
   Interop     = @('Remove-ComObject', 'Invoke-ComGarbageCollection')
+  Packages    = @('Get-Win32Program', 'Find-Win32Program', 'Get-InstalledProgramCount')
 }

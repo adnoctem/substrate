@@ -122,6 +122,13 @@ operation timeouts and stop handling. Their failures are not proof that a machin
 
 These notes record details for the implementation and tests; they are not additional choices you need to make now.
 
+Win32 inventory keeps the existing filters, property shapes and suppressed registry-read failures at the PowerShell boundary. The typed
+library requires a string `DisplayName`; malformed names and unsupported registry representations are explicit read failures. The adapter
+omits those registrations instead of exposing malformed names or partially read records. C# callers can request partial inventory and
+inspect its errors, or use the default fail-on-error behavior. Ordinary optional metadata with an unexpected kind is retained as raw data;
+typed projections return null. The original provider paths and view labels remain in PowerShell output, while the library uses explicit
+native registry views. Neither inventory path queries `Win32_Product` or triggers installer repair.
+
 The list above comes from the saved command descriptions in `tests/fixtures/Api/core.json` and `desktop.json`, captured from v1.8.7 commit
 `d2d1498275806684b44169504146302d54b7a084`. Those descriptions show that the 12 functions do not expose common parameters.
 

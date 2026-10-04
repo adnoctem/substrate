@@ -147,6 +147,36 @@ and termination of child processes when the job closes. Synthetic regression tes
 and output bounds. This replaces unbounded child execution after a stalled report serializer exhausted workstation memory. Verbose records
 are reduced to their message text before JSON serialization; PowerShell invocation internals are not serialized as test evidence.
 
+## Package inventory and network probe checkpoint
+
+`PSFoundation.Packages` introduces `Win32ProgramManager` for local uninstall registrations. It uses `RegistryManager`, explicit registry
+views and immutable metadata. Applications can supply their own roots, read an exact registration, or request inventory with cancellation.
+Reads fail on access or malformed-data errors by default; explicitly requested partial inventory retains the failed locations and
+exceptions. Async traversal offloads synchronous registry reads and checks cancellation between calls. Inventory never invokes Windows
+Installer, loads another user's profile or runs uninstall strings. A registration is not proof that an application is usable.
+
+`Get-Win32Program`, `Find-Win32Program` and `Get-InstalledProgramCount` now use compiled adapters. These preserve the PowerShell filters,
+hidden-component behavior, exact-path output, provider paths, unsigned registry numbers and optional fields. The library retains raw strings
+and registry kinds; environment expansion and PowerShell truth conversion remain in the adapter. The migration now owns 52 compiled commands
+and 15 C#-backed compatibility functions: 67 of 188 public functions, with all 192 exports retained.
+
+`NetworkProbeService` now exposes bounded DNS resolution and resolves names before creating TCP sockets. All address attempts share one
+deadline; cancellation prevents a late DNS completion from initiating a connection. Native errors and the selected address are retained, and
+sockets close deterministically. Older runtimes cannot cancel an in-flight DNS lookup, so cancellation ends the caller's wait and late
+faults are observed. The multi-channel remote-host PowerShell command, including WSMan and CredSSP, remains pending.
+
+The synthetic memory-limit fixture now initializes console output before allocation and releases buffers before reporting the expected
+out-of-memory result. This avoids a second allocation failure while reporting the first. Its allocation ceiling and the runner's job limits
+are unchanged.
+
+Win32 execution, AppX/WinGet, remaining native system/security operations and Office remain subsequent migration work. No installer,
+uninstaller, downloaded executable or live Office operation was run for this checkpoint.
+
+Validation passes 209 managed tests per target (418 executions), including synthetic registry data, partial failures, cancellation and local
+TCP/DNS probes. The full Pester suites pass 921 tests / six existing skips in PowerShell 7 and 924 tests / three existing skips in Windows
+PowerShell 5.1. Each includes 16 guarded fresh-host compatibility tests, comparing parameters, help and behavior against the frozen v1
+baseline. Build succeeds with zero warnings/errors. These checks validate this workstation and do not replace the wider release matrix.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

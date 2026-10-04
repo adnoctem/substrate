@@ -80,7 +80,8 @@ public sealed class NetworkTests
             var accept = listener.AcceptTcpClientAsync();
             var port = ((IPEndPoint)listener.LocalEndpoint).Port;
             var result = await new NetworkProbeService().ProbeTcpAsync(address.ToString(), port, TimeSpan.FromSeconds(5));
-            using (var accepted = await accept)
+            Assert.Equal(NetworkProbeStatus.Reachable, result.Status);
+            using (var accepted = await NetworkWait.Complete(accept, TimeSpan.FromSeconds(5), CancellationToken.None))
             {
                 Assert.Equal(NetworkProbeStatus.Reachable, result.Status);
                 Assert.Null(result.SocketError);

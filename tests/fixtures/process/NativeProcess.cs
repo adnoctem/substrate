@@ -10,6 +10,8 @@ public static class NativeProcess
         switch (args[0])
         {
             case "bounded-memory":
+                // Initialize console/encoding before exhausting the job's memory allowance.
+                Console.WriteLine("MemoryLimitProbeStarted");
                 var allocations = new System.Collections.Generic.List<byte[]>();
                 try
                 {
@@ -19,7 +21,15 @@ public static class NativeProcess
                     GC.KeepAlive(allocations);
                     return 0;
                 }
-                catch (OutOfMemoryException) { Console.WriteLine("MemoryLimitReached"); return 23; }
+                catch (OutOfMemoryException)
+                {
+                    // Release the pressure before allocating output/exception infrastructure.
+                    // Reporting failure must not itself fail nondeterministically with another OOM.
+                    allocations.Clear();
+                    GC.Collect();
+                    Console.WriteLine("MemoryLimitReached");
+                    return 23;
+                }
             case "/g":
             case "/t":
                 Console.WriteLine(args[0]);

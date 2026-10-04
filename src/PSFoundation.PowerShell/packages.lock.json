@@ -60,6 +60,12 @@
           "PSFoundation.IO": "[1.0.0, )"
         }
       },
+      "psfoundation.packages": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.Registry": "[1.0.0, )"
+        }
+      },
       "psfoundation.policies": {
         "type": "Project",
         "dependencies": {
@@ -201,6 +207,12 @@
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
+      "psfoundation.packages": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.Registry": "[1.0.0, )"
         }
       },
       "psfoundation.policies": {

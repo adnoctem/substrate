@@ -31,7 +31,7 @@ public sealed class ProbeProcessTests
     public void WindowsEnforcesTheJobMemoryLimit()
     {
         var result = ProbeProcess.Run(Fixture, new[] { "bounded-memory" }, 10000, 64);
-        Assert.Equal(23, result.ExitCode);
+        Assert.True(result.ExitCode == 23, "Memory probe exit code: " + result.ExitCode + "; output: " + result.Output);
         Assert.Contains("MemoryLimitReached", result.Output);
     }
     [Fact]
