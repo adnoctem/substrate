@@ -132,16 +132,22 @@ public static partial class OfficeCompatibility
         catch (Exception error)
         {
             var reason = error is OfficeException office ? office.Reason.ToString() : "UntrustedMedia";
-            PSObject? diagnostic = null;
-            if (error.Data["OfficeDiagnostic"] is OfficePathDiagnostic detail)
-            {
-                var type = new PSTypeName("System.Security.AccessControl.FileSystemRights").Type;
-                var rights = detail.AccessMask.HasValue ? type == null ? "0x" + unchecked((uint)detail.AccessMask.Value).ToString("X8", CultureInfo.InvariantCulture)
-                    : Enum.ToObject(type, detail.AccessMask.Value).ToString() : null;
-                diagnostic = SystemOutput.Object("Stage", detail.Stage, "ObjectKind", detail.ObjectKind, "Path", detail.Path, "Sid", detail.Sid, "Rights", rights,
-                    "IsInherited", detail.IsInherited, "InheritanceFlags", detail.InheritanceFlags?.ToString(), "PropagationFlags", detail.PropagationFlags?.ToString());
-            }
-            return SystemOutput.Object("ReasonCode", reason, "Detail", error.Message, "Diagnostic", diagnostic);
+            return SystemOutput.Object("ReasonCode", reason, "Detail", error.Message, "Diagnostic", PathDiagnostic(error),
+                "CleanupError", error.Data["OfficeCleanupError"], "ExitCode", error.Data["OfficeExitCode"]);
         }
+    }
+    private static PSObject? PathDiagnostic(Exception error)
+    {
+        while (!(error.Data["OfficeDiagnostic"] is OfficePathDiagnostic) && error.InnerException != null)
+            error = error.InnerException;
+        if (error.Data["OfficeDiagnostic"] is OfficePathDiagnostic detail)
+        {
+            var type = new PSTypeName("System.Security.AccessControl.FileSystemRights").Type;
+            var rights = detail.AccessMask.HasValue ? type == null ? "0x" + unchecked((uint)detail.AccessMask.Value).ToString("X8", CultureInfo.InvariantCulture)
+                : Enum.ToObject(type, detail.AccessMask.Value).ToString() : null;
+            return SystemOutput.Object("Stage", detail.Stage, "ObjectKind", detail.ObjectKind, "Path", detail.Path, "Sid", detail.Sid, "Rights", rights,
+                "IsInherited", detail.IsInherited, "InheritanceFlags", detail.InheritanceFlags?.ToString(), "PropagationFlags", detail.PropagationFlags?.ToString());
+        }
+        return null;
     }
 }

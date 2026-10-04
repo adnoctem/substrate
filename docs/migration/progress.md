@@ -317,6 +317,23 @@ checks unsigned invocation rejection across all modes, cancellation before work,
 rejection. Fresh PowerShell probes cover acquisition previews, WhatIf and the private execution boundary. Real Microsoft extraction and
 Office process integration remain pending; ordinary tests do not execute downloaded tools or install Office.
 
+## Office media checkpoint
+
+`OfficeMediaManifest`, `OfficeMediaValidator` and `OfficeMediaManager` now own strict schema-2 parsing, target matching, file hashing,
+required payload checks and explicit preparation. Generic and pinned-version CABs remain supported. Requested languages must be declared and
+present alongside the neutral stream. Duplicate or unknown JSON fields, unsafe/colliding paths and oversized manifests are rejected. The
+compatibility wrapper preserves the parsed manifest and the existing PowerShell JSON fingerprint rather than changing journal identity.
+
+Preparation uses a protected sibling work directory, verifies its staged ODT, downloads explicitly, writes the manifest after collecting
+payload evidence, reinspects the package and publishes by directory rename without overwrite. Temporary configuration execution now belongs
+to C# too. It snapshots the supplied document, rejects embedded keys/DTDs and writes a supplied SecureString key only to the temporary file;
+the caller's document is unchanged. Key buffers and native BSTRs are cleared, and configuration cleanup preserves failure/exit evidence.
+
+This reaches 114 of 188 public functions: 77 compiled commands and 37 C#-backed wrappers. One additional managed media workflow brings the
+suite to 227 per target (454 executions). Native package acquisition, positive protected-package traversal and deployment/recovery still
+need controlled integration validation. No Office installer was run. The cleanup containment check also now handles case variants and
+trailing separators when rejecting the operation parent itself.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

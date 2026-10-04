@@ -11,6 +11,8 @@ $observations['tool-source'] = Resolve-OfficeDeploymentToolSource
 $repo = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
 $processHost = Join-Path $repo 'build/bin/ProcessHost/Release/net48/ProcessHost.exe'
 $observations['unsigned-tool'] = Test-OfficeDeploymentTool -OdtPath $processHost
+$rejectedMedia = Test-OfficeDeploymentMedia -SourcePath (Join-Path $repo 'README.md')
+$observations['untrusted-media'] = $rejectedMedia | Select-Object Valid, Path, Manifest, Fingerprint, ReasonCode, Error, Diagnostic
 $previewPath = Join-Path $repo 'build/office-tool-preview-absent'
 $observations['tool-preview'] = Install-OfficeDeploymentTool -Destination $previewPath -DryRun
 $observations['tool-whatif'] = Install-OfficeDeploymentTool -Destination $previewPath -WhatIf
@@ -31,6 +33,10 @@ foreach ($pathCase in @(@{ Name = 'protected-path'; Path = (Join-Path $repo 'REA
 $target = New-OfficeDeploymentConfiguration -TargetProductId Standard2019Volume -Language de-DE, en-us, de-de -Version 16.0.10417.20095 -ExcludeApp Teams, Groove
 $observations['configuration'] = $target
 $observations['defaults'] = New-OfficeDeploymentConfiguration Standard2024Volume
+$observations['media-preview-rejects-unsigned-tool'] = & {
+  try { Save-OfficeDeploymentMedia -Configuration $target -SourcePath $previewPath -OdtPath $processHost -DryRun; throw 'Unsigned tool was accepted.' }
+  catch { if (-not $_.Exception.Data.Contains('OfficeReason')) { throw }; [string]$_.Exception.Data['OfficeReason'] }
+}
 $observations['casing'] = New-OfficeDeploymentConfiguration standard2019volume -Channel perpetualvl2019 -Language de-de -ExcludeApp teams, Groove
 $observations['activation'] = @(Get-OfficeActivationStatus O365BusinessRetail; Get-OfficeActivationStatus unknown; Get-OfficeActivationStatus 0)
 foreach ($case in @('Language', 'Channel', 'Locale')) {

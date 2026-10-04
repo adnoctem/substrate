@@ -148,7 +148,7 @@ public sealed class OfficePathGuard
     {
         var full = ValidatePath(path);
         var root = ValidatePath(parent).Value.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (!full.Value.StartsWith(root, StringComparison.OrdinalIgnoreCase) || full.Value.TrimEnd(Path.DirectorySeparatorChar) == root.TrimEnd(Path.DirectorySeparatorChar))
+        if (!full.Value.StartsWith(root, StringComparison.OrdinalIgnoreCase) || string.Equals(full.Value.TrimEnd(Path.DirectorySeparatorChar), root.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
             throw new OfficeException(OfficeFailureReason.UnsafePath, "Cleanup path escaped its operation root.");
         if (!Attributes(full.Value).HasValue)
             return;

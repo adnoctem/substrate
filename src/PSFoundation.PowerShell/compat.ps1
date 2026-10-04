@@ -1,5 +1,130 @@
 ﻿#Requires -Version 5.0
 
+function Invoke-PSFOfficeConfiguration {
+  [CmdletBinding()]
+  param ([string]$OdtPath, [xml]$Document, [string]$Directory, [ValidateSet('/download', '/configure', '/customize')][string]$Mode = '/configure', [Security.SecureString]$ProductKey)
+  $outcome = [PSFoundation.PowerShell.Office.OfficeCompatibility]::InvokeConfiguration($OdtPath, $Document, $Directory, $Mode, $ProductKey)
+  if ($outcome.Failure) { Stop-PSFOfficeNativeFailure $outcome.Failure }
+  $outcome.Result
+}
+
+function Stop-PSFOfficeNativeFailure {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Raises an operation failure without changing machine state.')]
+  [CmdletBinding()]
+  param ([object]$Failure)
+  try { Stop-PSFOfficeOperation $Failure.ReasonCode $Failure.Detail $Failure.Diagnostic }
+  catch {
+    if ($Failure.CleanupError) { $_.Exception.Data['OfficeCleanupError'] = $Failure.CleanupError }
+    if ($null -ne $Failure.ExitCode) { $_.Exception.Data['OfficeExitCode'] = $Failure.ExitCode }
+    throw
+  }
+}
+
+function ConvertFrom-PSFOfficeMediaAssessment {
+  [CmdletBinding()]
+  param ([object]$Assessment)
+  $manifest = $null
+  $fingerprint = $null
+  if ($Assessment.Valid) {
+    $manifest = ConvertFrom-Json -InputObject $Assessment.ManifestJson -ErrorAction Stop
+    $fingerprint = Get-PSFOfficeFingerprint $manifest
+  }
+  [PSCustomObject]@{
+    Valid = $Assessment.Valid; Path = $Assessment.Path; Manifest = $manifest; Fingerprint = $fingerprint
+    ReasonCode = $Assessment.ReasonCode; Error = $Assessment.Error; Diagnostic = $Assessment.Diagnostic
+  }
+}
+
+function Save-OfficeDeploymentMedia {
+  <#
+  .SYNOPSIS
+    Prepares a verified Office package and publishes its manifest last.
+  .DESCRIPTION
+    Downloads only during explicit preparation. C# verifies and publishes the package without replacing incomplete or incompatible media.
+  .PARAMETER Configuration
+    Requested product, ordered languages, channel, architecture and optional build.
+  .PARAMETER SourcePath
+    New dedicated package directory whose parent already exists.
+  .PARAMETER OdtPath
+    Existing Microsoft-signed Office Deployment Tool setup.exe.
+  .PARAMETER DryRun
+    Validate and preview without writes or downloads.
+  .EXAMPLE
+    Save-OfficeDeploymentMedia -Configuration $target -SourcePath C:\Media\Office -OdtPath C:\ODT\setup.exe -WhatIf
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Media names the deployment payload as a collective noun.')]
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param ([Parameter(Mandatory = $true)][object]$Configuration, [Parameter(Mandatory = $true)][string]$SourcePath, [Parameter(Mandatory = $true)][string]$OdtPath, [switch]$DryRun)
+  $target = ConvertTo-PSFOfficeConfiguration $Configuration
+  Assert-PSFOfficePath $SourcePath
+  if (Test-Path -LiteralPath $SourcePath) {
+    $existing = Test-OfficeDeploymentMedia -SourcePath $SourcePath -Configuration $target
+    if (-not $existing.Valid) { Stop-PSFOfficeOperation InvalidMedia 'Existing package is incomplete or incompatible; use a new destination.' (Get-PSFOfficeMediaDiagnostic $existing) }
+    return $existing
+  }
+  if (-not (Test-OfficeDeploymentTool $OdtPath).Valid) { Stop-PSFOfficeOperation UntrustedTool 'ODT verification failed.' }
+  if ($DryRun -or -not $PSCmdlet.ShouldProcess($SourcePath, 'Download pinned Office media and publish verified package')) {
+    return [PSCustomObject]@{ Status = 'Preview'; Path = $SourcePath; Configuration = $target }
+  }
+  $outcome = [PSFoundation.PowerShell.Office.OfficeCompatibility]::PrepareMedia($target, $SourcePath, $OdtPath)
+  if ($outcome.Failure) { Stop-PSFOfficeNativeFailure $outcome.Failure }
+  ConvertFrom-PSFOfficeMediaAssessment $outcome.Result
+}
+
+function Test-OfficeDeploymentMedia {
+  <#
+  .SYNOPSIS
+    Validates an Office package, manifest, payloads, paths, and write protection.
+  .DESCRIPTION
+    C# validates schema-2 manifests and protected payloads. The compatibility boundary retains the original JSON object and fingerprint.
+    Validation performs no writes, downloads or native Office execution.
+  .PARAMETER SourcePath
+    Absolute package directory containing psfoundation-office-media.json.
+  .PARAMETER Configuration
+    Optional target whose requested languages must be available in the package.
+  .EXAMPLE
+    Test-OfficeDeploymentMedia -SourcePath C:\Media\Office -Configuration $target
+  #>
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Media names the deployment payload as a collective noun.')]
+  [CmdletBinding()]
+  [OutputType([PSCustomObject])]
+  param ([Parameter(Mandatory = $true)][string]$SourcePath, [object]$Configuration)
+  $stage = 'ProtectedPath'
+  try {
+    Assert-PSFOfficeProtectedPath $SourcePath -ObjectKind MediaDirectory
+    $stage = 'Validation'
+    $target = $null
+    if ($Configuration) { $target = ConvertTo-PSFOfficeConfiguration $Configuration }
+    $assessment = [PSFoundation.PowerShell.Office.OfficeCompatibility]::InspectMedia($SourcePath, $target)
+    ConvertFrom-PSFOfficeMediaAssessment $assessment
+  }
+  catch {
+    $errorValue = $_.Exception
+    while ($errorValue.InnerException -and -not $errorValue.Data.Contains('OfficeReason')) { $errorValue = $errorValue.InnerException }
+    $reason = $errorValue.Data['OfficeReason']
+    $message = $errorValue.Message
+    $diagnostic = $errorValue.Data['OfficeDiagnostic']
+    if (-not $reason) { $reason = 'InvalidMedia'; $message = "Office media validation failed at $stage for '$SourcePath'." }
+    if ($reason -eq 'InvalidContract') { $message = "Office media contract is invalid at '$SourcePath'." }
+    if (-not $diagnostic) {
+      $diagnostic = [PSCustomObject]@{
+        Stage = $stage; ObjectKind = 'MediaPackage'; Path = $SourcePath; ExceptionType = $errorValue.GetType().FullName
+        Function = 'Test-OfficeDeploymentMedia'; ScriptPath = $PSCommandPath; Line = $_.InvocationInfo.ScriptLineNumber
+      }
+    }
+    [PSCustomObject]@{ Valid = $false; Path = $SourcePath; Manifest = $null; Fingerprint = $null; ReasonCode = $reason; Error = $message; Diagnostic = $diagnostic }
+  }
+}
+
+function Get-PSFOfficeMediaFile {
+  [CmdletBinding()]
+  param ([string]$Root)
+  $outcome = [PSFoundation.PowerShell.Office.OfficeCompatibility]::MediaFiles($Root)
+  if ($outcome.Failure) { Stop-PSFOfficeOperation $outcome.Failure.ReasonCode $outcome.Failure.Detail $outcome.Failure.Diagnostic }
+  $outcome.Files
+}
+
 function Invoke-PSFOfficeTool {
   [CmdletBinding()]
   param ([string]$OdtPath, [ValidateSet('/download', '/configure', '/customize', '/help')][string]$Mode, [string]$ConfigurationPath)

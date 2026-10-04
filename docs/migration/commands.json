@@ -755,7 +755,7 @@
     "Command": "Test-OfficeDeploymentMedia",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Assert-PSFOfficeField",
       "Assert-PSFOfficeProtectedPath",
@@ -779,7 +779,7 @@
     "Command": "Save-OfficeDeploymentMedia",
     "Source": "office.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "Assert-PSFOfficePath",
       "Assert-PSFOfficeProtectedPath",

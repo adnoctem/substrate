@@ -39,7 +39,14 @@ public sealed class OfficeToolTrustTests
         }
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => tool.HelpAsync(path, new CancellationToken(true)));
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => tool.InstallAsync(path, TimeSpan.FromSeconds(1), cancellationToken: new CancellationToken(true)));
+        var configuration = new OfficeConfiguration(OfficeProduct.Standard2019Volume, version: new Version("16.0.10417.20095"));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new OfficeMediaManager().PrepareAsync(configuration, path, path, new CancellationToken(true)));
+        var document = new OdtConfigurationBuilder().Install(configuration, root.FullName);
+        document.SelectSingleNode("/Configuration/Add/Product")!.Attributes!.Append(document.CreateAttribute("PIDKEY")).Value = "synthetic";
+        var embeddedKey = await Assert.ThrowsAsync<OfficeException>(() => tool.InvokeConfigurationAsync(path, document, FileSystemPath.Parse(root.FullName)));
+        Assert.Equal(OfficeFailureReason.InvalidAuthority, embeddedKey.Reason);
         Assert.Throws<OfficeException>(() => guard.RemoveWorkDirectory(root.FullName, root.FullName));
+        Assert.Equal(OfficeFailureReason.UnsafePath, Assert.Throws<OfficeException>(() => guard.RemoveWorkDirectory(root.FullName.ToUpperInvariant() + Path.DirectorySeparatorChar, root.FullName)).Reason);
         var existingDirectory = Path.Combine(root.FullName, "build", "test-fixtures", "office-tool", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(existingDirectory);
         try

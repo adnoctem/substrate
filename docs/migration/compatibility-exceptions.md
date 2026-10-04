@@ -226,3 +226,9 @@ process wrapper. Cancellation after launch does not kill ODT. Output capture is 
 flags, while the existing PowerShell process report retains its fields. Acquisition adds bounded downloads, validates visible HTTPS
 redirects and publishes by rename without overwrite. Work-directory cleanup checks links before descending and deletes nonrecursively.
 Compiled Office errors retain reason data but may have cmdlet-specific error identifiers and native I/O wording.
+
+Office media parsing now requires schema-appropriate JSON types, rejects duplicate fields and bounds manifest size/depth. Media failure
+diagnostics retain stage/path/reason information; failures originating in C# have no PowerShell script path or line. Fresh manifests use
+canonical enum names and schema field order. Existing manifest JSON objects and their PowerShell fingerprints are preserved. Configuration
+execution snapshots the input XML instead of temporarily modifying it, and refuses DTDs or embedded PIDKEY attributes; product keys must be
+supplied through SecureString. It bounds key input length and clears its owned character buffers after writing.
