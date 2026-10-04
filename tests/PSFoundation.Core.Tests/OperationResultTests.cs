@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using PSFoundation.Core;
+using PSFoundation.Core.Compatibility;
 using Xunit;
 
 namespace PSFoundation.Core.Tests;

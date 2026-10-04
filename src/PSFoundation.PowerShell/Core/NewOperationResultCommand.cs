@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
-using PSFoundation.Core;
+using PSFoundation.Core.Compatibility;
 
 namespace PSFoundation.PowerShell.Core;
 
@@ -50,7 +50,10 @@ public sealed class NewOperationResultCommand : PSCmdlet
         var supplied = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
         foreach (var pair in MyInvocation.BoundParameters)
             supplied.Add(pair.Key, pair.Value);
-        var result = OperationResult.Create(Target, Action, Status, supplied, Property);
+        foreach (var name in new[] { "Source", "Scope", "Detail", "SkippedReason", "ErrorMessage", "RunId" })
+            if (supplied.TryGetValue(name, out var value) && value == null)
+                supplied[name] = "";
+        var result = OperationResult.Create(Target ?? "", Action ?? "", Status ?? "", supplied, Property);
         var output = new PSObject();
         foreach (var pair in result.Fields)
             output.Properties.Add(new PSNoteProperty(pair.Key, pair.Value));

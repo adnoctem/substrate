@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
-Describe 'Compiled registry compatibility' {
+Describe 'Compiled command contracts and registry compatibility' {
   It 'preserves parameter contracts and packages help in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     $probe = Join-Path $root 'tests/fixtures/v2/Registry-Contract.ps1'

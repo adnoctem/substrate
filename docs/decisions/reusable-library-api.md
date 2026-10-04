@@ -1,7 +1,7 @@
 # Reusable C# API boundaries
 
-Accepted for the registry iteration on 2026-10-04. These rules guide subsequent domains; they do not authorize migrating them as part of
-this checkpoint.
+Accepted for the registry iteration on 2026-10-04 and subsequently adopted for the remaining module migration, now authorized by the
+maintainer. All domains follow the same reusable-library and PowerShell-compatibility boundaries.
 
 PSFoundation's C# libraries are usable directly from other applications. PowerShell is one consumer. Host independence does not imply
 operating-system independence: the registry implementation is a Windows capability.
@@ -33,9 +33,13 @@ operating-system independence: the registry implementation is a Windows capabili
 
 ## Shared foundations
 
-Future logging should accept structured events with optional destinations. Filesystem and registry paths remain distinct types; PowerShell
-provider interpretation belongs at the compatibility boundary. `PSFoundation.Core` contains only demonstrably shared primitives. This
-decision does not implement logging, filesystem utilities, an application host or a separate NuGet publishing workflow.
+Logging accepts structured events with explicitly supplied destinations. Filesystem and registry paths remain distinct types; PowerShell
+provider interpretation belongs at the compatibility boundary. `PSFoundation.Core` contains only demonstrably shared primitives.
+`PSFoundation.Diagnostics`, `PSFoundation.IO` and `PSFoundation.Networking` provide focused reusable foundations. The old ordered operation
+result field bag is internal compatibility code, not a public C# result model. No application host or separate NuGet publishing workflow is
+introduced.
 
-The registry expansion is an approved addition to the original compatibility-only scope in `v2.md`. The remaining module migration still
-requires a separate continuation.
+The expanded C# library surface is an approved addition to the original compatibility-only scope in `v2.md`. Preserve essential contract
+comments during implementation: ownership, cancellation, partial writes, destructive effects, concurrency, platform limits and compatibility
+quirks. Complete public XML documentation and examples in a separate pass after the C# API and PowerShell compatibility stabilize. That
+documentation pass remains a v2 release gate; existing PowerShell help stays available throughout migration.

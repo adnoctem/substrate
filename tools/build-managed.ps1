@@ -26,10 +26,11 @@ if (-not $stage.StartsWith($buildRoot, [StringComparison]::OrdinalIgnoreCase)) {
 if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 $null = [IO.Directory]::CreateDirectory($stage)
 $catalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands.psd1')
-$compiled = @($catalog.Registry) + @($catalog.Core)
+$compiled = @($catalog.Values | ForEach-Object { $_ } | Sort-Object)
+if ($compiled.Count -ne @($compiled | Sort-Object -Unique).Count) { throw 'Compiled command catalog contains duplicate entries.' }
 $encoding = New-Object Text.UTF8Encoding($true)
 foreach ($file in @(Get-ChildItem (Join-Path $root 'src') -File)) {
-  if ($file.Name -eq 'registry.ps1') { continue }
+  if ($file.Name -in @('registry.ps1', 'common.ps1', 'errors.ps1')) { continue }
   $destination = Join-Path $stage $file.Name
   if ($file.Extension -ne '.ps1') { Copy-Item -LiteralPath $file.FullName -Destination $destination; continue }
   $text = [IO.File]::ReadAllText($file.FullName)

@@ -1,8 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -50,88 +47,18 @@ internal sealed class RegistryCommandRunner : IRegistryCommandRunner
             folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), view == RegistryView.Registry32 ? "SysWOW64" : Environment.Is64BitProcess ? "System32" : "Sysnative");
         executable = Path.Combine(folder, "reg.exe");
     }
-    public static string QuoteArgument(string value)
-    {
-        if (value.IndexOf('\0') >= 0)
-            throw new ArgumentException("Process arguments cannot contain a NUL character.", nameof(value));
-        var text = new StringBuilder("\"");
-        var slashes = 0;
-        foreach (var c in value)
-        {
-            if (c == '\\')
-            {
-                slashes++;
-                continue;
-            }
-            text.Append('\\', c == '"' ? slashes * 2 + 1 : slashes);
-            text.Append(c);
-            slashes = 0;
-        }
-        text.Append('\\', slashes * 2).Append('"');
-        return text.ToString();
-    }
+    public static string QuoteArgument(string value) => PSFoundation.Diagnostics.ProcessManager.QuoteArgument(value);
 
     public RegistryCommandResult Run(string[] arguments, CancellationToken cancellation) => RunAsync(arguments, cancellation).GetAwaiter().GetResult();
 
     public async Task<RegistryCommandResult> RunAsync(string[] arguments, CancellationToken cancellation)
     {
-        cancellation.ThrowIfCancellationRequested();
-        using (var process = new Process())
-        {
-            process.StartInfo = new ProcessStartInfo
-            {
-                FileName = executable,
-                Arguments = string.Join(" ", arguments.Select(QuoteArgument)),
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            if (workingDirectory != null)
-                process.StartInfo.WorkingDirectory = workingDirectory;
-            process.Start();
-            var output = process.StandardOutput.ReadToEndAsync();
-            var error = process.StandardError.ReadToEndAsync();
-            var elapsed = Stopwatch.StartNew();
-            try
-            {
-                while (!process.HasExited)
-                {
-                    cancellation.ThrowIfCancellationRequested();
-                    if (timeout != Timeout.InfiniteTimeSpan && elapsed.Elapsed >= timeout)
-                        throw new TimeoutException("Registry command exceeded its execution timeout.");
-                    await Task.Delay(25, cancellation).ConfigureAwait(false);
-                }
-                var streams = Task.WhenAll(output, error);
-                if (await Task.WhenAny(streams, Task.Delay(10000)).ConfigureAwait(false) != streams)
-                    throw new IOException("Process output streams did not close within 10 seconds.");
-                await streams.ConfigureAwait(false);
-                var text = await output.ConfigureAwait(false);
-                var diagnostic = await error.ConfigureAwait(false);
-                return new RegistryCommandResult(process.ExitCode, text, standardError: diagnostic);
-            }
-            catch
-            {
-                if (!process.HasExited)
-                {
-                    try
-                    { process.Kill(); }
-                    catch (InvalidOperationException) when (process.HasExited) { }
-                    var cleanup = Stopwatch.StartNew();
-                    while (!process.HasExited)
-                    {
-                        if (cleanup.Elapsed >= TimeSpan.FromSeconds(10))
-                            throw new IOException("Child process did not terminate within 10 seconds.");
-                        await Task.Delay(25).ConfigureAwait(false);
-                    }
-                }
-                var streams = Task.WhenAll(output, error);
-                if (await Task.WhenAny(streams, Task.Delay(10000)).ConfigureAwait(false) == streams)
-                    try
-                    { await streams.ConfigureAwait(false); }
-                    catch (IOException) { }
-                throw;
-            }
-        }
+        var result = await new PSFoundation.Diagnostics.ProcessManager().RunAsync(new PSFoundation.Diagnostics.ProcessRequest(
+            executable, arguments, workingDirectory, timeout: timeout, maximumCapturedCharacters: int.MaxValue), cancellation).ConfigureAwait(false);
+        if (result.Cancelled)
+            throw new OperationCanceledException(cancellation);
+        if (result.TimedOut)
+            throw new TimeoutException("Registry command exceeded its execution timeout.");
+        return new RegistryCommandResult(result.ExitCode, result.StandardOutput, standardError: result.StandardError);
     }
 }

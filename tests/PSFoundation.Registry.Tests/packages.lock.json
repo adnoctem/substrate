@@ -111,8 +111,14 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
-      "psfoundation.registry": {
+      "psfoundation.diagnostics": {
         "type": "Project"
+      },
+      "psfoundation.registry": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )"
+        }
       }
     },
     "net10.0-windows7.0": {
@@ -221,8 +227,14 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
-      "psfoundation.registry": {
+      "psfoundation.diagnostics": {
         "type": "Project"
+      },
+      "psfoundation.registry": {
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.Diagnostics": "[1.0.0, )"
+        }
       }
     }
   }

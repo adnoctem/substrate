@@ -4,11 +4,13 @@
   Captures API contracts from the pinned, immutable v1 source in a fresh host.
 .PARAMETER WriteFixtures
   Writes reviewed-source captures to tests/Fixtures/Api rather than build/baseline.
+.PARAMETER Inventory
+  Records public command dependencies and migration status in docs/migration/commands.json.
 .EXAMPLE
   .\PSFoundation.ps1 baseline -WriteFixtures
 #>
 [CmdletBinding()]
-param ([switch]$WriteFixtures)
+param ([switch]$WriteFixtures, [switch]$Inventory)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -42,3 +44,20 @@ $capture = [ordered]@{
 $path = Join-Path $outputRoot ($PSVersionTable.PSEdition.ToLowerInvariant() + '.json')
 [IO.File]::WriteAllText($path, (($capture | ConvertTo-Json -Depth 40) + "`r`n"), (New-Object Text.UTF8Encoding($false)))
 Write-Output "Captured $($contract.Commands.Count) exports from v1.8.7 to $path"
+
+if ($Inventory) {
+  $catalog = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands.psd1')
+  $compiled = @($catalog.Values | ForEach-Object { $_ })
+  $rows = foreach ($file in Get-ChildItem (Join-Path $destination 'src') -Filter '*.ps1') {
+    $ast = [Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$null)
+    foreach ($function in $ast.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
+      if ($function.Name -notin $contract.Commands.Name) { continue }
+      $calls = @($function.Body.FindAll({ param($node) $node -is [Management.Automation.Language.CommandAst] }, $true) |
+          ForEach-Object { $_.GetCommandName() } | Where-Object { $_ } | Sort-Object -Unique)
+      [PSCustomObject][ordered]@{ Command = $function.Name; Source = $file.Name; Compiled = $function.Name -in $compiled; Calls = $calls }
+    }
+  }
+  $inventoryPath = Join-Path $root 'docs/migration/commands.json'
+  [IO.File]::WriteAllText($inventoryPath, (($rows | ConvertTo-Json -Depth 8) + "`r`n"), (New-Object Text.UTF8Encoding($false)))
+  $rows | Group-Object Source | ForEach-Object { Write-Output ("{0}: {1} commands" -f $_.Name, $_.Count) }
+}

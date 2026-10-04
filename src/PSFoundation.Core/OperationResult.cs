@@ -2,10 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace PSFoundation.Core;
+namespace PSFoundation.Core.Compatibility;
 
 /// <summary>Ordered result fields with explicit presence, including explicit nulls.</summary>
-public sealed class OperationResult
+internal sealed class OperationResult
 {
     public IReadOnlyList<KeyValuePair<string, object?>> Fields { get; }
 

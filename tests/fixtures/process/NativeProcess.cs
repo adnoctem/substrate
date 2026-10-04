@@ -9,6 +9,14 @@ public static class NativeProcess
     {
         switch (args[0])
         {
+            case "short-wait":
+                Thread.Sleep(1000);
+                Console.WriteLine("finished");
+                return 0;
+            case "environment":
+                Console.WriteLine(Environment.CurrentDirectory);
+                Console.WriteLine(Environment.GetEnvironmentVariable("PSF_SYNTHETIC_VALUE"));
+                return 0;
             case "arguments":
                 for (int i = 1; i < args.Length; i++)
                     Console.WriteLine("ARG:" + Convert.ToBase64String(Encoding.UTF8.GetBytes(args[i])));
@@ -26,9 +34,12 @@ public static class NativeProcess
                 Thread.Sleep(60000);
                 return 0;
             case "tree":
-                using (Process child = Process.Start(new ProcessStartInfo {
+                using (Process child = Process.Start(new ProcessStartInfo
+                {
                     FileName = Process.GetCurrentProcess().MainModule.FileName,
-                    Arguments = "sleep", UseShellExecute = false, CreateNoWindow = true
+                    Arguments = "sleep",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
                 }))
                 {
                     Console.WriteLine(Process.GetCurrentProcess().Id);

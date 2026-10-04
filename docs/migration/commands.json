@@ -1,0 +1,2126 @@
+[
+  {
+    "Command": "Resolve-LongPath",
+    "Source": "common.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Add-Type",
+      "New-Object",
+      "Resolve-Path"
+    ]
+  },
+  {
+    "Command": "New-OperationResult",
+    "Source": "common.ps1",
+    "Compiled": true,
+    "Calls": []
+  },
+  {
+    "Command": "Add-OperationResult",
+    "Source": "common.ps1",
+    "Compiled": true,
+    "Calls": [
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "Write-OperationResultLog",
+    "Source": "common.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-Json",
+      "Get-Date",
+      "Join-Path",
+      "New-Object",
+      "Resolve-LongPath",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Export-RegistrySettingState",
+    "Source": "common.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Get-PSFRegistryValueState",
+      "Get-RegistryValue",
+      "Get-RegistryValueKind",
+      "Test-RegistryValue",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "ConvertTo-RegistrySettingResult",
+    "Source": "common.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Get-RegistryValue",
+      "New-OperationResult",
+      "Test-Path",
+      "Test-RegistryValue"
+    ]
+  },
+  {
+    "Command": "Convert-Quote",
+    "Source": "data.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Content",
+      "Set-Content"
+    ]
+  },
+  {
+    "Command": "Merge-ObjectArrays",
+    "Source": "data.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Get-PrintDevice",
+    "Source": "devices.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PrintDevice",
+      "Get-CimInstance",
+      "Get-Command",
+      "Get-ObjectPropertyValue",
+      "Get-PrintDeviceDefaultMap",
+      "Get-Printer",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-DefaultPrintDevice",
+    "Source": "devices.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PrintDevice",
+      "Get-CimInstance",
+      "Where-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Set-DefaultPrintDevice",
+    "Source": "devices.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-CimInstance",
+      "Get-ObjectPropertyValue",
+      "Invoke-CimMethod",
+      "New-OperationResult",
+      "Where-Object",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Get-ScanDevice",
+    "Source": "devices.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-ScanDevice",
+      "Get-Command",
+      "New-Object",
+      "Remove-ComObject",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-ErrorTranslation",
+    "Source": "errors.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-PSFErrorCode",
+      "Select-Object",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Remove-ComObject",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Invoke-ComGarbageCollection",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Get-OutlookInstallation",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemProperty",
+      "Join-Path",
+      "New-Object",
+      "Resolve-LongPath",
+      "Select-Object",
+      "Split-Path",
+      "Test-Path",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-OutlookRepairToolInfo",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Item",
+      "Resolve-LongPath"
+    ]
+  },
+  {
+    "Command": "Find-OutlookRepairTool",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-OutlookInstallation",
+      "Get-OutlookRepairToolInfo",
+      "New-Object"
+    ]
+  },
+  {
+    "Command": "Connect-Outlook",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-Object"
+    ]
+  },
+  {
+    "Command": "Get-OutlookStoreRoot",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Remove-ComObject",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Add-OutlookStoreRoot",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Remove-ComObject"
+    ]
+  },
+  {
+    "Command": "Open-OutlookPstStore",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-PSFOutlookPstRoot",
+      "Get-PSFOutlookPstSnapshot",
+      "New-Object",
+      "New-PSFOutlookPstContext",
+      "Remove-ComObject",
+      "Remove-PSFOutlookPstAttachment",
+      "Resolve-PSFOutlookFilePath"
+    ]
+  },
+  {
+    "Command": "Close-OutlookPstStore",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-Object",
+      "Remove-ComObject",
+      "Remove-PSFOutlookPstAttachment"
+    ]
+  },
+  {
+    "Command": "Get-OutlookSubFolder",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Remove-ComObject"
+    ]
+  },
+  {
+    "Command": "Get-OutlookStandardFolderIdentity",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-Object",
+      "Remove-ComObject"
+    ]
+  },
+  {
+    "Command": "Get-OutlookFolderPlan",
+    "Source": "interop.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-FolderDecision",
+      "Get-FolderTreePlan",
+      "Get-OutlookStandardFolderIdentity",
+      "Get-OutlookSubFolder",
+      "Remove-ComObject",
+      "Where-Object",
+      "Write-Progress"
+    ]
+  },
+  {
+    "Command": "Show-Color",
+    "Source": "log.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Write-Host"
+    ]
+  },
+  {
+    "Command": "Write-Log",
+    "Source": "log.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Get-Date",
+      "Write-Host"
+    ]
+  },
+  {
+    "Command": "Get-PSModule",
+    "Source": "maintenance.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-Json",
+      "Get-Item",
+      "Get-Module",
+      "Get-PSResource",
+      "New-Item",
+      "Out-Null",
+      "Resolve-ModuleDirectory",
+      "Set-Content",
+      "Sort-Object",
+      "Split-Path",
+      "Test-Path",
+      "Test-PSResourceGetAvailable",
+      "Where-Object",
+      "Write-Log",
+      "Write-Warning"
+    ]
+  },
+  {
+    "Command": "Remove-PSModule",
+    "Source": "maintenance.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-Module",
+      "Get-PSResource",
+      "Group-Object",
+      "Measure-Object",
+      "Resolve-ModuleDirectory",
+      "Select-Object",
+      "Sort-Object",
+      "Test-Path",
+      "Test-PSResourceGetAvailable",
+      "Uninstall-Module",
+      "Uninstall-PSResource",
+      "Where-Object",
+      "Write-Log",
+      "Write-Warning"
+    ]
+  },
+  {
+    "Command": "Add-PSModule",
+    "Source": "maintenance.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-Json",
+      "Ensure-PSResourceGet",
+      "Get-Content",
+      "Install-Module",
+      "Install-PackageProvider",
+      "Install-PSResource",
+      "Test-Path",
+      "Test-PSResourceGetAvailable",
+      "Write-Log",
+      "Write-Warning"
+    ]
+  },
+  {
+    "Command": "Get-DefaultNetworkAdapter",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-CimInstance",
+      "Get-NetAdapter",
+      "Get-NetRoute",
+      "Select-Object",
+      "Sort-Object",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-IPAddress",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-DefaultNetworkAdapter",
+      "Select-Object",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-SubnetMask",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-DefaultNetworkAdapter",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-DefaultGateway",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-DefaultNetworkAdapter",
+      "Select-Object",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-DNSServer",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-DefaultNetworkAdapter",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-MACAddress",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-DefaultNetworkAdapter",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-NetworkPrefix",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-DefaultNetworkAdapter",
+      "Get-IPAddress",
+      "Get-SubnetMask",
+      "Resolve-IPv6PrefixData",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-NetworkPrefixCIDR",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-DefaultNetworkAdapter",
+      "Get-NetworkPrefix",
+      "Get-SubnetMask",
+      "Resolve-IPv6PrefixData",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-BroadcastAddress",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-DefaultNetworkAdapter",
+      "Get-IPAddress",
+      "Get-SubnetMask"
+    ]
+  },
+  {
+    "Command": "Get-MulticastAddress",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-DefaultNetworkAdapter",
+      "Get-IPAddress"
+    ]
+  },
+  {
+    "Command": "Test-IPv4Address",
+    "Source": "networking.ps1",
+    "Compiled": true,
+    "Calls": []
+  },
+  {
+    "Command": "Test-IPv6Address",
+    "Source": "networking.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Test-IPv4Address",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Test-RemoteHostReachability",
+    "Source": "networking.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-CimInstance",
+      "New-OperationResult",
+      "Receive-Job",
+      "Remove-Job",
+      "Start-Job",
+      "Test-TcpPortReachable",
+      "Test-WSMan",
+      "Wait-Job",
+      "Write-Warning"
+    ]
+  },
+  {
+    "Command": "Install-Office",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Uninstall-Office",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Switch-OfficeDeployment",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Update-Office",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Set-OfficeUpdateConfiguration",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Add-OfficeLanguage",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Remove-OfficeLanguage",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Set-OfficeApplicationSelection",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Set-OfficeApplicationPreference",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeWorkflow",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "New-OfficeDeploymentConfiguration",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PSFOfficeList",
+      "Get-OfficeInventory",
+      "Get-PSFOfficeOsLocale",
+      "Get-PSFOfficeSourceLocale",
+      "Sort-Object",
+      "Stop-PSFOfficeOperation",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-OfficeInventory",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-PSFOfficeAppPathEvidence",
+      "Get-PSFOfficeMachineId",
+      "Get-PSFOfficeRegistrySnapshot",
+      "Group-Object",
+      "New-Object",
+      "Resolve-PSFOfficeInstalledVersion",
+      "Sort-Object",
+      "Split-Path",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Test-OfficeDeployment",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PSFOfficeConfiguration",
+      "Get-OfficeInventory",
+      "New-Object",
+      "Sort-Object",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-OfficeActivationStatus",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-CimInstance",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-OfficeDeploymentPlan",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFOfficeSetting",
+      "ConvertTo-PSFOfficeConfiguration",
+      "ConvertTo-PSFOfficeList",
+      "ForEach-Object",
+      "Get-OfficeInventory",
+      "Get-PSFOfficeFingerprint",
+      "Get-PSFOfficeSourceLocale",
+      "New-Object",
+      "New-OfficeDeploymentConfiguration",
+      "Sort-Object",
+      "Stop-PSFOfficeOperation",
+      "Test-OfficeDeployment",
+      "Test-OfficeDeploymentMedia",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Resolve-OfficeDeploymentToolSource",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Test-OfficeDeploymentToolSourceAvailability",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Date",
+      "Invoke-WebRequest",
+      "Resolve-OfficeDeploymentToolSource"
+    ]
+  },
+  {
+    "Command": "Test-OfficeDeploymentTool",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFOfficePath",
+      "Get-AuthenticodeSignature",
+      "Get-Item"
+    ]
+  },
+  {
+    "Command": "Get-OfficeDeploymentToolHelp",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeTool"
+    ]
+  },
+  {
+    "Command": "Install-OfficeDeploymentTool",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFOfficePath",
+      "Get-AuthenticodeSignature",
+      "Invoke-SafeProcess",
+      "Invoke-WebRequest",
+      "Join-Path",
+      "New-PSFOfficeProtectedDirectory",
+      "Remove-PSFOfficeWorkDirectory",
+      "Resolve-OfficeDeploymentToolSource",
+      "Split-Path",
+      "Stop-PSFOfficeOperation",
+      "Test-OfficeDeploymentTool",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Test-OfficeDeploymentMedia",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFOfficeField",
+      "Assert-PSFOfficeProtectedPath",
+      "ConvertFrom-Json",
+      "ConvertTo-PSFOfficeConfiguration",
+      "ConvertTo-PSFOfficeList",
+      "ForEach-Object",
+      "Get-Content",
+      "Get-PSFOfficeFingerprint",
+      "Get-PSFOfficeMediaFile",
+      "Join-Path",
+      "New-Object",
+      "New-OfficeDeploymentConfiguration",
+      "Sort-Object",
+      "Stop-PSFOfficeOperation",
+      "Test-Path",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Save-OfficeDeploymentMedia",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFOfficePath",
+      "Assert-PSFOfficeProtectedPath",
+      "ConvertTo-PSFOfficeConfiguration",
+      "Copy-Item",
+      "Get-ChildItem",
+      "Get-PSFOfficeMediaDiagnostic",
+      "Get-PSFOfficeMediaFile",
+      "Invoke-PSFOfficeConfiguration",
+      "Join-Path",
+      "New-PSFOfficeProtectedDirectory",
+      "New-PSFOfficeXml",
+      "Remove-Item",
+      "Remove-PSFOfficeWorkDirectory",
+      "Sort-Object",
+      "Split-Path",
+      "Stop-PSFOfficeOperation",
+      "Test-OfficeDeploymentMedia",
+      "Test-OfficeDeploymentTool",
+      "Test-Path",
+      "Where-Object",
+      "Write-PSFOfficeJson"
+    ]
+  },
+  {
+    "Command": "Get-OfficeDeploymentRecovery",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFOfficeField",
+      "Assert-PSFOfficeProtectedPath",
+      "Assert-PSFOfficeSetting",
+      "ConvertFrom-Json",
+      "ConvertTo-PSFOfficeConfiguration",
+      "Get-Content",
+      "Get-PSFOfficeFingerprint",
+      "Get-PSFOfficeMachineId",
+      "Join-Path",
+      "Stop-PSFOfficeOperation"
+    ]
+  },
+  {
+    "Command": "Resume-OfficeInstallation",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeRecovery"
+    ]
+  },
+  {
+    "Command": "Resume-OfficeMigration",
+    "Source": "office.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-PSFOfficeRecovery"
+    ]
+  },
+  {
+    "Command": "New-PackageLifecycleResult",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-ErrorTranslation",
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "Get-InstalledProgramCount",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Win32Program"
+    ]
+  },
+  {
+    "Command": "Get-AppxPackageCount",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-UPFAppxPackage"
+    ]
+  },
+  {
+    "Command": "Get-PackageCount",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-AppxPackageCount",
+      "Get-InstalledProgramCount"
+    ]
+  },
+  {
+    "Command": "Get-Win32Program",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-RegistryKey",
+      "Get-RegistryValue",
+      "Join-Path",
+      "Sort-Object"
+    ]
+  },
+  {
+    "Command": "Find-Win32Program",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-RegistryValue",
+      "Get-Win32Program"
+    ]
+  },
+  {
+    "Command": "Install-Win32Program",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PSFNativeArgumentString",
+      "New-PackageLifecycleResult",
+      "Start-Process",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Uninstall-Win32Program",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Find-Win32Program",
+      "New-PackageLifecycleResult",
+      "Start-Process"
+    ]
+  },
+  {
+    "Command": "Get-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-AppxPackage",
+      "Get-AppxProvisionedPackage",
+      "Test-PackageAdministrator",
+      "Where-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Find-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-UPFAppxPackage",
+      "Test-UPFAppxPackageRemovalSafety"
+    ]
+  },
+  {
+    "Command": "Test-UPFAppxPackageRemovalSafety",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Install-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-AppxPackage",
+      "Add-AppxProvisionedPackage",
+      "New-PackageLifecycleResult",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Update-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Install-UPFAppxPackage",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Repair-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-AppxPackage",
+      "Get-UPFAppxPackage",
+      "Join-Path",
+      "New-PackageLifecycleResult",
+      "Test-Path",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Reset-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-UPFAppxPackage",
+      "New-PackageLifecycleResult",
+      "Reset-AppxPackage"
+    ]
+  },
+  {
+    "Command": "Uninstall-UPFAppxPackage",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-PackageLifecycleResult",
+      "Remove-AppxPackage",
+      "Remove-AppxProvisionedPackage",
+      "Test-UPFAppxPackageRemovalSafety"
+    ]
+  },
+  {
+    "Command": "Uninstall-UPFAppxPackageSet",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Find-UPFAppxPackage",
+      "New-Object",
+      "New-PackageLifecycleResult",
+      "Uninstall-UPFAppxPackage",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Install-UPFAppxPackageSet",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Install-UPFAppxPackage"
+    ]
+  },
+  {
+    "Command": "Install-Win32ProgramFromWinGet",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-Module",
+      "Import-Module",
+      "New-PackageLifecycleResult"
+    ]
+  },
+  {
+    "Command": "Update-Win32ProgramFromWinGet",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-Module",
+      "Import-Module",
+      "New-PackageLifecycleResult"
+    ]
+  },
+  {
+    "Command": "Uninstall-Win32ProgramFromWinGet",
+    "Source": "packages.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-Module",
+      "Import-Module",
+      "New-PackageLifecycleResult"
+    ]
+  },
+  {
+    "Command": "Test-Elevation",
+    "Source": "permissions.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Request-AdministratorPrivilege",
+    "Source": "permissions.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PSFElevationLiteral",
+      "Get-CimInstance",
+      "Get-Location",
+      "Get-Process",
+      "Resolve-Path",
+      "Select-Object",
+      "Start-Process",
+      "Test-Elevation",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Set-RegistryOwner",
+    "Source": "permissions.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-UserSID",
+      "Invoke-RegistryOwnershipTakeover",
+      "New-OperationResult",
+      "Test-Elevation",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Set-ItemOwner",
+    "Source": "permissions.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Item",
+      "Join-Path",
+      "New-Item",
+      "New-OperationResult",
+      "Out-Null",
+      "Remove-Item",
+      "Test-Elevation",
+      "Test-Path",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "New-EncryptedCredentialFile",
+    "Source": "permissions.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-SecureString",
+      "Get-Acl",
+      "New-OperationResult",
+      "Read-Host",
+      "Set-Acl",
+      "Set-Content",
+      "Write-Verbose",
+      "Write-Warning"
+    ]
+  },
+  {
+    "Command": "Get-EncryptedCredentialFile",
+    "Source": "permissions.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-SecureString",
+      "Get-Content",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Resolve-LGPOSource",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Test-LGPOSourceAvailability",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Date",
+      "Invoke-WebRequest",
+      "Resolve-LGPOSource"
+    ]
+  },
+  {
+    "Command": "Install-LGPO",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Copy-Item",
+      "Expand-Archive",
+      "Get-ChildItem",
+      "Get-FileHash",
+      "Invoke-WebRequest",
+      "Join-Path",
+      "New-Guid",
+      "New-Item",
+      "Read-ProcessElevation",
+      "Remove-Item",
+      "Resolve-LGPOSource",
+      "Select-Object",
+      "Test-Path",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Test-LGPOInstalled",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Join-Path",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Invoke-LGPO",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Content",
+      "Get-Date",
+      "Join-Path",
+      "New-Guid",
+      "Remove-Item",
+      "Start-Process",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "ConvertFrom-RegistryPolicy",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Assert-PSFPolicyDelimiter",
+      "ConvertFrom-PSFPolicyPayload",
+      "Read-PSFPolicyString"
+    ]
+  },
+  {
+    "Command": "ConvertTo-RegistryPolicy",
+    "Source": "policies.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-PSFPolicyPayload",
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "New-OfflineDomainJoinBlob",
+    "Source": "provisioning.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "New-DjoinFile",
+    "Source": "provisioning.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "ConvertTo-RegistryProviderPath",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Resolve-RegistryPath",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Compare-RegistrySettingState",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-PSFRegistryState",
+      "Get-PSFRegistryValueState",
+      "Test-PSFRegistryStateEqual"
+    ]
+  },
+  {
+    "Command": "Restore-RegistrySettingState",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Compare-RegistrySettingState",
+      "ConvertTo-Json",
+      "ConvertTo-PSFRegistryState",
+      "Get-PSFRegistryValueState",
+      "New-OperationResult",
+      "Resolve-RegistryPath",
+      "Test-PSFRegistryStateEqual"
+    ]
+  },
+  {
+    "Command": "Get-RegistryKey",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "ForEach-Object",
+      "Get-ChildItem",
+      "Get-ItemProperty",
+      "Test-Path",
+      "Where-Object",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Set-RegistryKey",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "New-Item",
+      "Test-Path",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Remove-RegistryKey",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Remove-Item",
+      "Test-Path",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-RegistryValue",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Get-ItemPropertyValue",
+      "Test-Path",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Set-RegistryValue",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Get-ItemPropertyValue",
+      "Resolve-RegistryPath",
+      "Set-ItemProperty",
+      "Set-RegistryKey",
+      "Test-Path",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Remove-RegistryValue",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Get-ItemPropertyValue",
+      "Remove-ItemProperty",
+      "Test-Path",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Test-RegistryPath",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Test-RegistryValue",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Get-ItemPropertyValue",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Get-RegistryValueKind",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-RegistryProviderPath",
+      "Resolve-RegistryPath",
+      "Test-Path",
+      "Test-RegistryValue",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Mount-DefaultUserHive",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Join-Path",
+      "reg.exe",
+      "Test-Path",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Dismount-DefaultUserHive",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "reg.exe",
+      "Start-Sleep",
+      "Test-Path",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Export-RegistryKey",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Invoke-PSFRegistryFileCommand",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Search-RegistryKey",
+    "Source": "registry.ps1",
+    "Compiled": true,
+    "Calls": [
+      "Invoke-PSFRegistryFileCommand",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Get-DefenderThreatDetection",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-Member",
+      "ConvertTo-Json",
+      "ForEach-Object",
+      "Format-List",
+      "Get-Date",
+      "Get-DefenderThreatDescriptionURL",
+      "Get-MpThreatDetection",
+      "Out-File",
+      "Out-String",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-DefenderThreat",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-Member",
+      "ConvertTo-Json",
+      "ForEach-Object",
+      "Format-List",
+      "Get-DefenderThreatDescriptionURL",
+      "Get-MpThreat",
+      "Out-File",
+      "Out-String",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-DefenderThreatDescriptionURL",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Add-DefenderExclusion",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-MpPreference",
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "Enable-WSLFirewallRule",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-NetFirewallRule",
+      "New-NetFirewallRule",
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "Disable-JetBrainsFirewallRule",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-OperationResult",
+      "Disable-NetFirewallRule",
+      "Get-NetFirewallProfile",
+      "Get-NetFirewallRule",
+      "New-Object",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Find-NewlyWrittenObject",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertTo-Json",
+      "Format-Table",
+      "Get-ChildItem",
+      "Get-Date",
+      "Out-File",
+      "Out-String",
+      "Select-Object",
+      "Sort-Object",
+      "Where-Object",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Invoke-SafeProcess",
+    "Source": "security.ps1",
+    "Compiled": true,
+    "Calls": [
+      "ConvertTo-PSFNativeArgumentString",
+      "New-Object",
+      "Out-File",
+      "Out-Null",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Export-EventLog",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Invoke-SafeProcess",
+      "Out-File",
+      "Where-Object",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-ScheduledTaskAction",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-ScheduledTask",
+      "Sort-Object"
+    ]
+  },
+  {
+    "Command": "Get-WMIPersistence",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-CimInstance"
+    ]
+  },
+  {
+    "Command": "Import-SecurityEventConfiguration",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-PowerShellDataFile",
+      "Join-Path",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Get-SecurityEventGroup",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-SecurityEventConfiguration"
+    ]
+  },
+  {
+    "Command": "Get-SecurityEventDefinition",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-SecurityEventConfiguration",
+      "New-Object"
+    ]
+  },
+  {
+    "Command": "Test-WindowsEventLogChannel",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-WinEvent"
+    ]
+  },
+  {
+    "Command": "Get-WindowsEventByDefinition",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-Date",
+      "Get-SecurityEventDefinition",
+      "Get-SecurityEventGroup",
+      "Get-WinEvent",
+      "Group-Object",
+      "Import-SecurityEventConfiguration",
+      "New-Object",
+      "Sort-Object",
+      "Test-WindowsEventLogChannel",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Resolve-WindowsEventMappedField",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-SecurityEventConfiguration"
+    ]
+  },
+  {
+    "Command": "ConvertFrom-WinEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-SecurityEventConfiguration",
+      "Resolve-WindowsEventMappedField"
+    ]
+  },
+  {
+    "Command": "Get-WindowsLogonEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-WindowsAccountChangeEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-WindowsServiceEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-WindowsBootEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-WindowsPowerShellEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-WindowsScheduledTaskEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-WindowsSysmonEvent",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-WinEvent",
+      "Get-Date",
+      "Get-SecurityEventGroup",
+      "Get-WindowsEventByDefinition",
+      "Import-SecurityEventConfiguration",
+      "Test-WindowsEventLogChannel",
+      "Where-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-CertificateInventory",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-Member",
+      "ForEach-Object",
+      "Get-ChildItem",
+      "Get-Date",
+      "Invoke-Command",
+      "New-TimeSpan",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Set-ScriptSignature",
+    "Source": "security.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-ChildItem",
+      "New-OperationResult",
+      "Set-AuthenticodeSignature",
+      "Test-Path",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-DefaultApp",
+    "Source": "settings.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemProperty",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Get-OSBuildNumber",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemPropertyValue"
+    ]
+  },
+  {
+    "Command": "Get-OSDisplayVersion",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemPropertyValue",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-OSEdition",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemPropertyValue"
+    ]
+  },
+  {
+    "Command": "Get-OSProductName",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemProperty",
+      "Resolve-WindowsProductName"
+    ]
+  },
+  {
+    "Command": "Get-OSVersionInfo",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemProperty",
+      "Resolve-WindowsProductName",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-SystemMemory",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Format-SysInfoInvariant",
+      "New-Object",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Get-SystemDisk",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Format-SysInfoInvariant",
+      "Get-CimAssociatedInstance",
+      "Get-CimInstance",
+      "Sort-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-Hostname",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-SystemUptime",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Format-SysInfoInvariant"
+    ]
+  },
+  {
+    "Command": "Get-SystemInfo",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Format-SysInfoInvariant",
+      "Get-Hostname",
+      "Get-OSVersionInfo",
+      "Get-SystemDisk",
+      "Get-SystemMemory",
+      "Get-SystemUptime"
+    ]
+  },
+  {
+    "Command": "Get-SystemPaths",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Join-Path"
+    ]
+  },
+  {
+    "Command": "Test-HostApplicability",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-OSBuildNumber",
+      "Get-OSEdition"
+    ]
+  },
+  {
+    "Command": "Get-HostPrerequisiteReport",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Command",
+      "Get-Module",
+      "Get-OSBuildNumber",
+      "Get-OSEdition",
+      "Get-Service",
+      "Get-UserInfo",
+      "Select-Object",
+      "Sort-Object",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Get-DotNetVersion",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "dotnet",
+      "ForEach-Object",
+      "Get-ChildItem",
+      "Get-Command",
+      "Get-ItemProperty",
+      "Resolve-NetFrameworkProductName",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "New-DriveMapping",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemProperty",
+      "Get-ItemPropertyValue",
+      "Get-Volume",
+      "New-Item",
+      "New-OperationResult",
+      "Restart-Computer",
+      "Set-ItemProperty",
+      "Set-Volume",
+      "Split-Path",
+      "Test-Elevation",
+      "Test-Path",
+      "Where-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Remove-DriveMapping",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ItemProperty",
+      "Get-ItemPropertyValue",
+      "New-OperationResult",
+      "Remove-Item",
+      "Remove-ItemProperty",
+      "Restart-Computer",
+      "Set-Volume",
+      "Test-Elevation",
+      "Test-Path",
+      "Where-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Test-PendingReboot",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-CimInstance",
+      "Get-ItemProperty",
+      "Test-Path",
+      "Test-RegistryValuePresent",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Test-SystemFileIntegrity",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Content",
+      "Join-Path",
+      "Resolve-SystemFileIntegrityVerdict",
+      "Test-Path"
+    ]
+  },
+  {
+    "Command": "Convert-RobocopyExitCode",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": []
+  },
+  {
+    "Command": "Find-ServiceAccountUsage",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ConvertFrom-Csv",
+      "Get-CimInstance",
+      "Invoke-Command",
+      "schtasks.exe",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-FileLockProcess",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Process",
+      "New-OperationResult",
+      "Resolve-Path",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Install-Font",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Copy-Item",
+      "Get-ChildItem",
+      "Get-FontRegistryName",
+      "Join-Path",
+      "New-Object",
+      "New-OperationResult",
+      "Remove-Item",
+      "Set-RegistryValue",
+      "Where-Object"
+    ]
+  },
+  {
+    "Command": "Set-ServiceStartupState",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Service",
+      "New-Object",
+      "New-OperationResult",
+      "Set-Service"
+    ]
+  },
+  {
+    "Command": "Set-ScheduledTaskState",
+    "Source": "system.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Disable-ScheduledTask",
+      "Enable-ScheduledTask",
+      "Get-ScheduledTask",
+      "New-Object",
+      "New-OperationResult"
+    ]
+  },
+  {
+    "Command": "Test-PSWindowsUpdateAvailable",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Module"
+    ]
+  },
+  {
+    "Command": "Get-WindowsUpdate",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-Module",
+      "PSWindowsUpdate\\Get-PSFProviderWindowsUpdate",
+      "Test-PSWindowsUpdateAvailable",
+      "Where-Object",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Install-WindowsUpdate",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "ForEach-Object",
+      "Get-PSFWindowsUpdateId",
+      "Get-WindowsUpdate",
+      "Import-Module",
+      "New-Object",
+      "PSWindowsUpdate\\Get-PSFProviderWindowsUpdate",
+      "Select-Object",
+      "Test-PSWindowsUpdateAvailable",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Hide-WindowsUpdate",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-PSFWindowsUpdateId",
+      "Get-WindowsUpdate",
+      "Import-Module",
+      "New-Object",
+      "PSWindowsUpdate\\Get-PSFProviderWindowsUpdate",
+      "Test-PSWindowsUpdateAvailable",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-WindowsUpdateHistory",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-Module",
+      "PSWindowsUpdate\\Get-PSFProviderWUHistory",
+      "Test-PSWindowsUpdateAvailable",
+      "Where-Object",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Uninstall-WindowsUpdate",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-WindowsUpdateHistory",
+      "Import-Module",
+      "PSWindowsUpdate\\Remove-PSFProviderWindowsUpdate",
+      "Test-PSWindowsUpdateAvailable",
+      "Write-Error",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Test-WindowsUpdateRebootRequired",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-Module",
+      "PSWindowsUpdate\\Get-PSFProviderWURebootStatus",
+      "Test-PSWindowsUpdateAvailable",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Get-WindowsUpdateConfiguration",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Import-Module",
+      "PSWindowsUpdate\\Get-PSFProviderWUSettings",
+      "Test-PSWindowsUpdateAvailable",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Get-MSStoreUpdate",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "_awaitWinRt",
+      "_getAppInstallManager",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Install-MSStoreUpdate",
+    "Source": "updates.ps1",
+    "Compiled": false,
+    "Calls": [
+      "_awaitWinRt",
+      "_getAppInstallManager",
+      "Get-MSStoreUpdate",
+      "New-Object",
+      "Start-Sleep",
+      "Write-Error",
+      "Write-Log"
+    ]
+  },
+  {
+    "Command": "Get-UserInfo",
+    "Source": "user.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-Object"
+    ]
+  },
+  {
+    "Command": "Get-UserSID",
+    "Source": "user.ps1",
+    "Compiled": false,
+    "Calls": [
+      "New-Object",
+      "Write-Error"
+    ]
+  },
+  {
+    "Command": "Test-ADCredential",
+    "Source": "user.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Add-Type",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-ADAccountLockoutSource",
+    "Source": "user.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-Date",
+      "Get-WinEvent",
+      "Invoke-Command",
+      "Resolve-PDCServer",
+      "Select-Object",
+      "Where-Object",
+      "Write-Verbose"
+    ]
+  },
+  {
+    "Command": "Get-ADFSMORoleHolder",
+    "Source": "user.ps1",
+    "Compiled": false,
+    "Calls": [
+      "Get-ADDomain",
+      "Get-ADForest",
+      "Get-Module",
+      "Import-Module"
+    ]
+  }
+]

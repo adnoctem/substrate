@@ -48,9 +48,11 @@ The full Pester suites were rerun on this iteration: 911 passed / six existing s
 in Windows PowerShell 5.1, with no failures. Both hosts passed formatting and lint. The final C# regression covers preserving partial-write
 evidence when an unsupported native value appears during restoration.
 
-The staged package has all 19 registry commands plus the initial `New-OperationResult` adapter compiled. The registry command map,
-compatibility allowances and remaining platform gates are recorded in [the registry checkpoint](registry.md). `registry.ps1` is excluded
-from the staged package; migrated common helpers are removed through AST-based staging. Other domains remain legacy implementations.
+The next shared-foundation slice brings the staged package to 28 compiled commands, with 160 public functions still using the legacy
+implementation. All public commands from `common.ps1`, `registry.ps1` and `errors.ps1` are compiled; those scripts are excluded from
+staging. The package retains 192 exports. See [the foundation checkpoint](foundations.md) and the generated
+[command inventory](commands.json). Regenerate the inventory through `baseline -Inventory` after a cutover. It records each pinned public
+function, its source, direct command dependencies and current migration status.
 
 C# formatting now runs through `format -Managed` and pre-commit. Build warnings are errors, CI restores enforce lock files, and the feature
 workflow builds the staged module before running C# and PowerShell package tests. Full module migration, analyzer policy beyond compiler
@@ -66,7 +68,7 @@ restarted Codex, the absolute launcher ran the registry builds, formatting, lint
 
 ## Next work
 
-Stop at the registry checkpoint as requested. On a separate continuation, migrate shared policy/process primitives and domain features by
-dependency. Preserve the Office safety and recovery contracts. Audit native alternatives to PSWindowsUpdate, WinGet, PowerShell module
-management and other provider dependencies early. Keep winkit unchanged. Publishing remains disabled and requires a separate v2 release
-decision. No v2 completion or native Office validation is claimed at this checkpoint.
+The maintainer has authorized continuation beyond registry. Continue with policy codecs and verified tools, native inventory, then dependent
+system/security, package/update, Office and interop workflows. Preserve Office safety and recovery contracts. Audit native alternatives to
+PSWindowsUpdate, WinGet, PowerShell module management and other provider dependencies before cutting those commands over. Keep winkit
+unchanged. Publishing remains disabled and requires a separate v2 release decision. No complete v2 or native Office validation is claimed.
