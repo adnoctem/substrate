@@ -150,15 +150,15 @@
   {
     "Command": "Remove-ComObject",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
     "Command": "Invoke-ComGarbageCollection",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
@@ -1078,8 +1078,8 @@
   {
     "Command": "Test-Elevation",
     "Source": "permissions.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
@@ -1166,8 +1166,8 @@
   {
     "Command": "Test-LGPOSourceAvailability",
     "Source": "policies.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-Date",
       "Invoke-WebRequest",
@@ -1177,8 +1177,8 @@
   {
     "Command": "Install-LGPO",
     "Source": "policies.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Copy-Item",
       "Expand-Archive",
@@ -1830,8 +1830,8 @@
   {
     "Command": "Get-OSBuildNumber",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-ItemPropertyValue"
     ]
@@ -1839,8 +1839,8 @@
   {
     "Command": "Get-OSDisplayVersion",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-ItemPropertyValue",
       "Write-Verbose"
@@ -1849,8 +1849,8 @@
   {
     "Command": "Get-OSEdition",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-ItemPropertyValue"
     ]
@@ -1858,8 +1858,8 @@
   {
     "Command": "Get-OSProductName",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-ItemProperty",
       "Resolve-WindowsProductName"
@@ -1868,8 +1868,8 @@
   {
     "Command": "Get-OSVersionInfo",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-ItemProperty",
       "Resolve-WindowsProductName",
@@ -1879,8 +1879,8 @@
   {
     "Command": "Get-SystemMemory",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Format-SysInfoInvariant",
       "New-Object",
@@ -1890,8 +1890,8 @@
   {
     "Command": "Get-SystemDisk",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Format-SysInfoInvariant",
       "Get-CimAssociatedInstance",
@@ -1903,8 +1903,8 @@
   {
     "Command": "Get-Hostname",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Write-Verbose"
     ]
@@ -1912,8 +1912,8 @@
   {
     "Command": "Get-SystemUptime",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Format-SysInfoInvariant"
     ]
@@ -1921,8 +1921,8 @@
   {
     "Command": "Get-SystemInfo",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "ForEach-Object",
       "Format-SysInfoInvariant",
@@ -1936,8 +1936,8 @@
   {
     "Command": "Get-SystemPaths",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Join-Path"
     ]
@@ -1945,8 +1945,8 @@
   {
     "Command": "Test-HostApplicability",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-OSBuildNumber",
       "Get-OSEdition"
@@ -2052,8 +2052,8 @@
   {
     "Command": "Convert-RobocopyExitCode",
     "Source": "system.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": []
   },
   {
@@ -2259,7 +2259,7 @@
     "Command": "Get-UserInfo",
     "Source": "user.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "New-Object"
     ]
@@ -2268,7 +2268,7 @@
     "Command": "Get-UserSID",
     "Source": "user.ps1",
     "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Implementation": "CompatibilityFunction",
     "Calls": [
       "New-Object",
       "Write-Error"

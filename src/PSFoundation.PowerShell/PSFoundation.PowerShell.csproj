@@ -8,6 +8,8 @@
   <ItemGroup>
     <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" PrivateAssets="all" ExcludeAssets="runtime" />
     <ProjectReference Include="../PSFoundation.Core/PSFoundation.Core.csproj" />
+    <ProjectReference Include="../PSFoundation.Windows/PSFoundation.Windows.csproj" />
+    <ProjectReference Include="../PSFoundation.Interop/PSFoundation.Interop.csproj" />
     <ProjectReference Include="../PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
     <ProjectReference Include="../PSFoundation.IO/PSFoundation.IO.csproj" />
     <ProjectReference Include="../PSFoundation.Policies/PSFoundation.Policies.csproj" />
@@ -15,6 +17,7 @@
     <ProjectReference Include="../PSFoundation.Registry/PSFoundation.Registry.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Net.Http" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
 </Project>

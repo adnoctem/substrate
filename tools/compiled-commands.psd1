@@ -11,5 +11,11 @@
   Core        = @('New-OperationResult', 'Add-OperationResult', 'Write-OperationResultLog', 'Resolve-LongPath')
   Diagnostics = @('Get-ErrorTranslation', 'Write-Log', 'Invoke-SafeProcess')
   Networking  = @('Test-IPv4Address', 'Test-IPv6Address')
-  Policies    = @('ConvertFrom-RegistryPolicy', 'ConvertTo-RegistryPolicy', 'Resolve-LGPOSource')
+  Policies    = @('ConvertFrom-RegistryPolicy', 'ConvertTo-RegistryPolicy', 'Resolve-LGPOSource', 'Install-LGPO', 'Test-LGPOSourceAvailability')
+  Windows     = @(
+    'Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEdition', 'Get-OSProductName', 'Get-OSVersionInfo',
+    'Get-SystemMemory', 'Get-SystemDisk', 'Get-Hostname', 'Get-SystemUptime', 'Get-SystemInfo', 'Get-SystemPaths',
+    'Test-HostApplicability', 'Test-Elevation', 'Convert-RobocopyExitCode'
+  )
+  Interop     = @('Remove-ComObject', 'Invoke-ComGarbageCollection')
 }

@@ -2,6 +2,7 @@
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 Describe 'Compiled command contracts and registry compatibility' {
+  BeforeAll { . (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'tools/probe.ps1') }
   It 'preserves parameter contracts and packages help in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     $probe = Join-Path $root 'tests/fixtures/v2/Registry-Contract.ps1'
@@ -9,8 +10,8 @@ Describe 'Compiled command contracts and registry compatibility' {
     $null = [IO.Directory]::CreateDirectory($reportRoot)
     foreach ($implementation in @('v1', 'v2')) {
       $module = if ($implementation -eq 'v1') { Join-Path $root 'build/baseline/d2d1498275806684b44169504146302d54b7a084/src/PSFoundation.psd1' } else { Join-Path $root 'build/module/PSFoundation/PSFoundation.psd1' }
-      $output = & $Engine -NoProfile -ExecutionPolicy Bypass -File $probe -ModulePath $module -ReportPath (Join-Path $reportRoot "$Engine-contract-$implementation.json") 2>&1
-      $LASTEXITCODE | Should -Be 0 -Because ($output -join [Environment]::NewLine)
+      $result = Invoke-PSFHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module, '-ReportPath', (Join-Path $reportRoot "$Engine-contract-$implementation.json"))
+      $result.ExitCode | Should -Be 0 -Because $result.Output
     }
     $before = Get-Content (Join-Path $reportRoot "$Engine-contract-v1.json") -Raw | ConvertFrom-Json
     $after = Get-Content (Join-Path $reportRoot "$Engine-contract-v2.json") -Raw | ConvertFrom-Json
@@ -32,8 +33,8 @@ Describe 'Compiled command contracts and registry compatibility' {
     foreach ($implementation in @('v1', 'v2')) {
       $module = if ($implementation -eq 'v1') { $baseline } else { $stage }
       $report = Join-Path $reportRoot "$Engine-$implementation.json"
-      $output = & $Engine -NoProfile -ExecutionPolicy Bypass -File $probe -ModulePath $module -ReportPath $report -FixtureName $fixture 2>&1
-      $LASTEXITCODE | Should -Be 0 -Because ($output -join [Environment]::NewLine)
+      $result = Invoke-PSFHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module, '-ReportPath', $report, '-FixtureName', $fixture)
+      $result.ExitCode | Should -Be 0 -Because $result.Output
     }
     $before = Get-Content (Join-Path $reportRoot "$Engine-v1.json") -Raw | ConvertFrom-Json
     $after = Get-Content (Join-Path $reportRoot "$Engine-v2.json") -Raw | ConvertFrom-Json

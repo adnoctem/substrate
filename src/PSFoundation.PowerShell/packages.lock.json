@@ -47,6 +47,9 @@
       "psfoundation.diagnostics": {
         "type": "Project"
       },
+      "psfoundation.interop": {
+        "type": "Project"
+      },
       "psfoundation.io": {
         "type": "Project"
       },
@@ -61,7 +64,8 @@
         "type": "Project",
         "dependencies": {
           "PSFoundation.Diagnostics": "[1.0.0, )",
-          "PSFoundation.IO": "[1.0.0, )"
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Networking": "[1.0.0, )"
         }
       },
       "psfoundation.registry": {
@@ -69,6 +73,13 @@
         "dependencies": {
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
+      "psfoundation.windows": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.Registry": "[1.0.0, )"
         }
       }
     },
@@ -179,6 +190,9 @@
       "psfoundation.diagnostics": {
         "type": "Project"
       },
+      "psfoundation.interop": {
+        "type": "Project"
+      },
       "psfoundation.io": {
         "type": "Project"
       },
@@ -193,7 +207,8 @@
         "type": "Project",
         "dependencies": {
           "PSFoundation.Diagnostics": "[1.0.0, )",
-          "PSFoundation.IO": "[1.0.0, )"
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Networking": "[1.0.0, )"
         }
       },
       "psfoundation.registry": {
@@ -202,6 +217,14 @@
           "Microsoft.Win32.Registry": "[5.0.0, )",
           "PSFoundation.Diagnostics": "[1.0.0, )",
           "PSFoundation.IO": "[1.0.0, )"
+        }
+      },
+      "psfoundation.windows": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Management.Infrastructure": "[3.0.0, )",
+          "PSFoundation.Registry": "[1.0.0, )",
+          "System.Security.Principal.Windows": "[5.0.0, )"
         }
       }
     },

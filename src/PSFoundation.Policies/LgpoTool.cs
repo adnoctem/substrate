@@ -1,17 +1,91 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using PSFoundation.Diagnostics;
 using PSFoundation.IO;
+using PSFoundation.Networking;
 
 namespace PSFoundation.Policies;
 
 public enum LgpoApplyMode { TextSource, GpoBackup }
 
-/// <summary>Explicit local policy execution through a caller-selected executable. No downloads, elevation or prompts occur.</summary>
+/// <summary>Explicit download, installation and policy execution operations. Applying policy never installs a tool or elevates.</summary>
 public sealed class LgpoTool
 {
+    private readonly HttpClient? client;
+    /// <remarks>The optional HTTP client is borrowed and required only for network operations. The caller owns transport configuration and disposal.</remarks>
+    public LgpoTool(HttpClient? client = null) { this.client = client; }
+
+    /// <summary>Downloads the pinned archive and publishes only its verified executable. Never runs LGPO or changes policy.</summary>
+    /// <remarks>The caller chooses the destination and overwrite policy. OS filesystem permissions decide access; no administrator check or elevation is implicit.
+    /// Timeout applies to the complete download/extraction operation. An existing destination is replaced only after both hashes match.</remarks>
+    public async Task<FileSystemPath> InstallAsync(FileSystemPath directory, TimeSpan timeout, bool overwrite = false,
+        LgpoSource? source = null, CancellationToken cancellationToken = default)
+    {
+        if (directory == null)
+            throw new ArgumentNullException(nameof(directory));
+        if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > int.MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+        var http = client ?? throw new InvalidOperationException("Supply an HTTP client for installation.");
+        source = source ?? LgpoSource.Standalone;
+        var executable = directory.Combine("LGPO.exe");
+        cancellationToken.ThrowIfCancellationRequested();
+        if (File.Exists(executable.Value) && !overwrite)
+            throw new IOException("The installation destination already exists.");
+        Directory.CreateDirectory(directory.Value);
+        var archive = directory.Combine(".psf-lgpo-" + Guid.NewGuid().ToString("N") + ".zip");
+        using (var stopping = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        {
+            stopping.CancelAfter(timeout);
+            try
+            {
+                await new VerifiedDownloadService(http).DownloadAsync(source.DownloadUri, archive, source.TrustedSha256, 64 * 1024 * 1024,
+                    timeout, cancellationToken: stopping.Token).ConfigureAwait(false);
+                await new VerifiedArchiveService().ExtractFileAsync(archive, executable, source.ExpectedBinaryPath, source.TrustedSha256,
+                    source.TrustedBinarySha256, 64 * 1024 * 1024, 16 * 1024 * 1024, overwrite, stopping.Token).ConfigureAwait(false);
+                return executable;
+            }
+            finally { if (File.Exists(archive.Value)) File.Delete(archive.Value); }
+        }
+    }
+
+    public FileSystemPath Install(FileSystemPath directory, TimeSpan timeout, bool overwrite = false,
+        LgpoSource? source = null, CancellationToken cancellationToken = default)
+        => InstallAsync(directory, timeout, overwrite, source, cancellationToken).GetAwaiter().GetResult();
+
+    public LgpoSourceAvailability CheckSource(TimeSpan timeout, LgpoSource? source = null, CancellationToken cancellationToken = default)
+        => CheckSourceAsync(timeout, source, cancellationToken).GetAwaiter().GetResult();
+
+    /// <summary>Checks reachability only. A successful HEAD response makes no claim about content integrity.</summary>
+    public async Task<LgpoSourceAvailability> CheckSourceAsync(TimeSpan timeout, LgpoSource? source = null, CancellationToken cancellationToken = default)
+    {
+        if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > int.MaxValue)
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+        var http = client ?? throw new InvalidOperationException("Supply an HTTP client for availability checks.");
+        source = source ?? LgpoSource.Standalone;
+        cancellationToken.ThrowIfCancellationRequested();
+        using (var stopping = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        {
+            stopping.CancelAfter(timeout);
+            try
+            {
+                using (var request = new HttpRequestMessage(HttpMethod.Head, source.DownloadUri))
+                using (var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, stopping.Token).ConfigureAwait(false))
+                {
+                    response.EnsureSuccessStatusCode();
+                    var finalUri = response.RequestMessage?.RequestUri;
+                    if (finalUri != null && (finalUri.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(finalUri.UserInfo)))
+                        throw new InvalidDataException("The source redirected to an insecure URI.");
+                    return new LgpoSourceAvailability(source.DownloadUri, (int)response.StatusCode, response.Content.Headers.ContentLength, null);
+                }
+            }
+            catch (Exception error) when (error is HttpRequestException || error is OperationCanceledException || error is InvalidDataException)
+            { cancellationToken.ThrowIfCancellationRequested(); return new LgpoSourceAvailability(source.DownloadUri, null, null, error); }
+        }
+    }
+
     public bool IsInstalled(FileSystemPath executable)
         => File.Exists((executable ?? throw new ArgumentNullException(nameof(executable))).Value);
 

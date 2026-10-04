@@ -2,4 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="../../src/PSFoundation.Policies/PSFoundation.Policies.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
 </Project>

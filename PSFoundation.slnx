@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/PSFoundation.Core/PSFoundation.Core.csproj" />
+    <Project Path="src/PSFoundation.Windows/PSFoundation.Windows.csproj" />
+    <Project Path="src/PSFoundation.Interop/PSFoundation.Interop.csproj" />
     <Project Path="src/PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
     <Project Path="src/PSFoundation.IO/PSFoundation.IO.csproj" />
     <Project Path="src/PSFoundation.Policies/PSFoundation.Policies.csproj" />
@@ -10,6 +12,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PSFoundation.Core.Tests/PSFoundation.Core.Tests.csproj" />
+    <Project Path="tests/PSFoundation.Windows.Tests/PSFoundation.Windows.Tests.csproj" />
     <Project Path="tests/PSFoundation.Diagnostics.Tests/PSFoundation.Diagnostics.Tests.csproj" />
     <Project Path="tests/PSFoundation.IO.Tests/PSFoundation.IO.Tests.csproj" />
     <Project Path="tests/PSFoundation.Policies.Tests/PSFoundation.Policies.Tests.csproj" />

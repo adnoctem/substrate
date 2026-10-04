@@ -56,10 +56,10 @@ The full Pester suites were rerun on this iteration: 911 passed / six existing s
 in Windows PowerShell 5.1, with no failures. Both hosts passed formatting and lint. The final C# regression covers preserving partial-write
 evidence when an unsupported native value appears during restoration.
 
-The foundation, registry-policy, networking and LGPO slices bring the staged package to 31 compiled commands and 13 C#-backed compatibility
-functions, with 144 public functions still using legacy implementations. All public commands from `common.ps1`, `registry.ps1`, `errors.ps1`
-and `log.ps1` are migrated; those scripts are excluded from staging. The package retains 192 exports. See
-[the foundation checkpoint](foundations.md), [the policy codec checkpoint](policy-codec.md),
+The foundation, registry-policy, networking, Windows inventory and LGPO slices bring the staged package to 49 compiled commands and 15
+C#-backed compatibility functions, with 124 public functions still using legacy implementations. All public commands from `common.ps1`,
+`registry.ps1`, `errors.ps1`, `log.ps1` and `policies.ps1` are migrated; those scripts are excluded from staging. The package retains 192
+exports. See [the foundation checkpoint](foundations.md), [the policy codec checkpoint](policy-codec.md),
 [the networking API guide](../networking-api.md) and the generated [command inventory](commands.json). Regenerate the inventory through
 `baseline -Inventory` after a cutover. It records each pinned public function, its source, direct command dependencies and current migration
 status, distinguishing compiled cmdlets, compatibility functions and legacy functions.
@@ -88,8 +88,8 @@ downloads in `PSFoundation.Networking`. The managed suites pass 158 tests per ta
 fixture and simulated HTTP responses; they do not apply real policies or download/execute vendor tools. `Resolve-LGPOSource` is compiled;
 `Invoke-LGPO` and `Test-LGPOInstalled` use the shared compatibility script. The public integration is named `LgpoTool`: Tool is reserved for
 separately maintained vendor applications, including the future `OdtTool`. PSFoundation-owned policy file/snapshot operations can use
-`PolicyManager`. Installer and availability command migration remains pending; the missing source pin is now resolved as recorded below. See
-[the compatibility notes](compatibility-exceptions.md) for the deliberate source-metadata update.
+`PolicyManager`. Installer and availability command migration is completed in the subsequent checkpoint below; the source pin is recorded
+below. See [the compatibility notes](compatibility-exceptions.md) for the deliberate source-metadata update.
 
 ### Reviewed LGPO package, 2026-10-04
 
@@ -112,6 +112,40 @@ unchanged, with `Sha256` referring to the ZIP.
 Documentation generation is deferred to the final pass: C# comments through DocFX, PowerShell metadata and Markdown help through PlatyPS.
 Further handwritten Markdown is for architecture, tutorials, troubleshooting and migration evidence, not API references. The existing help
 packaging remains until that final pipeline is established.
+
+## Windows inventory and tool installation checkpoint
+
+The next implementation chunk migrates another 20 public commands. `PSFoundation.Windows` provides `SystemManager`, `IdentityManager`,
+`HostValidator` and detached snapshots. Version reads use `RegistryManager`; memory and uptime use native Windows calls; disk inventory uses
+native CIM associations. No PowerShell is launched or embedded to perform these operations. Applications receive typed numbers, timestamps
+and failure evidence; the PowerShell adapter retains the established property names and invariant formatting. Async inventory supports
+cancellation and explicit operation timeouts. DNS cancellation ends the caller's wait, while the underlying runtime resolver can finish in
+the background; native account translation cannot be interrupted after it starts.
+
+`ApplicationPaths` constructs product paths without creating directories. `ComManager` exposes explicit single-reference release and
+explicit collection, with no automatic process-wide cleanup or apartment assumptions. The adapter retains the best-effort COM teardown
+behavior. Identity reads dispose their native token handles. `RobocopyExitResult` exposes the vendor exit flags and success meaning without
+running Robocopy.
+
+`LgpoTool` now has separate availability and installation operations. It borrows an HTTP client, verifies the reviewed archive pin, selects
+the exact catalog entry, verifies the executable pin and atomically publishes the executable. `VerifiedArchiveService` rejects ambiguous and
+noncanonical ZIP paths, bounds compressed and extracted sizes, and leaves an existing destination intact on failure. Neither operation
+executes vendor content or changes policy. Custom source metadata requires explicitly supplied trusted pins. Scheduled vendor update PRs
+remain deferred as described below.
+
+Managed validation passes 194 tests per target (388 executions), including real local read-only inventory and identity checks plus synthetic
+HTTP/ZIP failure cases. No live LGPO download, policy application, printer changes or Office deployment is performed. The current host
+matrix remains Windows x64 with Windows PowerShell 5.1 and PowerShell 7; a full C# rewrite and the v2 release are not complete.
+
+Final checkpoint validation passes the full Pester suites: 919 passed / six existing skips under PowerShell 7 and 922 passed / three
+existing skips under Windows PowerShell 5.1. Each includes the 14 fresh-host package tests covering both engines. All 192 exports remain;
+parameter contracts, packaged help, stable system values and dynamic result shapes match the baseline, subject to the documented
+compatibility exceptions. Build reports zero warnings/errors, and all pre-commit hooks pass.
+
+Fresh-host compatibility probes now run in a Windows job with a 512 MiB aggregate commit limit, a two-minute timeout, bounded output capture
+and termination of child processes when the job closes. Synthetic regression tests verify memory enforcement, timeout termination, quoting
+and output bounds. This replaces unbounded child execution after a stalled report serializer exhausted workstation memory. Verbose records
+are reduced to their message text before JSON serialization; PowerShell invocation internals are not serialized as test evidence.
 
 ## Local automation
 

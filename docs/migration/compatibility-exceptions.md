@@ -109,8 +109,16 @@ The frozen v1 LGPO source digest is `PLACEHOLDER_REPLACE_ON_FIRST_VENDORING`. Fo
 2026-10-04, the C# catalog and staged `Resolve-LGPOSource` now expose the reviewed ZIP hash and updated `LastVerified` date. These two
 values intentionally differ from the baseline; the comparison probe asserts their new values explicitly before comparing the remaining
 contract. The executable has a separate pin in the C# catalog. The frozen v1 source remains unchanged. `Install-LGPO` and
-`Test-LGPOSourceAvailability` still use legacy implementations, calling the migrated source resolver in the staged module. The new
-verified-download service never executes content or treats a successful HTTP response as proof of trust.
+`Test-LGPOSourceAvailability` now use C#. Installation selects the exact catalog entry and verifies both archive and binary pins before
+atomic publication. Availability remains a reachability check only. Transport failure details come from HttpClient rather than
+Invoke-WebRequest. The installation command retains existing-file and WhatIf behavior, but fixes v1's unconditional administrator check: an
+explicitly chosen writable destination now works without elevation, as its original help promised. Filesystem permissions still apply.
+
+Windows inventory preserves existing object shapes and invariant display strings. `Get-SystemPaths` now rejects `.`/`..` and trailing-dot
+product names instead of allowing traversal or ambiguous Windows normalization. The C# path API has the same restriction. The old
+install-date conversion accidentally included the local timezone offset at the Unix epoch; that historical result is retained only in
+PowerShell output. `WindowsVersionInfo.InstalledAt` contains the correct UTC instant. Native inventory and DNS calls now have bounded
+operation timeouts and stop handling. Their failures are not proof that a machine has no disks or no domain name.
 
 These notes record details for the implementation and tests; they are not additional choices you need to make now.
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace PSFoundation.Policies;
 
@@ -13,9 +14,24 @@ public sealed class LgpoSource
     public string TrustedBinarySha256 { get; }
     public Version BinaryVersion { get; }
     public DateTime VerifiedAtUtc { get; }
-    private LgpoSource(string name, Uri downloadUri, string expectedBinaryPath, string trustedSha256, string trustedBinarySha256,
+    /// <remarks>Custom pins must be obtained independently of the download being verified. This constructor does not establish trust.</remarks>
+    public LgpoSource(string name, Uri downloadUri, string expectedBinaryPath, string trustedSha256, string trustedBinarySha256,
         Version binaryVersion, DateTime verifiedAtUtc)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("A source name is required.", nameof(name));
+        if (downloadUri == null || !downloadUri.IsAbsoluteUri || downloadUri.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(downloadUri.UserInfo))
+            throw new ArgumentException("An absolute HTTPS URI without credentials is required.", nameof(downloadUri));
+        if (string.IsNullOrEmpty(expectedBinaryPath) || expectedBinaryPath.IndexOfAny(new[] { '\\', ':', '\0' }) >= 0
+            || expectedBinaryPath.Any(char.IsControl) || expectedBinaryPath.Split('/').Any(part => part.Length == 0 || part == "." || part == ".."))
+            throw new ArgumentException("A canonical relative ZIP entry path is required.", nameof(expectedBinaryPath));
+        foreach (var hash in new[] { trustedSha256, trustedBinarySha256 })
+            if (hash == null || hash.Length != 64 || !hash.All(Uri.IsHexDigit))
+                throw new ArgumentException("Independently trusted SHA-256 pins are required.");
+        if (binaryVersion == null)
+            throw new ArgumentNullException(nameof(binaryVersion));
+        if (verifiedAtUtc.Kind != DateTimeKind.Utc)
+            throw new ArgumentException("Use a UTC verification date.", nameof(verifiedAtUtc));
         Name = name;
         DownloadUri = downloadUri;
         ExpectedBinaryPath = expectedBinaryPath;

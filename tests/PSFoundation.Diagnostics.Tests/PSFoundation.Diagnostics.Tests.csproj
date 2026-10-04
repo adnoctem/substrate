@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="../../src/PSFoundation.Diagnostics/PSFoundation.Diagnostics.csproj" />
+    <Compile Include="../../tools/ProbeProcess.cs" Link="DevTools/ProbeProcess.cs" />
   </ItemGroup>
 </Project>

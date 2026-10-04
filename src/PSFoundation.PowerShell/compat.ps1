@@ -1,5 +1,39 @@
 ﻿#Requires -Version 5.0
 
+function Get-UserInfo {
+  <#
+  .SYNOPSIS
+    Retrieves the effective Windows identity, administrator status and SID.
+  .DESCRIPTION
+    Uses the C# identity manager and preserves the original hashtable and extra-argument handling.
+  .EXAMPLE
+    Get-UserInfo
+  #>
+  [OutputType([hashtable])]
+  param ()
+  [PSFoundation.PowerShell.Windows.IdentityCompatibility]::GetUserInfo()
+}
+
+function Get-UserSID {
+  <#
+  .SYNOPSIS
+    Resolves a Windows account name to its security identifier.
+  .DESCRIPTION
+    Uses native account translation through the C# identity manager.
+  .PARAMETER UserName
+    Local or domain account name to resolve.
+  .EXAMPLE
+    Get-UserSID -UserName 'DOMAIN\user'
+  #>
+  [OutputType([string])]
+  param ([Parameter(Mandatory = $true)][string]$UserName)
+  try { [PSFoundation.PowerShell.Windows.IdentityCompatibility]::GetSecurityIdentifier($UserName) }
+  catch {
+    Write-Error "Could not find SID for user '$UserName'. $_"
+    return $null
+  }
+}
+
 function Test-LGPOInstalled {
   <#
   .SYNOPSIS

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/PSFoundation.Windows/PSFoundation.Windows.csproj" />
+    <ProjectReference Include="../../src/PSFoundation.Interop/PSFoundation.Interop.csproj" />
+  </ItemGroup>
+</Project>

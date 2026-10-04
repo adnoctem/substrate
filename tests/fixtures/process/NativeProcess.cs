@@ -9,6 +9,17 @@ public static class NativeProcess
     {
         switch (args[0])
         {
+            case "bounded-memory":
+                var allocations = new System.Collections.Generic.List<byte[]>();
+                try
+                {
+                    // Deliberately finite even if the runner's memory limit is broken.
+                    for (int i = 0; i < 256; i++)
+                        allocations.Add(new byte[1024 * 1024]);
+                    GC.KeepAlive(allocations);
+                    return 0;
+                }
+                catch (OutOfMemoryException) { Console.WriteLine("MemoryLimitReached"); return 23; }
             case "/g":
             case "/t":
                 Console.WriteLine(args[0]);

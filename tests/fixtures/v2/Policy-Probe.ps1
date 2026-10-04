@@ -22,6 +22,7 @@ function Add-Observation {
   try {
     & $Action *>&1 | ForEach-Object {
       if ($_ -is [Management.Automation.ErrorRecord]) { $records.Add((Convert-Error $_)) }
+      elseif ($_ -is [Management.Automation.VerboseRecord]) { $records.Add([ordered]@{ Stream = 'Verbose'; Message = $_.Message }) }
       else {
         $dataType = if ($_.PSObject.Properties['Data'] -and $null -ne $_.Data) { $_.Data.GetType().FullName } else { $null }
         $records.Add([ordered]@{ Type = $_.GetType().FullName; Names = @($_.PSObject.TypeNames); DataType = $dataType; Value = $_ })
@@ -165,5 +166,13 @@ foreach ($mode in @('text', 'backup', 'failure')) {
   }
 }
 Remove-Item -LiteralPath $policyInput
+$installDirectory = Join-Path $scratch 'tool-install'
+Add-Observation 'lgpo-install-whatif' { Install-LGPO -Destination $installDirectory -WhatIf; Test-Path -LiteralPath $installDirectory }
+$null = [IO.Directory]::CreateDirectory($installDirectory)
+[IO.File]::WriteAllText((Join-Path $installDirectory 'LGPO.exe'), 'synthetic existing executable; never run')
+Add-Observation 'lgpo-install-existing' { Install-LGPO -Destination $installDirectory -Verbose }
+Add-Observation 'lgpo-install-force-whatif' { Install-LGPO -Destination $installDirectory -Force -WhatIf -Verbose }
+Remove-Item -LiteralPath (Join-Path $installDirectory 'LGPO.exe')
+Remove-Item -LiteralPath $installDirectory
 $observations | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
 Remove-Item -LiteralPath ($ReportPath + '.progress')
