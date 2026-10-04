@@ -17,7 +17,9 @@
     'Get-SystemMemory', 'Get-SystemDisk', 'Get-Hostname', 'Get-SystemUptime', 'Get-SystemInfo', 'Get-SystemPaths',
     'Test-HostApplicability', 'Test-Elevation', 'Convert-RobocopyExitCode', 'Test-PendingReboot', 'Get-FileLockProcess', 'Set-ScheduledTaskState', 'Get-DotNetVersion'
   )
-  Interop      = @('Remove-ComObject', 'Invoke-ComGarbageCollection')
+  Interop      = @('Remove-ComObject', 'Invoke-ComGarbageCollection', 'Get-OutlookInstallation', 'Get-OutlookRepairToolInfo', 'Find-OutlookRepairTool',
+    'Connect-Outlook', 'Get-OutlookStoreRoot', 'Add-OutlookStoreRoot', 'Get-OutlookSubFolder',
+    'Get-OutlookStandardFolderIdentity', 'Get-OutlookFolderPlan', 'Open-OutlookPstStore', 'Close-OutlookPstStore')
   Security     = @('Test-WindowsEventLogChannel', 'Export-EventLog', 'Get-DefenderThreatDescriptionURL', 'Add-DefenderExclusion', 'Get-ScheduledTaskAction', 'Get-WMIPersistence')
   Devices      = @('Get-PrintDevice', 'Get-DefaultPrintDevice', 'Set-DefaultPrintDevice', 'Get-ScanDevice')
   Provisioning = @('New-OfflineDomainJoinBlob', 'New-DjoinFile')

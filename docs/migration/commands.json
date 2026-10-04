@@ -164,8 +164,8 @@
   {
     "Command": "Get-OutlookInstallation",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-ItemProperty",
       "Join-Path",
@@ -180,8 +180,8 @@
   {
     "Command": "Get-OutlookRepairToolInfo",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-Item",
       "Resolve-LongPath"
@@ -190,8 +190,8 @@
   {
     "Command": "Find-OutlookRepairTool",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-Command",
       "Get-OutlookInstallation",
@@ -202,8 +202,8 @@
   {
     "Command": "Connect-Outlook",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "New-Object"
     ]
@@ -211,8 +211,8 @@
   {
     "Command": "Get-OutlookStoreRoot",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Remove-ComObject",
       "Write-Verbose"
@@ -221,8 +221,8 @@
   {
     "Command": "Add-OutlookStoreRoot",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Remove-ComObject"
     ]
@@ -230,8 +230,8 @@
   {
     "Command": "Open-OutlookPstStore",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-PSFOutlookPstRoot",
       "Get-PSFOutlookPstSnapshot",
@@ -245,8 +245,8 @@
   {
     "Command": "Close-OutlookPstStore",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "New-Object",
       "Remove-ComObject",
@@ -256,8 +256,8 @@
   {
     "Command": "Get-OutlookSubFolder",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Remove-ComObject"
     ]
@@ -265,8 +265,8 @@
   {
     "Command": "Get-OutlookStandardFolderIdentity",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "New-Object",
       "Remove-ComObject"
@@ -275,8 +275,8 @@
   {
     "Command": "Get-OutlookFolderPlan",
     "Source": "interop.ps1",
-    "Compiled": false,
-    "Implementation": "LegacyFunction",
+    "Compiled": true,
+    "Implementation": "CompiledCmdlet",
     "Calls": [
       "Get-FolderDecision",
       "Get-FolderTreePlan",

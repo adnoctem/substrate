@@ -1,5 +1,12 @@
 ﻿#Requires -Version 5.0
 
+function Get-TransportMessageId {
+  [CmdletBinding()]
+  [OutputType([string])]
+  param ([Parameter(Mandatory = $true)][AllowEmptyString()][string]$HeaderText)
+  [PSFoundation.Interop.MailHeaderParser]::GetTransportMessageId($HeaderText)
+}
+
 function Write-PSFOfficeJson {
   [CmdletBinding()]
   param ([string]$Path, [object]$Value)

@@ -350,6 +350,25 @@ Five synthetic recovery scenarios and local host support match v1 in both guarde
 suite to 228 per target (456 executions). Public migration ownership remains 114 of 188 functions; these private lifecycle components are
 prerequisites, not a claim that the remaining execution/recovery commands are fully native. No application was closed or installer run.
 
+## Outlook interop checkpoint
+
+`OutlookManager` now owns installation/repair-tool discovery, classic Outlook sessions, store/folder access, existing-PST lifetimes,
+standard-folder identity discovery (including the Outlook 2007 MAPI fallback), and complete folder plans. Repair-tool metadata is only
+capability evidence; discovery never executes a candidate. Registry discovery uses the shared registry API and both Windows views.
+
+COM work remains on the caller's apartment. Owned sessions and PST contexts dispose on their acquiring thread; no implicit quit, logoff,
+profile cleanup or background-thread dispatch occurs. Cancellation is observed between provider calls. A PST context detaches only its
+uniquely identified attachment, preserves pre-existing/replacement stores, and releases its root even when detachment fails. Folder plans
+return detached records after successful traversal, with cycle, depth and count bounds. Live Outlook still needs controlled validation.
+
+All 11 remaining public interop commands are compiled, reaching 125 of 188 functions: 88 compiled and 37 C#-backed wrappers. The transport
+header helper remains private. Two managed workflow tests bring the suite to 230 per target (460 executions); guarded PowerShell 5.1/7
+comparisons cover discovery, modern/2007 identities, folder planning and synthetic PST ownership without activating Outlook. The Framework
+interop build avoids a netstandard registry assembly mismatch caught by the Windows PowerShell check.
+
+The next review boundary is the complete Office API. Finish its deployment orchestration and recovery reader before continuing other
+domains.
+
 ## Local automation
 
 The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the

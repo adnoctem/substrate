@@ -134,7 +134,11 @@
         "type": "Project"
       },
       "psfoundation.interop": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Registry": "[1.0.0, )"
+        }
       },
       "psfoundation.io": {
         "type": "Project"
@@ -285,7 +289,11 @@
         "type": "Project"
       },
       "psfoundation.interop": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "PSFoundation.IO": "[1.0.0, )",
+          "PSFoundation.Registry": "[1.0.0, )"
+        }
       },
       "psfoundation.io": {
         "type": "Project"

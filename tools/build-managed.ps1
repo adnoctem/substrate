@@ -36,7 +36,7 @@ if ($compiled.Count -ne @($compiled | Sort-Object -Unique).Count) { throw 'Compi
 if ($compatibility.Count -ne @($compatibility | Sort-Object -Unique).Count -or @($compatibility | Where-Object { $_ -in $compiled }).Count) { throw 'Compatibility commands must have unique owners.' }
 $encoding = New-Object Text.UTF8Encoding($true)
 foreach ($file in @(Get-ChildItem (Join-Path $root 'src') -File)) {
-  if ($file.Name -in @('registry.ps1', 'common.ps1', 'errors.ps1', 'log.ps1', 'policies.ps1', 'devices.ps1', 'provisioning.ps1')) { continue }
+  if ($file.Name -in @('registry.ps1', 'common.ps1', 'errors.ps1', 'log.ps1', 'policies.ps1', 'devices.ps1', 'provisioning.ps1', 'interop.ps1')) { continue }
   $destination = Join-Path $stage $file.Name
   if ($file.Extension -ne '.ps1') { Copy-Item -LiteralPath $file.FullName -Destination $destination; continue }
   $text = [IO.File]::ReadAllText($file.FullName)
