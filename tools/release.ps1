@@ -34,7 +34,7 @@ if ($DryRun -or -not $PSCmdlet.ShouldProcess("AdNoctem.Substrate.PowerShell $Ver
 Push-Location $root
 try {
   if ($Prepare) {
-    & bun run format
+    & bun x prettier --write --end-of-line auto CHANGELOG.md
     if ($LASTEXITCODE) { throw 'Changelog formatting failed.' }
     & dotnet msbuild tools/tasks.proj -t:Verify "-p:Version=$Version" -nologo
     if ($LASTEXITCODE) { throw 'Release verification failed.' }

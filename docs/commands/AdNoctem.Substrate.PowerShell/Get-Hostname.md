@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -30,7 +30,7 @@ None.
 
 Uses [System.Net.Dns]::GetHostName() and resolves it to a fully-qualified
 domain name when joined to a domain.
- Returns both the short hostname and,
+Returns both the short hostname and,
 if different, the FQDN.
 
 ## EXAMPLES

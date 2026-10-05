@@ -53,10 +53,10 @@
   </Target>
   <Target Name="Format" DependsOnTargets="FormatPowerShell">
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace Substrate.slnx --no-restore" />
-    <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun run format" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun x prettier --write --end-of-line auto &quot;**/*.md&quot;" />
   </Target>
   <Target Name="Check" DependsOnTargets="CheckPowerShell;CheckManaged">
-    <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun run check" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun x prettier --check --end-of-line auto &quot;**/*.md&quot;" />
   </Target>
   <Target Name="Pack" DependsOnTargets="HelpFiles">
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)pack.ps1&quot;" />

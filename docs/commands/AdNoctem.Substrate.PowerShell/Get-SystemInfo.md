@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -30,7 +30,7 @@ None.
 
 Assembles OS version, memory, disk, hostname, and uptime into a single
 structured object.
- Disk data is resolved through physical disk
+Disk data is resolved through physical disk
 associations; other data sources use registry reads, .NET APIs, and
 lightweight P/Invoke where possible.
 

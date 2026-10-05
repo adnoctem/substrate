@@ -24,11 +24,11 @@ if (-not (Test-Path -LiteralPath $destination)) {
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   [IO.Compression.ZipFile]::ExtractToDirectory($archive, $destination)
 }
-# Verify Git content (including its declared line-ending normalization) before reuse.
+# The v1 archive declares CRLF text; verify its normalized Git content independently of current checkout settings.
 $baselineFiles = @(& git -C $root ls-tree -r --name-only $commit -- src)
 foreach ($file in $baselineFiles) {
   $expected = & git -C $root rev-parse "${commit}:$file"
-  $actual = & git -C $root hash-object "--path=$file" (Join-Path $destination $file)
+  $actual = & git -c core.autocrlf=true -C $root hash-object "--path=$file" (Join-Path $destination $file)
   if ($LASTEXITCODE -ne 0 -or $actual -ne $expected) { throw "Pinned baseline differs at '$file'." }
 }
 . (Join-Path $PSScriptRoot 'compatibility.ps1')
@@ -42,7 +42,7 @@ $capture = [ordered]@{
   PowerShellVersion = [string]$PSVersionTable.PSVersion; Contract = $contract
 }
 $path = Join-Path $outputRoot ($PSVersionTable.PSEdition.ToLowerInvariant() + '.json')
-[IO.File]::WriteAllText($path, (($capture | ConvertTo-Json -Depth 40) + "`r`n"), (New-Object Text.UTF8Encoding($false)))
+[IO.File]::WriteAllText($path, (($capture | ConvertTo-Json -Depth 40) + "`n"), (New-Object Text.UTF8Encoding($false)))
 Write-Output "Captured $($contract.Commands.Count) exports from v1.8.7 to $path"
 
 if ($Inventory) {
@@ -61,6 +61,6 @@ if ($Inventory) {
     }
   }
   $inventoryPath = Join-Path $root 'docs/migration/commands.json'
-  [IO.File]::WriteAllText($inventoryPath, (($rows | ConvertTo-Json -Depth 8) + "`r`n"), (New-Object Text.UTF8Encoding($false)))
+  [IO.File]::WriteAllText($inventoryPath, (($rows | ConvertTo-Json -Depth 8) + "`n"), (New-Object Text.UTF8Encoding($false)))
   $rows | Group-Object Source | ForEach-Object { Write-Output ("{0}: {1} commands" -f $_.Name, $_.Count) }
 }

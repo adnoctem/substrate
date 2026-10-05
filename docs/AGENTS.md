@@ -7,17 +7,17 @@ Substrate provides reusable C# libraries and a PowerShell module for Windows Pow
 
 Use `dotnet msbuild tools/tasks.proj -t:<Target>`. Restore first on a fresh checkout.
 
-| Target         | Purpose                                                               |
-| -------------- | --------------------------------------------------------------------- |
-| Restore        | Restore locked NuGet packages, DocFX, PowerShell tools, and formatter |
-| Build / Stage  | Compile / assemble the importable module                              |
-| Test           | Managed tests plus packaged-module checks in both PowerShell hosts    |
-| UpdateHelp     | Explicitly refresh tracked PowerShell metadata and API catalog        |
-| Docs           | Validate help and build the reference site                            |
-| Format / Check | Apply formatting / check formatting and analysis                      |
-| Pack           | Create archives and checksums under dist                              |
-| Verify         | Check, test, document, and package                                    |
-| Clean          | Remove generated output while retaining dependency caches             |
+| Target         | Purpose                                                            |
+| -------------- | ------------------------------------------------------------------ |
+| Restore        | Restore locked NuGet packages, DocFX, and PowerShell tools         |
+| Build / Stage  | Compile / assemble the importable module                           |
+| Test           | Managed tests plus packaged-module checks in both PowerShell hosts |
+| UpdateHelp     | Explicitly refresh tracked PowerShell metadata and API catalog     |
+| Docs           | Validate help and build the reference site                         |
+| Format / Check | Apply formatting / check formatting and analysis                   |
+| Pack           | Create archives and checksums under dist                           |
+| Verify         | Check, test, document, and package                                 |
+| Clean          | Remove generated output while retaining dependency caches          |
 
 Before committing or handing changed files back, run `pre-commit run --all-files`. Resolve findings and rerun after hooks modify files. For
 implementation changes, run the relevant MSBuild targets and finish with `Verify` when changing the build or packaging pipeline.
@@ -31,18 +31,18 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 - Implement compiled commands in the PowerShell adapter; keep host compatibility functions in its `compat.ps1`.
 - C# comments feed DocFX. Reviewed `docs/commands/AdNoctem.Substrate.PowerShell` Markdown feeds PlatyPS and packaged help.
 - Document meaningful contracts without adding filler comments to obvious members. UpdateHelp refreshes metadata; review its output.
-- Frozen `src/*.ps1` files are v1 comparison material. Do not add new production behavior there.
+- Compatibility tests materialize the pinned v1 baseline from Git history under `build/baseline`; retain that history.
 
 ## Conventions
 
 - C#: four-space indentation, nullable references, deterministic builds, warnings as errors. Follow the existing domain layout.
-- PowerShell: two-space indentation, UTF-8 with BOM, CRLF; the formatter normalizes encoding. Shipped scripts remain compatible with 5.1.
+- PowerShell: two-space indentation. Preserve existing line endings and BOMs; scripts with non-ASCII text executed by 5.1 require a UTF-8 BOM. Staging ensures shipped scripts are BOM-encoded.
 - Development scripts may use PowerShell 7 when declared with Requires. Keep runtime and development prerequisites distinct.
 - Keep repository filenames free of spaces; test whitespace paths using temporary fixtures.
 - Prefer focused functional tests for substantial behavior. Live administrative mutations belong on disposable or recoverable machines.
 - Conventional commits: `type(scope): summary`, with scopes `src|tools|tests|config|docs`. Types:
   `feat|fix|docs|refactor|test|chore|build|ci`. A body of at least 20 characters is required except for docs commits.
-- Semantic-release supplies the release version to verification and staging. Do not manually bump the frozen v1 manifest.
+- Semantic-release supplies the release version to verification and staging.
 - Publishing is explicitly gated. No pushing or publishing without user authorization.
 
 ## Security review rules
@@ -57,7 +57,6 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 
 - `src/AdNoctem.Substrate.*`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
 - `tests/AdNoctem.Substrate.*.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
-- `tests/*.Tests.ps1`: retained v1 reference tests, excluded from the ordinary v2 run.
-- `tools/`: MSBuild orchestration and supporting scripts; `tools/module.psd1`: v2 manifest template.
+- `tools/`: MSBuild orchestration and supporting scripts; `tools/module.psd1`: manifest template.
 - `docs/`: documentation sources; `build/`, `dist/`: ignored output.
 - This file lives at `docs/AGENTS.md`; root `AGENTS.md` is a symlink. Edit this file.

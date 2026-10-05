@@ -55,9 +55,9 @@ if ($Mode -eq 'Update') {
     $text = [IO.File]::ReadAllText($file.FullName) -replace '\{\{ Fill in [^\r\n]*\}\}|\{\{Insert list of aliases\}\}', ''
     $aliases = @(Get-Alias | Where-Object { $_.ModuleName -eq 'AdNoctem.Substrate.PowerShell' -and $_.ResolvedCommand.Name -eq $command.Name } | Select-Object -ExpandProperty Name)
     $aliasText = if ($aliases.Count) { $aliases -join ', ' } else { 'None.' }
-    $text = [regex]::Replace($text, '(?s)(## ALIASES\r?\n).*?(?=\r?\n## DESCRIPTION)', ('$1' + "`r`n$aliasText`r`n"))
+    $text = [regex]::Replace($text, '(?s)(## ALIASES\r?\n).*?(?=\r?\n## DESCRIPTION)', ('$1' + "`n$aliasText`n"))
     $text = $text -replace '(?m)[ \t]+\r?$', ''
-    [IO.File]::WriteAllText($file.FullName, (($text.TrimEnd() -replace '\r?\n', "`r`n") + "`r`n"), [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($file.FullName, (($text.TrimEnd() -replace '\r?\n', "`n") + "`n"), [Text.UTF8Encoding]::new($false))
   }
 }
 
@@ -130,6 +130,15 @@ if ($Mode -in @('Site', 'Update')) {
     & (Join-Path $PSScriptRoot 'api-catalog.ps1') -Update:($Mode -eq 'Update')
     & dotnet tool run docfx build tools/docfx.json --warningsAsErrors
     if ($LASTEXITCODE) { throw 'DocFX site generation failed.' }
+  }
+  finally { Pop-Location }
+}
+
+if ($Mode -eq 'Update') {
+  Push-Location $repositoryRoot
+  try {
+    & bun x prettier --write --end-of-line auto docs/API.md 'docs/commands/**/*.md'
+    if ($LASTEXITCODE) { throw 'Documentation formatting failed.' }
   }
   finally { Pop-Location }
 }

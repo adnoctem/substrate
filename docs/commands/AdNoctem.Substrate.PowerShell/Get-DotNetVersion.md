@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -30,11 +30,11 @@ None.
 
 Enumerates three independent sources of .NET version information:
 
-* dotnet CLI runtimes and SDKs (dotnet --list-runtimes / --list-sdks) — the
+- dotnet CLI runtimes and SDKs (dotnet --list-runtimes / --list-sdks) — the
   full output of each command, or $null when the dotnet CLI is not installed.
-* The classic .NET Framework version of the current runtime
+- The classic .NET Framework version of the current runtime
   ([Environment]::Version).
-* The full .NET Framework release enumeration from the NDP registry subtree
+- The full .NET Framework release enumeration from the NDP registry subtree
   (HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP), with each release
   number mapped to a friendly product name.
 

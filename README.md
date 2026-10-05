@@ -17,7 +17,7 @@ The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerS
 is planned as 1.0.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
 
 The implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter preserves 188 commands and four aliases,
-using compiled cmdlets and a small compatibility script. Frozen PSFoundation v1 scripts remain in the repository for comparison tests.
+using compiled cmdlets and a small compatibility script. Comparison tests retrieve the frozen PSFoundation v1 scripts from Git history.
 
 See the [API catalog](docs/API.md), [architecture](docs/architecture.md), and [contributor guide](docs/CONTRIBUTING.md). The generated
 reference describes Registry, Networking, IO, Diagnostics, Policies, Packages, Security, Windows, Interop, and Office APIs.
@@ -32,7 +32,7 @@ dotnet msbuild tools/tasks.proj -t:Restore
 dotnet msbuild tools/tasks.proj -t:Format
 dotnet msbuild tools/tasks.proj -t:Verify
 
-# Import the staged v2 package in a fresh PowerShell process.
+# Import the staged package in a fresh PowerShell process.
 Import-Module ./build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1
 
 # Check the same hooks used in CI.
@@ -482,8 +482,7 @@ _Assets provided by:_ **[Microsoft Corporation][microsoft]**
 
 [org]: https://github.com/adnoctem
 [microsoft]: https://www.microsoft.com/
-[gh_pr_fork_docs]:
-  https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork
+[gh_pr_fork_docs]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork
 [github_releases]: https://github.com/adnoctem/substrate/releases
 [github_commits]: https://github.com/adnoctem/substrate/commits/main/
 [psgallery_package]: https://www.powershellgallery.com/packages/AdNoctem.Substrate.PowerShell

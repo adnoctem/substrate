@@ -8,11 +8,8 @@
   Runs Invoke-Formatter over .ps1, .psm1, and .psd1 files using the repository
   PSScriptAnalyzerSettings.psd1 file. The script delegates whitespace, brace,
   indentation, and casing rules entirely to PSScriptAnalyzer and performs no
-  repository-specific post-processing beyond encoding and line-ending
-  normalization on write.
-
-  Files are rewritten in place with UTF-8 with BOM (required for reliable
-  parsing under Windows PowerShell 5.1) and CRLF line endings.
+  repository-specific style changes. Existing line endings and UTF-8 BOMs
+  are preserved; Windows PowerShell 5.1 scripts with non-ASCII text need a BOM.
 
   Use -Check to report files that would change without writing them, suitable
   for pre-commit hooks and CI jobs.
@@ -100,7 +97,6 @@ if (-not $IncludeSecrets) {
 }
 
 $rootFullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Split-Path -Path $PSScriptRoot -Parent))
-$utf8Bom = New-Object System.Text.UTF8Encoding($true)
 $changed = New-Object System.Collections.Generic.List[string]
 $processed = 0
 
@@ -152,13 +148,15 @@ foreach ($file in $files) {
   $_normalizedTrimmed = $normalizedSource -replace '\s+$', ''
 
   $_needsFormat = ($_formattedTrimmed -ne $_normalizedTrimmed)
-  $_needsLineEndingFix = ($source -match '(?<!\r)\n|\r(?!\n)')
 
-  if ($_needsFormat -or $_needsLineEndingFix) {
+  if ($_needsFormat) {
     [void]$changed.Add($file.FullName)
     if (-not $Check) {
-      $formattedCrlf = $formatted -replace "`r`n", "`n" -replace "`n", "`r`n"
-      [System.IO.File]::WriteAllText($file.FullName, $formattedCrlf, $utf8Bom)
+      $newline = if ($source.Contains("`r`n")) { "`r`n" } else { "`n" }
+      $formatted = $formatted -replace "`r`n|`r|`n", $newline
+      $bytes = [IO.File]::ReadAllBytes($file.FullName)
+      $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 239 -and $bytes[1] -eq 187 -and $bytes[2] -eq 191
+      [IO.File]::WriteAllText($file.FullName, $formatted, [Text.UTF8Encoding]::new($hasBom))
       Write-Output "Formatted: $($file.FullName)"
     }
   }

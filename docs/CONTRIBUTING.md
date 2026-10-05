@@ -1,7 +1,6 @@
 # Contributing
 
-Substrate uses C# domain libraries with a PowerShell adapter. The frozen v1 scripts remain available for compatibility comparisons; they are
-not the production module build input.
+Substrate uses C# domain libraries with a PowerShell adapter. Compatibility tests retrieve the frozen v1 scripts from Git history under `build/baseline`.
 
 ## Prerequisites
 
@@ -15,8 +14,8 @@ pre-commit install
 dotnet msbuild tools/tasks.proj -t:Verify
 ```
 
-Restore uses NuGet lock files, the local .NET tool manifest, exact PowerShell tool versions in `tools/dev-dependencies.json`, and
-`bun.lock`. PowerShell tools are restored under `build/tools/modules`; no installation of the legacy runtime dependencies is needed.
+Restore uses NuGet lock files, the local .NET tool manifest, and exact PowerShell tool versions in `tools/dev-dependencies.json`.
+PowerShell tools are restored under `build/tools/modules`; no installation of the legacy runtime dependencies is needed.
 
 ## Daily workflow
 
@@ -38,14 +37,16 @@ checkout. Build compiles only; Stage assembles the module; HelpFiles adds runtim
 dependencies. Direct `dotnet build Substrate.slnx` remains supported for ordinary compilation.
 
 For a focused Pester investigation, the supporting runner accepts `./tools/test.ps1 -Path ./tests/PowerShell/Registry.Tests.ps1`. It
-defaults to the current suite; archived root-level tests exercise v1. PowerShell source coverage measures compatibility scripts only and is
+defaults to the current suite. PowerShell source coverage measures compatibility scripts only and is
 informational, not C# coverage.
 
 ## Formatting and hooks
 
-C# uses four spaces. PowerShell uses two spaces, CRLF, and UTF-8 with BOM for Windows PowerShell 5.1. The repository formatter and
-PSScriptAnalyzer share the checked-in settings. PlatyPS command Markdown and the generated API catalog have their own generation
-conventions.
+C# uses the .NET formatter defaults; PowerShell uses two spaces.
+No repository-wide line ending is required. The PowerShell formatter preserves existing line endings and BOMs.
+Scripts containing non-ASCII text and executed by Windows PowerShell 5.1 still need UTF-8 with BOM; staging adds it to shipped scripts.
+Prettier runs unpinned through `bun x`, uses the Bun cache instead of a repository `node_modules`, and formats all Markdown, including command help and the API catalog.
+The hook selects tracked Markdown; command-line formatting honors `.gitignore`.
 
 Run `pre-commit run --all-files` before committing. The hooks check PowerShell and C# style, Markdown, spelling, and workflow configuration.
 They do not build the entire documentation site or run the test suite at every commit. CI runs the same hooks and MSBuild targets. Both
@@ -73,8 +74,7 @@ Get-Help Get-OfficeInventory -Full
 A rebuild cannot unload assemblies already imported by an existing PowerShell process. Keep the loader, both binary directories, helper
 executable, configuration, data, and help together when copying the package.
 
-Semantic-release passes its selected version to `tools/release.ps1 -Prepare`, which verifies and packages that version. The v1 manifest
-remains frozen. Substrate starts an independent release sequence at 1.0.0; PSFoundation release tags are not imported. The release workflow
+Semantic-release passes its selected version to `tools/release.ps1 -Prepare`, which verifies and packages that version. Substrate starts an independent release sequence at 1.0.0; PSFoundation release tags are not imported. The release workflow
 remains manual and requires `SUBSTRATE_RELEASE_ENABLED=true` on a supported release branch.
 
 ```powershell

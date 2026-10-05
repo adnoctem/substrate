@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -31,7 +31,7 @@ None.
 
 Recursively scans C:\ (or a custom path) for files whose LastWriteTime falls
 within a configurable window around the supplied -Date.
- Designed to help
+Designed to help
 identify artifacts dropped by malware at the time of a Defender alert.
 Results can be printed to the terminal or exported as TXT / JSON.
 
@@ -58,7 +58,7 @@ Wider window, exported as JSON.
 ### -After
 
 Number of hours after the anchor date to include.
- Defaults to 1.
+Defaults to 1.
 
 ```yaml
 Type: System.Int32
@@ -66,21 +66,21 @@ DefaultValue: 1
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 2
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 2
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Before
 
 Number of hours before the anchor date to include.
- Defaults to 2.
+Defaults to 2.
 
 ```yaml
 Type: System.Int32
@@ -88,23 +88,23 @@ DefaultValue: 2
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 1
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 1
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Date
 
 Anchor date/time.
- Accepts any value that Get-Date can parse (string,
+Accepts any value that Get-Date can parse (string,
 DateTime, etc.).
- Defaults to right now.
+Defaults to right now.
 
 ```yaml
 Type: System.Object
@@ -112,21 +112,21 @@ DefaultValue: (Get-Date)
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 0
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 0
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -OutputFormat
 
 Output format: TXT (Formatted custom table) or JSON.
- Defaults to TXT.
+Defaults to TXT.
 
 ```yaml
 Type: System.String
@@ -134,44 +134,44 @@ DefaultValue: TXT
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 5
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 5
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -OutputPath
 
 File path to write results to.
- When omitted, results are printed to the
+When omitted, results are printed to the
 terminal.
 
 ```yaml
 Type: System.String
-DefaultValue: ''
+DefaultValue: ""
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 4
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 4
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Path
 
 Root path to search.
- Defaults to the system drive (C:\).
+Defaults to the system drive (C:\).
 
 ```yaml
 Type: System.String
@@ -179,15 +179,15 @@ DefaultValue: '"$env:SystemDrive\"'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 3
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 3
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### CommonParameters

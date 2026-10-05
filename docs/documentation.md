@@ -16,8 +16,10 @@ Document behavior that a caller needs: missing-value semantics, ownership, excep
 Avoid summaries that merely repeat an obvious property name. Undocumented public members remain visible in the reference. Malformed XML and
 invalid parameter references fail compilation; missing comments alone do not require boilerplate.
 
-PlatyPS owns the command Markdown structure. The general Markdown formatter excludes these files to preserve that structure. PowerShell help
-is generated from these pages for both module editions. Compatibility functions use external help declarations, so their prose is maintained
+PlatyPS owns the command Markdown structure; Prettier formats these pages alongside the rest of the documentation.
+UpdateHelp formats its generated Markdown before handing it back for review.
+Docs validates the formatted command metadata and generates PowerShell help for both module editions.
+Compatibility functions use external help declarations, so their prose is maintained
 in one place.
 
 The normal pipeline generates files only under `build/` and `dist/`. It does not publish a website or a PowerShell Gallery release.

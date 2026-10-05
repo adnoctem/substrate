@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -47,8 +47,8 @@ function does not perform any elevation.
 Test-SystemFileIntegrity
 ```
 
-Status  : Completed
-Detail  : no integrity violations
+Status : Completed
+Detail : no integrity violations
 ExitCode: 0
 
 ## PARAMETERS

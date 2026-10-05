@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -30,7 +30,7 @@ None.
 
 Uses kernel32!GetTickCount64 via P/Invoke for a non-wrapping, high-
 precision uptime value - no CIM/WMI overhead.
- Returns the raw tick
+Returns the raw tick
 count, total milliseconds, and a human-readable breakdown.
 
 ## EXAMPLES

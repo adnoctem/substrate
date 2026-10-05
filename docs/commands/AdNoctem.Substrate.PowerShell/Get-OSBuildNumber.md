@@ -1,7 +1,7 @@
 ---
 document type: cmdlet
 external help file: AdNoctem.Substrate.PowerShell-help.xml
-HelpUri: ''
+HelpUri: ""
 Locale: en-US
 Module Name: AdNoctem.Substrate.PowerShell
 PlatyPS schema version: 2024-05-01
@@ -31,7 +31,7 @@ None.
 Reads CurrentBuild from HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion.
 This is a single cheap registry read - far faster than Get-CimInstance
 or any WMI-based approach.
- Returns e.g.
+Returns e.g.
 22621 (22H2), 22631 (23H2).
 
 ## EXAMPLES

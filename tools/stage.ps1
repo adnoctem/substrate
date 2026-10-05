@@ -30,8 +30,9 @@ foreach ($target in @(@{ Edition = 'Desktop'; Framework = 'net48' }, @{ Edition 
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "build/bin/AdNoctem.Substrate.WinRtHost/$configuration/net48/$runtimeFile") -Destination $binaryRoot
   }
 }
-Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/AdNoctem.Substrate.PowerShell/compat.ps1') -Destination $stage
-Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/security.psd1') -Destination $stage
+# Windows PowerShell 5.1 must decode shipped scripts as UTF-8 even when they contain non-ASCII text.
+[IO.File]::WriteAllText((Join-Path $stage 'compat.ps1'), [IO.File]::ReadAllText((Join-Path $repositoryRoot 'src/AdNoctem.Substrate.PowerShell/compat.ps1')), [Text.UTF8Encoding]::new($true))
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/AdNoctem.Substrate.PowerShell/security.psd1') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'module.psd1') -Destination (Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1')
 $manifestPath = Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1'
@@ -41,9 +42,9 @@ $aliases = (Import-PowerShellDataFile $manifestPath).AliasesToExport
 $quotedNames = ($compiled | ForEach-Object { "'$_'" }) -join ', '
 $quotedFunctions = ($compatibility | ForEach-Object { "'$_'" }) -join ', '
 $quotedAliases = ($aliases | ForEach-Object { "'$_'" }) -join ', '
-$loader = 'Import-Module (Join-Path $PSScriptRoot (''lib/'' + $PSEdition + ''/AdNoctem.Substrate.PowerShell.dll'')) -Scope Local -ErrorAction Stop' + "`r`n"
-$loader += '. (Join-Path $PSScriptRoot ''compat.ps1'')' + "`r`n"
-$loader += "Export-ModuleMember -Cmdlet @($quotedNames) -Function @($quotedFunctions) -Alias @($quotedAliases)`r`n"
+$loader = 'Import-Module (Join-Path $PSScriptRoot (''lib/'' + $PSEdition + ''/AdNoctem.Substrate.PowerShell.dll'')) -Scope Local -ErrorAction Stop' + "`n"
+$loader += '. (Join-Path $PSScriptRoot ''compat.ps1'')' + "`n"
+$loader += "Export-ModuleMember -Cmdlet @($quotedNames) -Function @($quotedFunctions) -Alias @($quotedAliases)`n"
 [IO.File]::WriteAllText((Join-Path $stage 'AdNoctem.Substrate.PowerShell.psm1'), $loader, [Text.UTF8Encoding]::new($true))
 Update-ModuleManifest -Path $manifestPath -ModuleVersion $parts[0] -Prerelease $prerelease -FunctionsToExport $compatibility -CmdletsToExport $compiled
 Write-Output "Staged $version with $($compiled.Count) compiled commands and $($compatibility.Count) compatibility functions."

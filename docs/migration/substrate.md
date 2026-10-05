@@ -10,7 +10,7 @@ four aliases remain unchanged. NuGet distribution and the winkit dependency migr
 
 ## Preserved compatibility identities
 
-- The frozen `src/*.ps1`, original manifest/module, root-level v1 tests, and historical migration records retain PSFoundation identity.
+- Obsolete v1 source and tests have been removed from the current tree; they remain available in Git history. Historical migration records retain PSFoundation identity.
 - Baseline tests materialize PSFoundation 1.8.7 from Git commit `d2d1498275806684b44169504146302d54b7a084`; full history is required in CI.
 - Registry policy and Outlook context PowerShell type tags retain their existing names; they are compatibility markers, not C# namespaces.
 - Office recovery schemas, fingerprints, the `Global\PSFoundation.OfficeDeployment` lock, and `PSFoundation-Office` storage remain stable.
@@ -24,3 +24,9 @@ been pushed. The local successor notice must not claim that substrate is already
 Review the rename, tooling, and repository settings locally. After separate authorization, create the empty public repository, push main,
 and verify hosted CI before enabling any publishing. Do not import old release tags or force-push the predecessor. Keep winkit on 1.8.7
 until its own migration is validated. Do not archive either repository during this transition.
+
+## Repository pruning
+
+The current source tree contains the C# libraries and PowerShell adapter. The active host tests, comparison probes, and required tooling remain; the baseline is extracted from Git history rather than duplicated in source. The adapter owns its security data file.
+
+Prettier runs directly through Bun without a package manifest, lockfile, local installation, or separate Prettier configuration. All Markdown is included. Repository-wide CRLF rules and editor configuration were removed; BOM handling remains where Windows PowerShell 5.1 actually needs it.

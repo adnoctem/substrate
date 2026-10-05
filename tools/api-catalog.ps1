@@ -35,7 +35,7 @@ foreach ($file in Get-ChildItem (Join-Path $root 'docs/commands/AdNoctem.Substra
 $lines.Add('')
 $lines.Add('Aliases: `Get-Network`, `Get-Prefix`, `Get-NetworkCIDR`, `Get-PrefixCIDR`. Their help resolves to the corresponding command.')
 $lines.Add('')
-$content = $lines -join "`r`n"
+$content = $lines -join "`n"
 $path = Join-Path $root 'docs/API.md'
 if ($Update) { [IO.File]::WriteAllText($path, $content, [Text.UTF8Encoding]::new($false)) }
-elseif (-not (Test-Path -LiteralPath $path) -or [IO.File]::ReadAllText($path) -cne $content) { throw 'docs/API.md is stale. Run the UpdateHelp target and review the changes.' }
+elseif (-not (Test-Path -LiteralPath $path) -or [IO.File]::ReadAllText($path).Replace("`r`n", "`n") -cne $content) { throw 'docs/API.md is stale. Run the UpdateHelp target and review the changes.' }
