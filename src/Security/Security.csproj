@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework />
+    <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../IO/IO.csproj" />
+    <ProjectReference Include="../Windows/Windows.csproj" />
+    <EmbeddedResource Include="default-event-definitions.json" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- Compile against the PowerShell 7.0-era contract; newer hosts can satisfy this assembly reference. -->
+    <PackageReference Include="System.Diagnostics.EventLog" Version="4.7.0" />
+    <PackageReference Include="System.DirectoryServices" Version="5.0.0" />
+    <!-- DirectoryServices' permissions dependency selects Drawing on modern consumers. Pin its patched compatible release. -->
+    <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.DirectoryServices" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

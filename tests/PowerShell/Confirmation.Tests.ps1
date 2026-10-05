@@ -4,7 +4,7 @@
 Describe 'Package-set confirmation delegation' {
   BeforeAll {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-    . (Join-Path $root 'src/AdNoctem.Substrate.PowerShell/compat.ps1')
+    . (Join-Path $root 'src/PowerShell/compat.ps1')
     function Find-UPFAppxPackage { throw 'Only mocked discovery is allowed in this test.' }
     function Uninstall-UPFAppxPackage {
       [CmdletBinding(SupportsShouldProcess = $true)]

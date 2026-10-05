@@ -35,7 +35,7 @@ pre-commit remains the required final commit gate.
 
 - Frozen source: v1.8.7, `d2d1498275806684b44169504146302d54b7a084`.
 - Main CI/release freeze: `ba47a1e1ca6997012f244c7994193358f3f0e90b`; local only, not pushed.
-- Development branch: `MVProwess/v2`. The supplied `v2.md` is carried on this branch only.
+- Development branch: `MVProwess/v2`. The supplied [original rewrite outline](../v2.md) is carried on this branch only.
 - Scope: 188 public functions, four aliases, 19 source domains. Implementation is complete; v2 release validation remains outstanding.
 
 ## Accepted compatibility design

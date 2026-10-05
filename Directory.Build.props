@@ -1,5 +1,8 @@
 <Project>
   <PropertyGroup>
+    <!-- File paths stay short; assembly and resource identities remain fully qualified. -->
+    <RootNamespace>AdNoctem.Substrate.$(MSBuildProjectName)</RootNamespace>
+    <AssemblyName>$(RootNamespace)</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
@@ -7,7 +10,7 @@
     <Deterministic>true</Deterministic>
     <VersionPrefix>1.0.0</VersionPrefix>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile Condition="'$(MSBuildProjectName)' != 'AdNoctem.Substrate.WinRtHost' and !$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('.Tests'))">true</GenerateDocumentationFile>
+    <GenerateDocumentationFile Condition="'$(MSBuildProjectName)' != 'WinRtHost' and !$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('.Tests'))">true</GenerateDocumentationFile>
     <!-- Self-describing members remain visible in generated reference without filler prose. -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>

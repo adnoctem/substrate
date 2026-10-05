@@ -35,7 +35,7 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 
 ## Conventions
 
-- C#: four-space indentation, nullable references, deterministic builds, warnings as errors. Follow the existing domain layout.
+- C#: four-space indentation, nullable references, deterministic builds, warnings as errors. Use short domain project paths; Directory.Build.props derives fully qualified assembly and resource names. Keep explicit C# namespaces stable.
 - PowerShell: two-space indentation. Preserve existing line endings and BOMs; scripts with non-ASCII text executed by 5.1 require a UTF-8 BOM. Staging ensures shipped scripts are BOM-encoded.
 - Development scripts may use PowerShell 7 when declared with Requires. Keep runtime and development prerequisites distinct.
 - Keep repository filenames free of spaces; test whitespace paths using temporary fixtures.
@@ -55,8 +55,8 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 
 ## Layout
 
-- `src/AdNoctem.Substrate.*`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
-- `tests/AdNoctem.Substrate.*.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
+- `src/<domain>`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
+- `tests/<domain>.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
 - `tools/`: MSBuild orchestration and supporting scripts; `tools/module.psd1`: manifest template.
 - `docs/`: documentation sources; `build/`, `dist/`: ignored output.
 - This file lives at `docs/AGENTS.md`; root `AGENTS.md` is a symlink. Edit this file.

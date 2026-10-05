@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="../AdNoctem.Substrate.Diagnostics/AdNoctem.Substrate.Diagnostics.csproj" />
-    <ProjectReference Include="../AdNoctem.Substrate.IO/AdNoctem.Substrate.IO.csproj" />
-    <ProjectReference Include="../AdNoctem.Substrate.Networking/AdNoctem.Substrate.Networking.csproj" />
-  </ItemGroup>
-</Project>

@@ -73,8 +73,8 @@ jobs:
           title: "build(tools): refresh verified Microsoft tool sources"
           body-path: build/vendor-tools/report.md
           add-paths: |
-            src/AdNoctem.Substrate.Policies/LgpoSource.cs
-            src/AdNoctem.Substrate.Office/OdtTool.cs
+            src/Policies/LgpoSource.cs
+            src/Office/OdtTool.cs
       - name: Upload vendor evidence
         if: always() && matrix.kind == 'vendor'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

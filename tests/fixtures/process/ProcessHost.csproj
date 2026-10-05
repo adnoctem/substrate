@@ -3,6 +3,7 @@
     <TargetFrameworks />
     <TargetFramework>net48</TargetFramework>
     <OutputType>Exe</OutputType>
+    <AssemblyName>ProcessHost</AssemblyName>
     <IsTestProject>false</IsTestProject>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <Nullable>disable</Nullable>

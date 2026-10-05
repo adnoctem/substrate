@@ -83,7 +83,7 @@ if ($Coverage) {
   # information while Normal keeps the CI log useful.
   $config.Output.Verbosity = 'Normal'
   $config.CodeCoverage.Enabled = $true
-  $config.CodeCoverage.Path = @(Join-Path (Split-Path $PSScriptRoot -Parent) 'src/AdNoctem.Substrate.PowerShell/compat.ps1')
+  $config.CodeCoverage.Path = @(Join-Path (Split-Path $PSScriptRoot -Parent) 'src/PowerShell/compat.ps1')
   $config.CodeCoverage.OutputFormat = 'JaCoCo'
   $config.CodeCoverage.OutputPath = Join-Path $OutputDirectory 'coverage.xml'
   $config.CodeCoverage.CoveragePercentTarget = 0

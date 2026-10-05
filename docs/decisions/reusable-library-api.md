@@ -49,7 +49,7 @@ provider interpretation belongs at the compatibility boundary. `AdNoctem.Substra
 ordered operation result field bag is internal compatibility code, not a public C# result model. No application host or separate NuGet
 publishing workflow is introduced.
 
-The expanded C# library surface is an approved addition to the original compatibility-only scope in `v2.md`. Preserve essential contract
+The expanded C# library surface is an approved addition to the original compatibility-only scope in [original rewrite outline](../v2.md). Preserve essential contract
 comments during implementation: ownership, cancellation, partial writes, destructive effects, concurrency, platform limits and compatibility
 quirks. Complete public XML documentation and examples in a separate pass after the C# API and PowerShell compatibility stabilize. That
 documentation pass remains a v2 release gate; existing PowerShell help stays available throughout migration.

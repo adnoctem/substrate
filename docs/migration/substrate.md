@@ -30,3 +30,6 @@ until its own migration is validated. Do not archive either repository during th
 The current source tree contains the C# libraries and PowerShell adapter. The active host tests, comparison probes, and required tooling remain; the baseline is extracted from Git history rather than duplicated in source. The adapter owns its security data file.
 
 Prettier runs directly through Bun without a package manifest, lockfile, local installation, or separate Prettier configuration. All Markdown is included. Repository-wide CRLF rules and editor configuration were removed; BOM handling remains where Windows PowerShell 5.1 actually needs it.
+
+Project directories and filenames now use short domain names. Assembly names, C# namespaces, and the PowerShell module identity remain fully qualified and unchanged.
+The original rewrite outline is retained at [docs/v2.md](../v2.md) for the later documentation pass.

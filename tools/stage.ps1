@@ -23,16 +23,16 @@ $all = @($compiled + $compatibility)
 if ($all.Count -ne @($all | Sort-Object -Unique).Count) { throw 'Each command must have exactly one implementation owner.' }
 foreach ($target in @(@{ Edition = 'Desktop'; Framework = 'net48' }, @{ Edition = 'Core'; Framework = 'netstandard2.0' })) {
   $binaryRoot = Join-Path $stage ('lib/' + $target.Edition)
-  & dotnet publish (Join-Path $repositoryRoot 'src/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.csproj') --no-build --no-restore --configuration $configuration --framework $target.Framework --self-contained false --output $binaryRoot --nologo
+  & dotnet publish (Join-Path $repositoryRoot 'src/PowerShell/PowerShell.csproj') --no-build --no-restore --configuration $configuration --framework $target.Framework --self-contained false --output $binaryRoot --nologo
   if ($LASTEXITCODE) { throw 'Assembly staging failed.' }
   if (Test-Path -LiteralPath (Join-Path $binaryRoot 'System.Management.Automation.dll')) { throw 'PowerShell reference assemblies must never be packaged.' }
   foreach ($runtimeFile in @('AdNoctem.Substrate.WinRtHost.exe', 'AdNoctem.Substrate.WinRtHost.exe.config')) {
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "build/bin/AdNoctem.Substrate.WinRtHost/$configuration/net48/$runtimeFile") -Destination $binaryRoot
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "build/bin/WinRtHost/$configuration/net48/$runtimeFile") -Destination $binaryRoot
   }
 }
 # Windows PowerShell 5.1 must decode shipped scripts as UTF-8 even when they contain non-ASCII text.
-[IO.File]::WriteAllText((Join-Path $stage 'compat.ps1'), [IO.File]::ReadAllText((Join-Path $repositoryRoot 'src/AdNoctem.Substrate.PowerShell/compat.ps1')), [Text.UTF8Encoding]::new($true))
-Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/AdNoctem.Substrate.PowerShell/security.psd1') -Destination $stage
+[IO.File]::WriteAllText((Join-Path $stage 'compat.ps1'), [IO.File]::ReadAllText((Join-Path $repositoryRoot 'src/PowerShell/compat.ps1')), [Text.UTF8Encoding]::new($true))
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/PowerShell/security.psd1') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'module.psd1') -Destination (Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1')
 $manifestPath = Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1'

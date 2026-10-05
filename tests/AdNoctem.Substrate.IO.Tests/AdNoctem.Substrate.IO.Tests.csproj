@@ -1,5 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="../../src/AdNoctem.Substrate.IO/AdNoctem.Substrate.IO.csproj" />
-  </ItemGroup>
-</Project>

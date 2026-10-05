@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <Compile Include="../fixtures/v2/OutlookFixture.cs" Link="OutlookFixture.cs" />
-    <ProjectReference Include="../../src/AdNoctem.Substrate.Windows/AdNoctem.Substrate.Windows.csproj" />
-    <ProjectReference Include="../../src/AdNoctem.Substrate.Interop/AdNoctem.Substrate.Interop.csproj" />
-  </ItemGroup>
-</Project>

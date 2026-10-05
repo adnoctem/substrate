@@ -36,6 +36,10 @@ The default configuration is Release. Use `-p:Configuration=Debug` when needed. 
 checkout. Build compiles only; Stage assembles the module; HelpFiles adds runtime help. Pack includes staging and help through target
 dependencies. Direct `dotnet build Substrate.slnx` remains supported for ordinary compilation.
 
+Projects use short paths such as `src/IO/IO.csproj` and `tests/IO.Tests/IO.Tests.csproj`.
+`Directory.Build.props` derives the assembly and resource namespace from the stable `AdNoctem.Substrate` prefix and project name.
+NuGet package IDs default to those assembly names. C# namespace declarations remain explicit; Git remotes do not affect package identity.
+
 For a focused Pester investigation, the supporting runner accepts `./tools/test.ps1 -Path ./tests/PowerShell/Registry.Tests.ps1`. It
 defaults to the current suite. PowerShell source coverage measures compatibility scripts only and is
 informational, not C# coverage.
