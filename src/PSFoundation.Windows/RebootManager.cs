@@ -19,6 +19,7 @@ public enum RebootIndicator
     NetlogonJoin, WindowsUpdate, SCCMClient, ComputerRename, CIMPendingReboot
 }
 public enum RebootProbeStatus { Clear, Pending, Unavailable, Failed }
+/// <summary>One reboot indicator's state, retaining unavailable or failed reads separately from a clear result.</summary>
 public sealed class RebootProbe
 {
     public RebootIndicator Indicator { get; }
@@ -26,6 +27,7 @@ public sealed class RebootProbe
     public Exception? Error { get; }
     internal RebootProbe(RebootIndicator indicator, RebootProbeStatus status, Exception? error = null) { Indicator = indicator; Status = status; Error = error; }
 }
+/// <summary>Aggregated reboot evidence; a failed probe must not be interpreted as proof that no restart is needed.</summary>
 public sealed class RebootStatus
 {
     public IReadOnlyList<RebootProbe> Probes { get; }

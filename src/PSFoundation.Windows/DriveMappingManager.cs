@@ -9,6 +9,7 @@ using PSFoundation.Registry;
 
 namespace PSFoundation.Windows;
 
+/// <summary>A persistent folder-to-drive mapping and the labels needed for restoration.</summary>
 public sealed class DriveMapping
 {
     public char DriveLetter { get; }
@@ -23,6 +24,7 @@ public sealed class DriveMappingManager
     private static readonly RegistryPath Devices = RegistryPath.Parse(@"HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices");
     private static readonly RegistryPath Icons = RegistryPath.Parse(@"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\DriveIcons");
     private readonly RegistryManager registry = new RegistryManager();
+    /// <summary>Reads a persistent folder mapping or returns null; an incompatible DOS-device registration is an error.</summary>
     public DriveMapping? Get(char driveLetter)
     {
         var letter = Letter(driveLetter);
@@ -34,6 +36,7 @@ public sealed class DriveMappingManager
         var path = FileSystemPath.Parse(value.Substring(4));
         return new DriveMapping(letter, path, Label(letter) ?? "", Label(path.Value[0]) ?? "");
     }
+    /// <summary>Validates an existing local directory and available drive letter without changing mapping or labels.</summary>
     public DriveMapping Prepare(char driveLetter, FileSystemPath directory, string? label = null, string? sourceLabel = null, bool overwrite = false)
     {
         var letter = Letter(driveLetter);
@@ -48,6 +51,7 @@ public sealed class DriveMappingManager
         return new DriveMapping(letter, directory, string.IsNullOrEmpty(label) ? Path.GetFileName(directory.Value.TrimEnd('\\')) : label!,
             string.IsNullOrEmpty(sourceLabel) ? (string.IsNullOrEmpty(source.VolumeLabel) ? Label(directory.Value[0]) ?? "" : source.VolumeLabel) : sourceLabel!);
     }
+    /// <summary>Writes a persistent folder mapping and labels. Changes take effect after reboot and are not transactional.</summary>
     public DriveMapping Create(char driveLetter, FileSystemPath directory, string? label = null, string? sourceLabel = null, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var plan = Prepare(driveLetter, directory, label, sourceLabel, overwrite);
@@ -60,6 +64,7 @@ public sealed class DriveMappingManager
         registry.SetValue(Devices, plan.DriveLetter + ":", RegistryValue.String(@"\??\" + directory.Value.TrimEnd('\\')), true);
         return plan;
     }
+    /// <summary>Deletes a mapping and conditionally restores its source label, returning the selected restoration label.</summary>
     public string Remove(char driveLetter, string? sourceLabel = null, bool forceRestoreLabel = false, CancellationToken cancellationToken = default)
     {
         var mapping = Get(driveLetter) ?? throw new IOException("Drive letter is not a mapped drive.");

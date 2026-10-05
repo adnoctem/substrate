@@ -10,6 +10,7 @@ using PSFoundation.Security;
 namespace PSFoundation.Office;
 
 public enum OdtMode { Download, Configure, Customize, Help }
+/// <summary>Reviewed Microsoft ODT distribution metadata. Downloaded content must still pass signature and identity validation.</summary>
 public sealed class OdtSource
 {
     public Uri DownloadUri { get; }
@@ -35,6 +36,7 @@ public sealed class OdtSource
         ReviewedAtUtc = reviewedAtUtc;
     }
 }
+/// <summary>Source reachability evidence; successful HTTP status does not authenticate the distribution.</summary>
 public sealed class OdtSourceAvailability
 {
     public OdtSource Source { get; }
@@ -46,6 +48,7 @@ public sealed class OdtSourceAvailability
     internal OdtSourceAvailability(OdtSource source, int? status, long? length, Exception? error)
     { Source = source; StatusCode = status; ContentLength = length; Error = error; CheckedAtUtc = DateTime.UtcNow; }
 }
+/// <summary>Signature, identity, and version evidence for a candidate Office Deployment Tool executable.</summary>
 public sealed class OdtAssessment
 {
     public FileSystemPath Path { get; }
@@ -78,6 +81,7 @@ public sealed partial class OdtTool
     private readonly HttpClient? client;
     /// <remarks>The optional HTTP client is borrowed; its transport configuration and lifetime belong to the caller.</remarks>
     public OdtTool(HttpClient? client = null) => this.client = client;
+    /// <summary>Assesses a setup executable's signature, publisher, version, and expected Office identity.</summary>
     public OdtAssessment Check(FileSystemPath executable, SignatureNetworkAccess networkAccess = SignatureNetworkAccess.Online, CancellationToken cancellationToken = default)
     {
         if (executable == null)
@@ -140,6 +144,7 @@ public sealed partial class OdtTool
             { cancellationToken.ThrowIfCancellationRequested(); return new OdtSourceAvailability(source, null, null, error); }
         }
     }
+    /// <summary>Checks the configured Microsoft download source for reachability without authenticating its content.</summary>
     public OdtSourceAvailability CheckSource(TimeSpan timeout, OdtSource? source = null, CancellationToken cancellationToken = default)
         => CheckSourceAsync(timeout, source, cancellationToken).GetAwaiter().GetResult();
     private static bool Same(string? left, string right) => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);

@@ -1,4 +1,4 @@
-name: "Testing"
+name: Testing
 
 on:
   workflow_dispatch:
@@ -7,106 +7,80 @@ on:
   pull_request:
     branches: [main, next, MVProwess/v2]
 
-permissions: {}
+permissions:
+  contents: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 
 defaults:
   run:
     shell: pwsh
 
-concurrency:
-  group: "${{ github.workflow }}@${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
-
 jobs:
-  lint:
-    name: Lint
-    runs-on: windows-latest
-    permissions:
-      contents: read
-      packages: read
+  check:
+    name: Repository checks
+    runs-on: windows-2022
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          fetch-depth: 0
-
-      - name: Initialize dependencies
-        shell: pwsh
-        run: .\PSFoundation.ps1 init
-
-      - name: Check formatting
-        shell: pwsh
-        run: .\PSFoundation.ps1 format -Check
-
-      - name: Lint
-        shell: pwsh
-        run: .\PSFoundation.ps1 lint
-
-  test:
-    name: Test (${{ matrix.os }}, ${{ matrix.shell }})
-    needs: [lint]
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.shell }}
-    strategy:
-      matrix:
-        os: [windows-latest, windows-2022]
-        shell: [powershell, pwsh]
-    permissions:
-      contents: read
-      packages: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Dump pre-existing module state
-        run: |
-          . .\src\maintenance.ps1
-          Get-PSModule -Path ./.github/ci-modules-before.json
-
-      - name: Set up pinned .NET SDK
-        uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
         with:
           global-json-file: global.json
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - name: Restore
+        run: dotnet msbuild tools/tasks.proj -t:Restore
+      - name: Install hook runner
+        run: python -m pip install pre-commit==4.6.0
+      - name: Run the local hooks
+        run: pre-commit run --all-files
 
-      - name: Initialize dependencies
-        run: .\PSFoundation.ps1 init
-
-      - name: Dump post-init module state
-        run: |
-          . .\src\maintenance.ps1
-          Get-PSModule -Path ./.github/ci-modules-after.json
-
-      - name: Format check
-        run: .\PSFoundation.ps1 format -Check
-
-      - name: Lint
-        run: .\PSFoundation.ps1 lint
-
-      - name: Capture pinned v1 reference
-        run: .\PSFoundation.ps1 baseline
-
-      - name: Build staged module
-        run: .\PSFoundation.ps1 build -Format Zip
-
-      - name: Check C# formatting
-        run: .\PSFoundation.ps1 format -Managed -Check
-
-      - name: Test C# services
-        run: .\PSFoundation.ps1 test -Managed
-
-      - name: Test
-        run: .\PSFoundation.ps1 test -Coverage -OutputDirectory build/test-results
-
-      - name: Upload test and coverage reports
-        if: ${{ always() }}
+  test:
+    name: Build and test (${{ matrix.os }})
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          global-json-file: global.json
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - name: Restore
+        run: dotnet msbuild tools/tasks.proj -t:Restore
+      - name: Test managed libraries and both PowerShell hosts
+        run: dotnet msbuild tools/tasks.proj -t:Test
+      - name: Build documentation and package
+        if: matrix.os == 'windows-2022'
+        run: dotnet msbuild tools/tasks.proj "-t:Docs;Pack"
+      - name: Upload reports
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: tests-${{ matrix.os }}-${{ matrix.shell }}
+          name: reports-${{ matrix.os }}
           path: build/test-results/**
           if-no-files-found: warn
-          retention-days: 14
+      - name: Upload package and documentation
+        if: success() && matrix.os == 'windows-2022'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package-and-documentation
+          path: |
+            dist/**
+            build/docs/site/**
+          if-no-files-found: error

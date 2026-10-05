@@ -9,8 +9,16 @@ using Microsoft.Win32;
 namespace PSFoundation.Registry;
 
 /// <summary>Host-independent registry access for one machine and resolved view. No shared open handles.</summary>
+/// <remarks>Reads distinguish missing data from access failures. Mutations use the caller's existing Windows authority.
+/// Multi-step operations are not transactions; inspect their results before assuming all requested changes completed.</remarks>
+/// <example><code>
+/// var registry = new RegistryManager(RegistryView.Registry64);
+/// var path = RegistryPath.Parse(@"HKLM\SOFTWARE\Example");
+/// var installedVersion = registry.GetValue(path, "Version")?.GetString();
+/// </code></example>
 public sealed class RegistryManager
 {
+    /// <summary>The concrete view resolved at construction, including when the caller requested Default.</summary>
     public RegistryView View { get; }
     public string? MachineName { get; }
     public RegistrySnapshotService Snapshots => new RegistrySnapshotService(this);
@@ -52,6 +60,7 @@ public sealed class RegistryManager
     internal RegistryKey RequireKey(RegistryPath path, bool writable = false) => OpenKey(path, writable)
         ?? throw new IOException("Registry key does not exist: " + path);
 
+    /// <summary>Tests whether a key can be opened. Access failures propagate instead of being reported as absence.</summary>
     public bool KeyExists(RegistryPath path) { using (var key = OpenKey(path)) return key != null; }
 
     /// <summary>Creates missing ancestors. Returns false if the key was already present when checked.</summary>
@@ -95,7 +104,9 @@ public sealed class RegistryManager
             return key == null ? null : ReadValue(key, name);
     }
 
+    /// <summary>Returns false only for a missing key or value; unsupported data and access errors propagate.</summary>
     public bool TryGetValue(RegistryPath path, string name, out RegistryValue? value) { value = GetValue(path, name); return value != null; }
+    /// <summary>Checks for a named value without interpreting its data. An empty name denotes the default value.</summary>
     public bool ValueExists(RegistryPath path, string name = "")
     {
         RegistryValueEntry.ValidateName(name);
@@ -107,6 +118,7 @@ public sealed class RegistryManager
     public IReadOnlyList<string> GetValueNames(RegistryPath path)
     { using (var key = RequireKey(path)) return Array.AsReadOnly(key.GetValueNames()); }
 
+    /// <summary>Reads typed values in name order. A value disappearing during enumeration causes an error.</summary>
     public IReadOnlyList<RegistryValueEntry> GetValues(RegistryPath path)
     {
         using (var key = RequireKey(path))
@@ -155,6 +167,7 @@ public sealed class RegistryManager
             key.SetValue(name, value.Data, value.Kind);
     }
 
+    /// <summary>Deletes one value and returns whether it was present; never deletes the containing key.</summary>
     public bool DeleteValue(RegistryPath path, string name = "")
     {
         RegistryValueEntry.ValidateName(name);
@@ -235,6 +248,7 @@ public sealed class RegistryManager
         return target;
     }
 
+    /// <summary>Creates a caller-owned local registry watcher. Dispose it to release the notification handle.</summary>
     public RegistryChangeWatcher Watch(RegistryPath path, bool includeSubKeys = false, RegistryChangeKinds kinds = RegistryChangeKinds.Names | RegistryChangeKinds.Values) =>
         new RegistryChangeWatcher(this, path, includeSubKeys, kinds);
 
@@ -250,6 +264,7 @@ public sealed class RegistryManager
         return Copy(original, destination, mode, cancellationToken);
     }
 
+    /// <summary>Copies a subtree on a worker thread, retaining completed changes if application fails or is cancelled.</summary>
     public Task<RegistryApplyResult> CopyKeyAsync(RegistryPath source, RegistryPath destination, RegistryCopyMode mode = RegistryCopyMode.FailIfExists, CancellationToken cancellationToken = default) =>
         Task.Run(() => CopyKey(source, destination, mode, cancellationToken));
 
@@ -269,6 +284,7 @@ public sealed class RegistryManager
         return new RegistryMoveResult(copied, removed);
     }
 
+    /// <summary>Copies and then conditionally removes a subtree on a worker thread. Inspect both phases before treating the move as complete.</summary>
     public Task<RegistryMoveResult> MoveKeyAsync(RegistryPath source, RegistryPath destination, CancellationToken cancellationToken = default) =>
         Task.Run(() => MoveKey(source, destination, cancellationToken));
 
@@ -299,6 +315,7 @@ public sealed class RegistryManager
 
 public enum RegistryCopyMode { FailIfExists, Merge, Replace }
 
+/// <summary>Separate copy and removal outcomes; a completed copy does not imply that the source was removed.</summary>
 public sealed class RegistryMoveResult
 {
     public RegistryApplyResult Copy { get; }

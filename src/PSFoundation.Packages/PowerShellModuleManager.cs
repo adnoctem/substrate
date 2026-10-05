@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace PSFoundation.Packages;
 
 public enum PowerShellModuleScope { CurrentUser, AllUsers }
+/// <summary>An observed module version and installation directory, used as input to selection and removal planning.</summary>
 public sealed class InstalledPowerShellModule
 {
     public string Name { get; }
@@ -29,6 +30,7 @@ public sealed class InstalledPowerShellModule
         InstalledDate = installedDate;
     }
 }
+/// <summary>A repository-independent module request with explicit version constraints, scope, and replacement permission.</summary>
 public sealed class PowerShellModuleInstallRequest
 {
     public string Name { get; }
@@ -64,6 +66,7 @@ public interface IPowerShellModuleRepository
 /// <summary>Module version planning, bounded restore manifests and explicit, scope-contained filesystem removal.</summary>
 public sealed class PowerShellModuleManager
 {
+    /// <summary>Filters observed modules with an optional name regular expression.</summary>
     public IReadOnlyList<InstalledPowerShellModule> Select(IEnumerable<InstalledPowerShellModule> modules, string? nameExpression = null)
     {
         if (modules == null)
@@ -71,12 +74,14 @@ public sealed class PowerShellModuleManager
         var pattern = string.IsNullOrEmpty(nameExpression) ? null : new Regex(nameExpression, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         return Array.AsReadOnly(modules.Where(m => pattern == null || pattern.IsMatch(m.Name)).GroupBy(m => m.DirectoryPath, StringComparer.OrdinalIgnoreCase).Select(g => g.First()).OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ThenBy(m => m.Version.ToString(), StringComparer.OrdinalIgnoreCase).ToArray());
     }
+    /// <summary>Selects older versions per module name, preserving the requested number unless removal of all versions was explicitly chosen.</summary>
     public IReadOnlyList<InstalledPowerShellModule> PlanRemoval(IEnumerable<InstalledPowerShellModule> modules, int latestToKeep = 1, bool all = false)
     {
         if (latestToKeep < 1)
             throw new ArgumentOutOfRangeException(nameof(latestToKeep));
         return Array.AsReadOnly(Select(modules).GroupBy(m => m.Name, StringComparer.OrdinalIgnoreCase).SelectMany(g => g.OrderByDescending(m => m.Version).Skip(all ? 0 : latestToKeep)).ToArray());
     }
+    /// <summary>Deletes one installed module directory after validating containment and rejecting reparse points; removal is not transactional.</summary>
     /// <remarks>Removal is not transactional. The exact module directory must be under the supplied root, without reparse points.
     /// The caller must prevent concurrent writes to these directories; a filesystem check cannot authorize untrusted concurrent mutation.</remarks>
     public void Remove(InstalledPowerShellModule module, string scopeDirectory, CancellationToken cancellationToken = default)
@@ -120,7 +125,10 @@ public sealed class PowerShellModuleManager
             Directory.Delete(directory, false);
         }
     }
+    /// <summary>Offloads module removal and checks cancellation between filesystem operations.</summary>
     public Task RemoveAsync(InstalledPowerShellModule module, string scopeDirectory, CancellationToken cancellationToken = default) => Task.Run(() => Remove(module, scopeDirectory, cancellationToken), cancellationToken);
+    /// <summary>Delegates installation to a caller-supplied repository provider without selecting a host or repository policy.</summary>
+    /// <remarks>The provider is borrowed. Repository trust, authentication, consent, and installation scope enforcement belong to that provider.</remarks>
     public Task InstallAsync(PowerShellModuleInstallRequest request, IPowerShellModuleRepository repository, CancellationToken cancellationToken = default)
     {
         if (request == null)
@@ -130,6 +138,7 @@ public sealed class PowerShellModuleManager
         cancellationToken.ThrowIfCancellationRequested();
         return repository.InstallAsync(request, cancellationToken);
     }
+    /// <summary>Parses a bounded JSON restore manifest into explicit installation requests; does not install anything.</summary>
     public IReadOnlyList<PowerShellModuleInstallRequest> ReadRestoreManifest(string path, PowerShellModuleScope defaultScope = PowerShellModuleScope.CurrentUser, bool force = false)
     {
         using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))

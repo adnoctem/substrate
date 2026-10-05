@@ -101,9 +101,11 @@ public sealed partial class Win32ProgramManager
         return new Win32Program(location, name, values);
     }
 
+    /// <summary>Reads detached uninstall registrations on a worker thread.</summary>
     /// <remarks>Offloads synchronous registry reads. Cancellation is checked between native calls; an in-flight call cannot be interrupted.</remarks>
     public Task<Win32ProgramInventory> GetInventoryAsync(bool includeSystemComponents = false, bool continueOnError = false, CancellationToken cancellationToken = default)
         => Task.Run(() => GetInventory(includeSystemComponents, continueOnError, cancellationToken), cancellationToken);
+    /// <summary>Offloads inspection of one exact uninstall registration.</summary>
     public Task<Win32Program?> GetProgramAsync(ProgramRegistryLocation location, CancellationToken cancellationToken = default)
         => Task.Run(() => GetProgram(location, cancellationToken), cancellationToken);
 

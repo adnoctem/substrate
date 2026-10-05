@@ -11,6 +11,7 @@ namespace PSFoundation.Windows;
 
 public enum ServiceStartupType { Automatic, Manual, Disabled }
 public enum ServiceControlAction { Start, Stop, Pause, Resume }
+/// <summary>Detached service configuration and runtime state from the Win32_Service provider.</summary>
 public sealed class ServiceInfo
 {
     public string Name { get; }
@@ -38,6 +39,7 @@ public sealed class ServiceInfo
 /// <summary>Local Windows service discovery and explicit control. Does not elevate, prompt, or infer bulk changes.</summary>
 public sealed class ServiceManager
 {
+    /// <summary>Reads detached Win32_Service records with a caller-supplied CIM operation timeout.</summary>
     public IReadOnlyList<ServiceInfo> GetServices(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         ValidateTimeout(timeout);
@@ -50,14 +52,17 @@ public sealed class ServiceManager
                 { cancellationToken.ThrowIfCancellationRequested(); services.Add(new ServiceInfo(item)); }
         return services.AsReadOnly();
     }
+    /// <summary>Offloads service inventory while forwarding cancellation to the CIM provider.</summary>
     /// <remarks>Offloads native calls. Cancellation is forwarded to CIM; an in-flight provider call may complete before observing it.</remarks>
     public Task<IReadOnlyList<ServiceInfo>> GetServicesAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => GetServices(timeout, cancellationToken), cancellationToken);
+    /// <summary>Finds a service by its exact name, ignoring case; returns null when no service matches.</summary>
     public ServiceInfo? GetService(string name, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         ValidateName(name);
         return GetServices(timeout, cancellationToken).SingleOrDefault(item => string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase));
     }
+    /// <summary>Changes one service's startup configuration and returns the provider's status code.</summary>
     /// <returns>The Win32_Service provider return code. Zero means the request succeeded; other codes are not Win32 last-error values.</returns>
     public uint SetStartupType(string name, ServiceStartupType startupType, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
@@ -66,6 +71,7 @@ public sealed class ServiceManager
         var parameters = new CimMethodParametersCollection { CimMethodParameter.Create("StartMode", startupType.ToString(), CimType.String, CimFlags.In) };
         return Invoke(name, "ChangeStartMode", parameters, timeout, cancellationToken);
     }
+    /// <summary>Changes startup configuration on a worker thread and retains the provider's return code.</summary>
     public Task<uint> SetStartupTypeAsync(string name, ServiceStartupType startupType, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => SetStartupType(name, startupType, timeout, cancellationToken), cancellationToken);
     /// <summary>Requests a transition without waiting for its final state or modifying dependencies. Retains the provider return code.</summary>
@@ -75,6 +81,7 @@ public sealed class ServiceManager
             throw new ArgumentOutOfRangeException(nameof(action));
         return Invoke(name, action + "Service", null, timeout, cancellationToken);
     }
+    /// <summary>Requests a service transition on a worker thread without waiting for its eventual running state.</summary>
     public Task<uint> ControlAsync(string name, ServiceControlAction action, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => Control(name, action, timeout, cancellationToken), cancellationToken);
     private static uint Invoke(string name, string method, CimMethodParametersCollection? parameters, TimeSpan timeout, CancellationToken cancellationToken)

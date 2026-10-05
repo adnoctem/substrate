@@ -10,7 +10,9 @@ namespace PSFoundation.IO;
 /// <summary>Explicit filesystem operations. No parent directories or overwrite policy are inferred.</summary>
 public sealed class FileManager
 {
-    /// <remarks>Writes to a sibling temporary file and publishes by rename or replacement. Cancellation before publication leaves the destination
+    /// <summary>Copies the remaining stream contents to a temporary sibling and publishes the completed file.</summary>
+    /// <remarks>The caller retains ownership of the stream; its position advances. The parent directory must already exist.
+    /// Writes to a sibling temporary file and publishes by rename or replacement. Cancellation before publication leaves the destination
     /// intact. Replacement is a single filesystem operation, not a transaction across files; the filesystem must support File.Replace.</remarks>
     public Task WriteAtomicallyAsync(FileSystemPath destination, Stream content, bool overwrite = false, CancellationToken cancellationToken = default)
         => WriteAtomicallyAsync(destination, content, overwrite, cancellationToken, null);
@@ -52,10 +54,13 @@ public sealed class FileManager
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
+    /// <summary>Synchronously copies and publishes a file using the same replacement guarantees as the asynchronous operation.</summary>
     /// <remarks>The caller owns content; its position advances. The destination's parent must already exist.</remarks>
     public void WriteAtomically(FileSystemPath destination, Stream content, bool overwrite = false, CancellationToken cancellationToken = default)
         => WriteAtomicallyAsync(destination, content, overwrite, cancellationToken).GetAwaiter().GetResult();
 
+    /// <summary>Reads a file and returns its SHA256 digest as 64 lowercase hexadecimal characters.</summary>
+    /// <remarks>A computed digest identifies content; it does not establish trust without an independently trusted comparison value.</remarks>
     public async Task<string> ComputeSha256Async(FileSystemPath path, CancellationToken cancellationToken = default)
     {
         if (path == null)
@@ -77,6 +82,7 @@ public sealed class FileManager
         }
     }
 
+    /// <inheritdoc cref="ComputeSha256Async"/>
     public string ComputeSha256(FileSystemPath path, CancellationToken cancellationToken = default)
         => ComputeSha256Async(path, cancellationToken).GetAwaiter().GetResult();
 }

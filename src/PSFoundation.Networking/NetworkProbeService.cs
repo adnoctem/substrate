@@ -30,6 +30,7 @@ public sealed class TcpProbeResult
         ? new IPAddress(value.GetAddressBytes(), value.ScopeId) : new IPAddress(value.GetAddressBytes());
 }
 
+/// <summary>Bounded DNS resolution and TCP connection observations with explicit cancellation.</summary>
 public sealed class NetworkProbeService
 {
     public IReadOnlyList<IPAddress> ResolveHost(string host, TimeSpan timeout, CancellationToken cancellationToken = default)

@@ -14,6 +14,9 @@ public sealed class OfficeDeploymentOptions
     public FileSystemPath LogRoot { get; }
     public bool ForceCloseApplications { get; }
     internal OfficeDocument ExecutionMetadata { get; }
+    /// <param name="odtPath">Existing extracted setup.exe; execution revalidates its identity and signature.</param>
+    /// <param name="logRoot">Local directory for protected deployment journals and native logs.</param>
+    /// <param name="forceCloseApplications">Allow deployment to close Office processes, potentially discarding unsaved work.</param>
     /// <param name="executionMetadataJson">Optional data-only JSON object identifying the caller/runtime in durable reports. Never include credentials or secrets.</param>
     public OfficeDeploymentOptions(FileSystemPath odtPath, FileSystemPath logRoot, bool forceCloseApplications = false, string? executionMetadataJson = null)
     {
@@ -24,6 +27,7 @@ public sealed class OfficeDeploymentOptions
             "RuntimeVersion", System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription, "ProcessBitness", IntPtr.Size * 8) : OfficeDocument.Parse(executionMetadataJson);
     }
 }
+/// <summary>Exit evidence for one native phase; a successful exit alone does not prove final configuration compliance.</summary>
 public sealed class OfficeNativePhaseResult
 {
     public string Phase { get; }
@@ -31,6 +35,7 @@ public sealed class OfficeNativePhaseResult
     internal OfficeNativePhaseResult(string phase, int exitCode) { Phase = phase; ExitCode = exitCode; }
 }
 
+/// <summary>Deployment outcome with native phase evidence, verification, recovery locations, and cleanup diagnostics.</summary>
 public sealed class OfficeDeploymentResult
 {
     internal readonly List<OfficeNativePhaseResult> Native = new List<OfficeNativePhaseResult>();

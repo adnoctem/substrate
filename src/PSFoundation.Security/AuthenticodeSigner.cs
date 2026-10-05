@@ -12,6 +12,7 @@ namespace PSFoundation.Security;
 /// <summary>Explicit Windows Authenticode signing with SHA-256, a borrowed signing certificate and no signing wizard.</summary>
 public sealed class AuthenticodeSigner
 {
+    /// <summary>Signs one file with the supplied private-key certificate and returns verification evidence for the resulting signature.</summary>
     /// <remarks>Signs one existing file. Timestamping uses the Authenticode timestamp protocol; no trust stores are modified.
     /// The certificate and its private key remain caller-owned. Native signing cannot be interrupted once started.</remarks>
     public AuthenticodeVerification Sign(FileSystemPath path, X509Certificate2 certificate, Uri? timestampServer = null,
@@ -56,6 +57,8 @@ public sealed class AuthenticodeSigner
         // Always report the result of a completed signing operation, even if cancellation arrives during the native call.
         return new AuthenticodeVerifier().Verify(path, verificationNetworkAccess);
     }
+    /// <summary>Offloads signing and verification; the borrowed certificate must remain alive until the task completes.</summary>
+    /// <remarks>Cancellation before signing prevents the operation. Once native signing starts, its result is verified and returned even if cancellation arrives.</remarks>
     public Task<AuthenticodeVerification> SignAsync(FileSystemPath path, X509Certificate2 certificate, Uri? timestampServer = null,
         SignatureNetworkAccess verificationNetworkAccess = SignatureNetworkAccess.Online, CancellationToken cancellationToken = default)
         => Task.Run(() => Sign(path, certificate, timestampServer, verificationNetworkAccess, cancellationToken), cancellationToken);

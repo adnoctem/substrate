@@ -1,0 +1,11 @@
+{
+  "name": "psfoundation-development",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write \"**/*.md\"",
+    "check": "prettier --check \"**/*.md\""
+  },
+  "devDependencies": {
+    "prettier": "3.9.9"
+  }
+}

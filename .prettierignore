@@ -1,0 +1,8 @@
+build/
+dist/
+secrets/
+node_modules/
+.codex/
+.agents/
+docs/commands/
+docs/API.md

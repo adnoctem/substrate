@@ -13,6 +13,7 @@ using PSFoundation.IO;
 namespace PSFoundation.Windows;
 
 public enum LockingApplicationType { Unknown = 0, MainWindow = 1, OtherWindow = 2, Service = 3, Explorer = 4, Console = 5, Critical = 1000 }
+/// <summary>Restart Manager evidence identifying a process associated with a file lock.</summary>
 public sealed class FileLockInfo
 {
     public int ProcessId { get; }

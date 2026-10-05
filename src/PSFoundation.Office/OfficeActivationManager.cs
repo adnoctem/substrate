@@ -11,6 +11,7 @@ public enum OfficeActivationState { Unknown, UserActivationRequired, NotVerified
 /// <summary>Read-only SKU-specific activation assessment. Product keys are neither returned nor logged.</summary>
 public sealed class OfficeActivationManager
 {
+    /// <summary>Reads product activation evidence through the product's licensing script with an explicit process timeout.</summary>
     public OfficeActivationState GetStatus(OfficeProduct product, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         if (!Enum.IsDefined(typeof(OfficeProduct), product))
@@ -26,6 +27,7 @@ public sealed class OfficeActivationManager
         return rows.Any(row => OfficeVersionResolver.IsMatch(row.GetValue("Name") as string, @"\bOffice\s*\d+,\s*Office\d+" + family + year + "VL_")
             && Convert.ToString(row.GetValue("LicenseStatus"), CultureInfo.InvariantCulture) == "1") ? OfficeActivationState.Licensed : OfficeActivationState.NotVerified;
     }
+    /// <summary>Offloads activation inspection; it does not install a key or activate Office.</summary>
     public Task<OfficeActivationState> GetStatusAsync(OfficeProduct product, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => GetStatus(product, timeout, cancellationToken), cancellationToken);
 }

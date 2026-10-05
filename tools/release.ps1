@@ -1,480 +1,64 @@
-﻿#Requires -Version 5.0
-
+﻿#Requires -Version 7.0
 <#
 .SYNOPSIS
-  Publishes the PSFoundation module to the PowerShell Gallery.
-
-.DESCRIPTION
-  Builds source archives, generates SHA256 checksums, and publishes the module
-  to a PowerShell repository (PSGallery by default). Designed to be called from
-  CI after semantic-release determines the next version, though it can also be
-  used interactively.
-
-  The script supports two modes:
-
-  - Prepare mode (-Prepare): invoked by the @semantic-release/exec plugin during
-    the semantic-release prepare phase after changelog generation. Formats the
-    changelog with the pinned Prettier version used by pre-commit, then writes
-    the resolved next version into
-    src/PSFoundation.psd1 (ModuleVersion plus, for prerelease suffixes such as
-    '1.1.0-beta.1', the PSData.Prerelease key), rebuilds the dist/ archives and
-    writes the CHECKSUMS file, then exits. The manifest change is committed by
-    @semantic-release/git as part of the release commit, keeping module source,
-    GitHub release bundles and PSGallery package versions permanently in sync.
-
-  - Publish mode (default): optionally rebuilds dist/ archives via build.ps1,
-    generates SHA256 checksums, and publishes the module from ./src to the
-    target repository. The module manifest is the single source of truth for
-    the published version: Publish-PSResource is preferred when available and
-    Publish-Module is used as fallback. When -Version is supplied it must match
-    the manifest version and is verified before publishing.
-
-.PARAMETER SkipBuild
-  Skip the initial build step. Use when archives are already present in dist/.
-
+  Prepares or explicitly publishes a verified v2 package.
 .PARAMETER Version
-  Semantic version for the release (e.g. '1.2.3' or '1.2.3-beta.1'). Required
-  with -Prepare, where it is written into the module manifest. In publish mode
-  it is validated against the manifest version and must match it.
-
+  Semantic-release version. Releases before 2.0.0 are rejected.
 .PARAMETER Prepare
-  Run the semantic-release prepare phase only: format the generated changelog
-  (requires Node/npm or Bun), synchronize the module manifest
-  to -Version, rebuild the dist/ archives, regenerate the CHECKSUMS file, then
-  exit without publishing.
-
-.PARAMETER NuGetApiKey
-  API key for the PowerShell repository. Falls back to the NUGET_API_KEY
-  environment variable when not supplied.
-
-.PARAMETER Gallery
-  Target PSRepository name. Defaults to PSGallery.
-
+  Builds and verifies the selected version without publishing.
+.PARAMETER Publish
+  Publishes the already prepared module. Credentials are read from NUGET_API_KEY.
 .PARAMETER DryRun
-  Report what WOULD be done without making changes or publishing.
-
-.PARAMETER SkipPublish
-  Build and generate checksums but skip the publish step. Useful for CI
-  validation of the build artifacts.
-
-.PARAMETER SkipChecksums
-  Skip generation of the CHECKSUMS_SHA256.txt file.
-
+  Reports the intended operation without building or publishing.
 .EXAMPLE
-  PS> ./release.ps1 -Prepare -Version 1.0.0
-  Synchronizes src/PSFoundation.psd1 to v1.0.0, rebuilds dist/, regenerates
-  the CHECKSUMS file, and exits without publishing.
-
+  ./tools/release.ps1 -Prepare -Version 2.0.0
 .EXAMPLE
-  PS> ./release.ps1 -Version 1.0.0 -NuGetApiKey $env:NUGET_API_KEY
-  Builds, generates checksums, and publishes v1.0.0 to PSGallery.
-
-.EXAMPLE
-  PS> ./release.ps1 -Version 1.0.0 -DryRun
-  Reports planned actions without publishing.
-
-.EXAMPLE
-  PS> ./release.ps1 -SkipBuild -SkipPublish
-  Only generates checksums for existing dist/ artifacts.
-
-.LINK
-  https://github.com/adnoctem/PSFoundation
-
-.NOTES
-  Author: MVProwess <info@mvprowess.com>
-  License: MIT
+  ./tools/release.ps1 -Publish -Version 2.0.0 -DryRun
 #>
-
 [CmdletBinding(SupportsShouldProcess = $true)]
 param (
-  [switch]$SkipBuild,
-
-  [string]$Version,
-
+  [Parameter(Mandatory = $true)][ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$')][string]$Version,
   [switch]$Prepare,
-
-  [string]$NuGetApiKey,
-
-  [ValidateNotNullOrEmpty()]
-  [string]$Gallery = 'PSGallery',
-
-  [switch]$DryRun,
-
-  [switch]$SkipPublish,
-
-  [switch]$SkipChecksums
+  [switch]$Publish,
+  [switch]$DryRun
 )
-
 $ErrorActionPreference = 'Stop'
-
-$repositoryRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Split-Path -Path $PSScriptRoot -Parent))
-$distPath = Join-Path -Path $repositoryRoot -ChildPath 'dist'
-$srcPath = Join-Path -Path $repositoryRoot -ChildPath 'src'
-$buildScript = Join-Path -Path $PSScriptRoot -ChildPath 'build.ps1'
-$checksumPath = Join-Path -Path $distPath -ChildPath 'CHECKSUMS_SHA256.txt'
-
-function Format-ReleaseChangelog {
-  [CmdletBinding(SupportsShouldProcess = $true)]
-  param (
-    [Parameter(Mandatory = $true)]
-    [string]$Path
-  )
-
-  if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-    throw "Generated changelog is missing: $Path"
-  }
-  if ($PSCmdlet.ShouldProcess($Path, 'Format generated release changelog')) {
-    $commandName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'npx.cmd' } else { 'npx' }
-    $formatter = Get-Command -Name $commandName -CommandType Application -ErrorAction SilentlyContinue
-    $runnerArgument = '--yes'
-    if (-not $formatter) {
-      $formatter = Get-Command -Name bun -CommandType Application -ErrorAction Stop
-      $runnerArgument = 'x'
-    }
-    & $formatter.Source $runnerArgument prettier@3.9.9 --write $Path --prose-wrap=always --end-of-line=crlf --print-width=140
-    if ($LASTEXITCODE -ne 0) {
-      throw "Changelog formatting failed with exit code $LASTEXITCODE."
-    }
-  }
+$root = Split-Path $PSScriptRoot -Parent
+if ($Prepare -eq $Publish) { throw 'Select exactly one of Prepare or Publish.' }
+if ([version]($Version -split '-', 2)[0] -lt [version]'2.0.0') { throw 'v1 is frozen. Select a v2 release deliberately.' }
+$action = if ($Prepare) { 'Prepare and verify' } else { 'Publish' }
+if ($DryRun -or -not $PSCmdlet.ShouldProcess("PSFoundation $Version", $action)) {
+  Write-Output "DRY RUN: $action PSFoundation $Version."
+  return
 }
-
-function Split-ReleaseVersion {
-  [CmdletBinding()]
-  param (
-    [Parameter(Mandatory = $true)]
-    [string]$Version
-  )
-
-  $parts = $Version -split '-', 2
-  $coreVersion = $parts[0]
-
-  if ($coreVersion -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') {
-    throw "Version '$Version' is not a valid semantic version. Expected 'X.Y.Z' or 'X.Y.Z-prerelease'."
-  }
-
-  $prerelease = if ($parts.Count -gt 1) { $parts[1] } else { $null }
-  if ($prerelease -and $prerelease -notmatch '^[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*$') {
-    throw "Prerelease label '$prerelease' in version '$Version' is invalid."
-  }
-
-  [pscustomobject]@{
-    CoreVersion = $coreVersion
-    Prerelease  = $prerelease
-  }
-}
-
-function Get-ManifestAlignmentWidth {
-  <#
-    Returns the width the repository formatter aligns assignment operators to
-    within one indentation block: the longest key plus its padding. Returns 0
-    when the block holds no other assignment to align against.
-  #>
-  [CmdletBinding()]
-  [OutputType([int])]
-  param (
-    [Parameter(Mandatory = $true)]
-    [string]$Content,
-
-    [Parameter(Mandatory = $true)]
-    [AllowEmptyString()]
-    [string]$Indent
-  )
-
-  $width = 0
-  foreach ($match in [regex]::Matches($Content, "(?m)^$([regex]::Escape($Indent))([A-Za-z_]\w*)( *)=")) {
-    $candidate = $match.Groups[1].Value.Length + $match.Groups[2].Value.Length
-    if ($candidate -gt $width) {
-      $width = $candidate
-    }
-  }
-
-  $width
-}
-
-function Write-ReleaseManifest {
-  <#
-    Synchronizes the module manifest with a resolved release version without
-    reformatting it. semantic-release runs the prepare phase on every release,
-    so the rewritten manifest must still satisfy the repository's own format
-    gate: UTF-8 with BOM, and assignment operators aligned per indentation
-    block. Only the quoted value is rewritten, which leaves the existing
-    alignment untouched; an uncommented Prerelease key is a new assignment and
-    is padded to its block's width instead. Returns the rewritten content.
-  #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param (
-    [Parameter(Mandatory = $true)]
-    [string]$Path,
-
-    [Parameter(Mandatory = $true)]
-    [string]$CoreVersion,
-
-    [AllowEmptyString()]
-    [string]$Prerelease = ''
-  )
-
-  $content = Get-Content -LiteralPath $Path -Raw
-
-  $rootIndentMatch = [regex]::Match($content, '(?m)^( *)RootModule *=')
-  if (-not $rootIndentMatch.Success) {
-    throw "Could not determine module manifest indentation (RootModule key not found): $Path"
-  }
-  $topLevelIndent = [regex]::Escape($rootIndentMatch.Groups[1].Value)
-
-  # Capture the spacing around '=' and put it back unchanged. Collapsing it to a
-  # single space is what left main failing its own format check after a release.
-  $moduleVersionPattern = "(?m)^($topLevelIndent)(ModuleVersion)( *= *)'[^']*'"
-  if (-not [regex]::IsMatch($content, $moduleVersionPattern)) {
-    throw "Could not locate top-level ModuleVersion in module manifest: $Path"
-  }
-  $content = [regex]::Replace($content, $moduleVersionPattern, "`${1}`${2}`${3}'$CoreVersion'")
-
-  if ($Prerelease) {
-    $prereleasePattern = "(?m)^( *)# *Prerelease *= *'[^']*'|(?m)^( *)Prerelease( *= *)'[^']*'"
-    $prereleaseMatch = [regex]::Match($content, $prereleasePattern)
-    if (-not $prereleaseMatch.Success) {
-      throw "Could not locate Prerelease key in module manifest: $Path"
-    }
-    # Uncommenting introduces an assignment the block has never aligned, so its
-    # operator column comes from the sibling keys rather than from the comment.
-    $indent = $prereleaseMatch.Groups[1].Value
-    if (-not $indent) {
-      $indent = $prereleaseMatch.Groups[2].Value
-    }
-    $padding = ' ' * ([Math]::Max(1, (Get-ManifestAlignmentWidth -Content $content -Indent $indent) - 'Prerelease'.Length))
-    $content = $content.Remove($prereleaseMatch.Index, $prereleaseMatch.Length).Insert(
-      $prereleaseMatch.Index, "$indent" + 'Prerelease' + $padding + "= '$Prerelease'")
-  }
-  else {
-    $livePrereleasePattern = "(?m)^( *)Prerelease *= *'[^']*'"
-    $livePrereleaseMatch = [regex]::Match($content, $livePrereleasePattern)
-    if ($livePrereleaseMatch.Success) {
-      $content = $content.Remove($livePrereleaseMatch.Index, $livePrereleaseMatch.Length).Insert(
-        $livePrereleaseMatch.Index, $livePrereleaseMatch.Groups[1].Value + "# Prerelease = ''")
-    }
-  }
-
-  # .psd1 requires UTF-8 with BOM for Windows PowerShell 5.1 parsing, the same
-  # encoding tools/format.ps1 and tools/dependencies.ps1 write.
-  [IO.File]::WriteAllText($Path, $content, (New-Object Text.UTF8Encoding($true)))
-  $content
-}
-
-function Write-DistChecksum {
-  [CmdletBinding()]
-  param (
-    [switch]$Skip,
-    [switch]$DryRun
-  )
-
-  if ($Skip) { return }
-
-  if (-not (Test-Path -LiteralPath $distPath -PathType Container)) {
-    Write-Warning "dist/ directory does not exist. Skipping checksum generation."
+Push-Location $root
+try {
+  if ($Prepare) {
+    & bun run format
+    if ($LASTEXITCODE) { throw 'Changelog formatting failed.' }
+    & dotnet msbuild tools/tasks.proj -t:Verify "-p:Version=$Version" -nologo
+    if ($LASTEXITCODE) { throw 'Release verification failed.' }
+    $stage = Join-Path $root 'build/module/PSFoundation'
+    $files = @(Get-ChildItem -LiteralPath $stage -File -Recurse | Sort-Object FullName | ForEach-Object {
+        [ordered]@{ Path = [IO.Path]::GetRelativePath($stage, $_.FullName); Sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+      })
+    [ordered]@{ Version = $Version; Files = $files } | ConvertTo-Json -Depth 5 |
+      Set-Content -LiteralPath (Join-Path $root 'build/release.json') -Encoding utf8
     return
   }
-
-  $archives = @(Get-ChildItem -LiteralPath $distPath -File |
-      Where-Object { $_.Name -like '*.tar.gz' -or $_.Name -like '*.zip' } |
-      Sort-Object Name)
-
-  if ($archives.Count -eq 0) {
-    Write-Warning 'No archive files found in dist/. Skipping checksum generation.'
-    return
-  }
-
-  if ($DryRun) {
-    Write-Output "[DRY RUN] Would generate SHA256 checksums for $($archives.Count) archive(s) -> $checksumPath"
-    return
-  }
-
-  $checksums = foreach ($archive in $archives) {
-    $hash = (Get-FileHash -Path $archive.FullName -Algorithm SHA256).Hash
-    "$hash  $($archive.Name)"
-  }
-
-  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-  [System.IO.File]::WriteAllLines($checksumPath, $checksums, $utf8NoBom)
-  Write-Output "Checksums written: $checksumPath"
-}
-
-# ---- Prepare (semantic-release prepare phase) --------------------------------
-# Invoked by the @semantic-release/exec plugin before the release commit is
-# created. Synchronizes the module manifest to the resolved next version,
-# rebuilds the dist/ archives and regenerates the CHECKSUMS file so the GitHub
-# release assets match the release. Exits after this phase.
-if ($Prepare) {
-  if (-not $Version) {
-    throw 'Version is required when using -Prepare. Pass -Version with the semantic-release next version (e.g. "1.0.0" or "1.1.0-beta.1").'
-  }
-
-  $versionInfo = Split-ReleaseVersion -Version $Version
-  $manifestFiles = @(Get-ChildItem -LiteralPath $srcPath -Filter '*.psd1' -File)
-  if ($manifestFiles.Count -eq 0) {
-    throw "No .psd1 module manifest found in: $srcPath"
-  }
-  $manifestFile = $manifestFiles[0].FullName
-
-  if ($DryRun -or $WhatIfPreference) {
-    Write-Output "[DRY RUN] Would format CHANGELOG.md and set the manifest version to $Version."
-    if (-not $SkipBuild) { Write-Output '[DRY RUN] Would rebuild release archives.' }
-    if (-not $SkipChecksums) { Write-Output '[DRY RUN] Would regenerate release checksums.' }
-    exit 0
-  }
-
-  Format-ReleaseChangelog -Path (Join-Path $repositoryRoot 'CHANGELOG.md') -Confirm:$false
-  $null = Write-ReleaseManifest -Path $manifestFile -CoreVersion $versionInfo.CoreVersion -Prerelease ([string]$versionInfo.Prerelease)
-  Write-Output "Manifest version set to $Version ($manifestFile)"
-
-  if (-not $SkipBuild) {
-    Write-Output "Running build.ps1 ..."
-    & $buildScript
-    if ($LASTEXITCODE -ne 0) {
-      throw "Build failed with exit code $LASTEXITCODE."
+  $stage = Join-Path $root 'build/module/PSFoundation'
+  $evidence = Get-Content (Join-Path $root 'build/release.json') -Raw | ConvertFrom-Json
+  if ($evidence.Version -cne $Version) { throw 'Prepared package version does not match the release.' }
+  $actual = @(Get-ChildItem -LiteralPath $stage -File -Recurse | Sort-Object FullName)
+  if ($actual.Count -ne $evidence.Files.Count) { throw 'The prepared package file set changed.' }
+  foreach ($file in $actual) {
+    $relative = [IO.Path]::GetRelativePath($stage, $file.FullName)
+    $expected = @($evidence.Files | Where-Object Path -CEQ $relative)
+    if ($expected.Count -ne 1 -or (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash -cne $expected[0].Sha256) {
+      throw "Prepared package changed: $relative"
     }
   }
-
-  Write-DistChecksum -Skip:$SkipChecksums
-  Write-Output 'Prepare phase complete.'
-  exit 0
+  if (-not $env:NUGET_API_KEY) { throw 'Set NUGET_API_KEY in the publishing environment.' }
+  Publish-PSResource -Path $stage -Repository PSGallery -ApiKey $env:NUGET_API_KEY -ErrorAction Stop
 }
-
-# ---- Resolve API key --------------------------------------------------------
-if (-not $NuGetApiKey) {
-  $NuGetApiKey = $env:NUGET_API_KEY
-}
-if (-not $NuGetApiKey -and -not $DryRun -and -not $SkipPublish) {
-  throw 'NuGetApiKey is required for publishing. Supply -NuGetApiKey or set the NUGET_API_KEY environment variable.'
-}
-
-# ---- Build ------------------------------------------------------------------
-if (-not $SkipBuild) {
-  if ($DryRun) {
-    Write-Output "[DRY RUN] Would run build.ps1 to create dist/$((Get-Item -Path $repositoryRoot).Name).zip / .tar.gz"
-  }
-  else {
-    Write-Output "Running build.ps1 ..."
-    & $buildScript
-    if ($LASTEXITCODE -ne 0) {
-      throw "Build failed with exit code $LASTEXITCODE."
-    }
-  }
-}
-
-# ---- Generate checksums -----------------------------------------------------
-Write-DistChecksum -Skip:$SkipChecksums -DryRun:$DryRun
-
-# ---- Validate module source -------------------------------------------------
-if (-not $SkipPublish -and -not $DryRun) {
-  if (-not (Test-Path -LiteralPath $srcPath -PathType Container)) {
-    throw "Module source directory not found: $srcPath"
-  }
-
-  $manifestFiles = @(Get-ChildItem -LiteralPath $srcPath -Filter '*.psd1' -File)
-  if ($manifestFiles.Count -eq 0) {
-    throw "No .psd1 module manifest found in: $srcPath"
-  }
-  $manifestFile = $manifestFiles[0].FullName
-
-  $manifest = Test-ModuleManifest -Path $manifestFile
-
-  $manifestPrerelease = $null
-  if ($manifest.PrivateData -and $manifest.PrivateData.PSData) {
-    $psData = $manifest.PrivateData.PSData
-    if ($psData -is [System.Collections.IDictionary]) {
-      if ($psData.Contains('Prerelease')) {
-        $manifestPrerelease = [string]$psData['Prerelease']
-      }
-    }
-    else {
-      $prereleaseProperty = $psData.PSObject.Properties['Prerelease']
-      if ($prereleaseProperty -and $prereleaseProperty.Value) {
-        $manifestPrerelease = [string]$prereleaseProperty.Value
-      }
-    }
-  }
-  $manifestVersionString = if ($manifestPrerelease) {
-    "$($manifest.Version)-$manifestPrerelease"
-  }
-  else {
-    $manifest.Version.ToString()
-  }
-
-  if ($Version) {
-    $versionInfo = Split-ReleaseVersion -Version $Version
-    $requestedVersionString = if ($versionInfo.Prerelease) {
-      "$($versionInfo.CoreVersion)-$($versionInfo.Prerelease)"
-    }
-    else {
-      $versionInfo.CoreVersion
-    }
-
-    if ($requestedVersionString -ne $manifestVersionString) {
-      throw "Version '$requestedVersionString' does not match the module manifest version '$manifestVersionString' ($manifestFile). Bump the manifest (e.g. via 'release.ps1 -Prepare -Version $requestedVersionString') before publishing."
-    }
-  }
-}
-
-# ---- Publish ----------------------------------------------------------------
-if ($SkipPublish) {
-  Write-Output 'Publish skipped (SkipPublish is set).'
-  exit 0
-}
-
-if ($DryRun) {
-  $versionLabel = if ($Version) { $Version } else { '(from manifest)' }
-  Write-Output "[DRY RUN] Would publish module to $Gallery (version: $versionLabel)"
-  exit 0
-}
-
-$publishPSResource = Get-Command -Name 'Publish-PSResource' -ErrorAction SilentlyContinue
-if ($publishPSResource) {
-  $publishParams = @{
-    Path        = $srcPath
-    Repository  = $Gallery
-    ApiKey      = $NuGetApiKey
-    ErrorAction = 'Stop'
-  }
-
-  Write-Output "Publishing module to $Gallery (via Publish-PSResource) ..."
-  Publish-PSResource @publishParams
-}
-else {
-  $publishModule = Get-Command -Name 'Publish-Module' -ErrorAction SilentlyContinue
-  if (-not $publishModule) {
-    throw 'Neither Publish-PSResource nor Publish-Module is available. Install Microsoft.PowerShell.PSResourceGet or PowerShellGet and try again.'
-  }
-
-  if ($manifestPrerelease) {
-    $psGet = Get-Module -Name PowerShellGet -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
-    if (-not $psGet -or $psGet.Version.Major -lt 2) {
-      throw "The manifest carries a prerelease label ('$manifestPrerelease'), which requires PowerShellGet 2.x or newer. Upgrade PowerShellGet or install Microsoft.PowerShell.PSResourceGet."
-    }
-  }
-
-  # PowerShellGet requires the folder leaf passed to -Path to match the module
-  # name, so stage a copy under a folder named after the module.
-  $moduleName = [System.IO.Path]::GetFileNameWithoutExtension((Get-Item -LiteralPath $manifestFile).Name)
-  $stagingRoot = Join-Path -Path $env:TEMP -ChildPath "$moduleName-Publish-$([guid]::NewGuid())"
-  $stagingModulePath = Join-Path -Path $stagingRoot -ChildPath $moduleName
-  New-Item -ItemType Directory -Path $stagingModulePath -Force | Out-Null
-  Copy-Item -Path (Join-Path -Path $srcPath -ChildPath '*') -Destination $stagingModulePath -Recurse -Force
-
-  try {
-    $publishParams = @{
-      Path        = $stagingModulePath
-      Repository  = $Gallery
-      NuGetApiKey = $NuGetApiKey
-      Force       = $true
-      ErrorAction = 'Stop'
-    }
-
-    Write-Output "Publishing module to $Gallery (via Publish-Module) ..."
-    Publish-Module @publishParams
-  }
-  finally {
-    Remove-Item -LiteralPath $stagingRoot -Recurse -Force -ErrorAction SilentlyContinue
-  }
-}
-Write-Output "Published successfully."
+finally { Pop-Location }

@@ -7,6 +7,7 @@ using PSFoundation.IO;
 
 namespace PSFoundation.Office;
 
+/// <summary>A recovery-record validation issue, distinct from authorization to replay a deployment.</summary>
 [Serializable]
 public sealed class OfficeRecoveryDiagnostic
 {
@@ -35,6 +36,7 @@ public sealed class OfficeRecoveryRecord
     private OfficeRecoveryRecord(OfficeDocument data, OfficeDeploymentAction action, OfficeDeploymentPlanDocument? plan)
     { Data = data; Action = action; Plan = plan; }
 
+    /// <summary>Validates a recovery document's structure, run identity, and expected machine identity before accepting its evidence.</summary>
     public static OfficeRecoveryRecord Parse(string json, string expectedRunId, string expectedMachineId)
         => Parse(json, expectedRunId, expectedMachineId, null);
 
@@ -115,8 +117,10 @@ public sealed class OfficeRecoveryRecord
     private static OfficeException Invalid(string message) => new OfficeException(OfficeFailureReason.InvalidRecoveryRecord, message);
 }
 
+/// <summary>Reads protected recovery journals and validates their machine and run identity.</summary>
 public sealed class OfficeRecoveryManager
 {
+    /// <summary>Reads and validates a protected recovery record for the requested run.</summary>
     public OfficeRecoveryRecord Read(string runId, FileSystemPath logRoot, CancellationToken cancellationToken = default)
     {
         if (logRoot == null)
@@ -133,6 +137,7 @@ public sealed class OfficeRecoveryManager
         cancellationToken.ThrowIfCancellationRequested();
         return OfficeRecoveryRecord.Parse(json, runId, new OfficeRegistryReader().ReadMachineId(), path.Value);
     }
+    /// <summary>Reads protected recovery evidence on a worker thread without replaying deployment.</summary>
     public Task<OfficeRecoveryRecord> ReadAsync(string runId, FileSystemPath logRoot, CancellationToken cancellationToken = default)
         => Task.Run(() => Read(runId, logRoot, cancellationToken), cancellationToken);
 }

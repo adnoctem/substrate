@@ -21,6 +21,7 @@ public enum DomainJoinProvisionOptions : uint
     None = 0, DownlevelPrivilegeSupport = 1, ReuseAccount = 2, UseDefaultPassword = 4, SkipAccountSearch = 8, IncludeRootCaCertificates = 16
 }
 
+/// <summary>Explicit offline domain-join provisioning inputs; resulting join data must be treated as sensitive.</summary>
 public sealed class OfflineDomainJoinRequest
 {
     public string Domain { get; }

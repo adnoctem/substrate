@@ -12,7 +12,9 @@ public sealed class FileSystemPath : IEquatable<FileSystemPath>
     public string Value { get; }
     private FileSystemPath(string value) { Value = value; }
 
+    /// <summary>Normalizes a fully qualified path or resolves a relative path against an explicit base directory.</summary>
     /// <remarks>Relative paths require an explicit absolute base. Normalization does not resolve links, establish existence, or authorize access.</remarks>
+    /// <exception cref="ArgumentException">The path is empty, partially qualified, or relative without an absolute base.</exception>
     public static FileSystemPath Parse(string path, string? baseDirectory = null)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -29,6 +31,8 @@ public sealed class FileSystemPath : IEquatable<FileSystemPath>
         return new FileSystemPath(Path.GetFullPath(path));
     }
 
+    /// <summary>Resolves a relative path beneath this lexical base.</summary>
+    /// <remarks>Parent segments are normalized and can leave the base directory. This method is not a containment check.</remarks>
     public FileSystemPath Combine(string relativePath)
     {
         if (relativePath == null)
@@ -71,6 +75,7 @@ public sealed class FileSystemPath : IEquatable<FileSystemPath>
     }
 
     // Equality is lexical and ordinal: Windows directories can explicitly enable case-sensitive names.
+    /// <summary>Compares normalized paths ordinally, preserving support for case-sensitive Windows directories.</summary>
     public bool Equals(FileSystemPath? other) => other != null && string.Equals(Value, other.Value, StringComparison.Ordinal);
     public override bool Equals(object? obj) => obj is FileSystemPath other && Equals(other);
     public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);

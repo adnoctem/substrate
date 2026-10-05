@@ -1,10 +1,14 @@
 [
   {
     "Name": "Pester",
-    "MinimumVersion": "5.2.2"
+    "RequiredVersion": "5.7.1"
   },
   {
     "Name": "PSScriptAnalyzer",
-    "MinimumVersion": "1.25.0"
+    "RequiredVersion": "1.25.0"
+  },
+  {
+    "Name": "Microsoft.PowerShell.PlatyPS",
+    "RequiredVersion": "1.0.1"
   }
 ]

@@ -1,7 +1,9 @@
-# Registry API for other applications
+# Using the registry library
+
+This guide illustrates common workflows. The generated [API catalog](API.md) links to the complete member reference.
 
 Reference `PSFoundation.Registry` directly; no PowerShell host or dependency-injection container is required. The library targets net48 and
-netstandard2.0 and performs Windows registry operations. The repository builds with the pinned SDK through `PSFoundation.ps1`.
+netstandard2.0 and performs Windows registry operations. The repository builds with the pinned SDK through `tools/tasks.proj`.
 
 ## Ordinary operations
 

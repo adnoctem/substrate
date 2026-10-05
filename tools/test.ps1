@@ -5,12 +5,12 @@
   Runs Pester tests for the PSFoundation module.
 
 .DESCRIPTION
-  Invokes Pester against test files in the repository tests directory. By
-  default all test files are executed except Integration-tagged tests. Exits
+  Invokes Pester against the packaged-module tests in tests/PowerShell. By
+  default Integration-tagged tests are excluded. Exits
   with 1 for failed tests, failed containers or empty discovery, otherwise 0.
 
 .PARAMETER Path
-  Path to test files or directory. Defaults to the repository tests directory.
+  Path to test files or directory. Defaults to tests/PowerShell, the v2 host suite.
 .PARAMETER Coverage
   Collect informational source coverage in JaCoCo format, with no percentage gate.
 .PARAMETER OutputDirectory
@@ -21,11 +21,11 @@
 
 .EXAMPLE
   PS> ./test.ps1
-  Runs all tests in the tests directory.
+  Runs the packaged-module tests in tests/PowerShell.
 
 .EXAMPLE
-  PS> ./test.ps1 -Path ./tests/user.Tests.ps1
-  Runs only the user.Tests.ps1 test file.
+  PS> ./tools/test.ps1 -Path ./tests/PowerShell/Registry.Tests.ps1
+  Runs only the current registry host tests.
 
 .LINK
   https://github.com/adnoctem/PSFoundation
@@ -37,9 +37,9 @@
 
 [CmdletBinding()]
 param (
-  [string[]]$Path = @(Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'tests'),
+  [string[]]$Path = @(Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'tests/PowerShell'),
   [switch]$Coverage,
-  [string]$OutputDirectory,
+  [string]$OutputDirectory = (Join-Path (Split-Path $PSScriptRoot -Parent) 'build/test-results/powershell'),
   [switch]$IncludeIntegration,
   [switch]$Managed
 )
@@ -54,29 +54,8 @@ if ($Managed) {
   exit $LASTEXITCODE
 }
 
-$pester = Get-Module -ListAvailable -Name Pester |
-  Sort-Object Version -Descending |
-  Select-Object -First 1
-
-if (-not $pester -or $pester.Version -lt [version]'5.0.0') {
-  Write-Warning 'Pester 5.0.0+ is required but was not found. Installing it now (CurrentUser scope)...'
-
-  $maintenancePath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'src/maintenance.ps1'
-  . $maintenancePath
-  Add-PSModule -Name Pester -MinimumVersion '5.0.0' -Scope CurrentUser -Force
-
-  $pester = Get-Module -ListAvailable -Name Pester |
-    Sort-Object Version -Descending |
-    Select-Object -First 1
-
-  if (-not $pester -or $pester.Version -lt [version]'5.0.0') {
-    Write-Error "Failed to install Pester 5.0.0+. Run '.\PSFoundation.ps1 init' and try again."
-    exit 1
-  }
-}
-
-Write-Verbose "Using Pester $($pester.Version)"
-Import-Module Pester -MinimumVersion 5.0.0 -ErrorAction Stop
+. (Join-Path $PSScriptRoot 'environment.ps1')
+Import-DevelopmentModule Pester
 
 $config = [PesterConfiguration]@{
   Run    = @{
@@ -104,7 +83,7 @@ if ($Coverage) {
   # information while Normal keeps the CI log useful.
   $config.Output.Verbosity = 'Normal'
   $config.CodeCoverage.Enabled = $true
-  $config.CodeCoverage.Path = @(Join-Path (Split-Path $PSScriptRoot -Parent) 'src/*.ps1')
+  $config.CodeCoverage.Path = @(Join-Path (Split-Path $PSScriptRoot -Parent) 'src/PSFoundation.PowerShell/compat.ps1')
   $config.CodeCoverage.OutputFormat = 'JaCoCo'
   $config.CodeCoverage.OutputPath = Join-Path $OutputDirectory 'coverage.xml'
   $config.CodeCoverage.CoveragePercentTarget = 0

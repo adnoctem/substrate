@@ -14,6 +14,7 @@ namespace PSFoundation.Security;
 /// <summary>Read-only native certificate-store inventory. Returned certificates contain public data only.</summary>
 public sealed class CertificateManager
 {
+    /// <summary>Reads public certificate data from an explicitly selected local or remote store.</summary>
     /// <remarks>Remote access uses Windows certificate-store RPC/Remote Registry. Remote CurrentUser selects a loaded user hive by SID;
     /// it does not log on interactively or load a profile. Credentials are borrowed and used only for outbound authentication.</remarks>
     public IReadOnlyList<CertificateInfo> GetCertificates(StoreLocation location, string storeName, string? computerName = null,
@@ -77,6 +78,7 @@ public sealed class CertificateManager
         }
         return result.AsReadOnly();
     }
+    /// <summary>Offloads certificate-store enumeration; an in-flight native RPC may outlast a cancellation request.</summary>
     /// <remarks>Native store RPC cannot be interrupted in flight; cancellation is checked between certificates.</remarks>
     public Task<IReadOnlyList<CertificateInfo>> GetCertificatesAsync(StoreLocation location, string storeName, string? computerName = null,
         NetworkCredential? credential = null, string? userSid = null, CancellationToken cancellationToken = default)

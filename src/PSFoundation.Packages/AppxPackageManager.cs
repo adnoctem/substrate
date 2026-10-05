@@ -10,6 +10,7 @@ using PSFoundation.Packages.Runtime;
 namespace PSFoundation.Packages;
 
 public enum AppxPackageSource { Installed, Provisioned }
+/// <summary>Detached installed or provisioned package identity with flags relevant to removal protection.</summary>
 public sealed class AppxPackageInfo
 {
     public AppxPackageSource Source { get; }
@@ -48,6 +49,7 @@ public sealed class AppxPackageInfo
     internal static void RequireIdentity(string identity)
     { if (string.IsNullOrWhiteSpace(identity) || identity.IndexOfAny(new[] { '\0', '*', '?', '/', '\\' }) >= 0) throw new ArgumentException("An exact package identity is required.", nameof(identity)); }
 }
+/// <summary>Explains the default protection applied to an observed package before removal.</summary>
 public sealed class PackageRemovalAssessment
 {
     public bool Protected => Reason != null;
@@ -61,30 +63,42 @@ public sealed class AppxPackageManager
 {
     private readonly PackageRuntimeClient runtime;
     public AppxPackageManager(FileSystemPath? runtimeHost = null) => runtime = new PackageRuntimeClient(runtimeHost);
+    /// <summary>Reads installed package identities, with explicit all-user and framework/resource/bundle inclusion options.</summary>
     public IReadOnlyList<AppxPackageInfo> GetInstalled(bool allUsers = false, bool includeFramework = false, bool includeResource = false, bool includeBundle = false, CancellationToken cancellationToken = default)
         => Array.AsReadOnly(runtime.Run(new RuntimeRequest { Operation = "Inventory", AllUsers = allUsers }, cancellationToken).Packages
             .Where(package => (includeFramework || !package.IsFramework) && (includeResource || !package.IsResource) && (includeBundle || !package.IsBundle))
             .Select(package => new AppxPackageInfo(AppxPackageSource.Installed, package.Name, package.FullName, package.FamilyName, package.Publisher, package.Version, package.Architecture,
                 package.InstallLocation, package.IsFramework, package.IsResource, package.IsBundle, package.NonRemovable)).ToArray());
+    /// <summary>Reads installed package inventory through the isolated Windows Runtime host.</summary>
     public Task<IReadOnlyList<AppxPackageInfo>> GetInstalledAsync(bool allUsers = false, bool includeFramework = false, bool includeResource = false, bool includeBundle = false, CancellationToken cancellationToken = default)
         => Task.Run(() => GetInstalled(allUsers, includeFramework, includeResource, includeBundle, cancellationToken), cancellationToken);
+    /// <summary>Reads packages provisioned for future users through the system DISM tool.</summary>
     public IReadOnlyList<AppxPackageInfo> GetProvisioned(CancellationToken cancellationToken = default) => new DismTool().GetProvisionedPackages(cancellationToken);
+    /// <summary>Installs a local package for the current user. Windows performs package signature validation.</summary>
     public void Install(FileSystemPath package, IEnumerable<FileSystemPath>? dependencies = null, bool forceUpdateFromAnyVersion = false, CancellationToken cancellationToken = default)
         => runtime.Run(InstallRequest(package, dependencies, forceUpdateFromAnyVersion), cancellationToken);
+    /// <summary>Installs a local package and supplied dependencies through Windows Runtime; downgrades require explicit permission.</summary>
     public async Task InstallAsync(FileSystemPath package, IEnumerable<FileSystemPath>? dependencies = null, bool forceUpdateFromAnyVersion = false, CancellationToken cancellationToken = default)
         => await runtime.RunAsync(InstallRequest(package, dependencies, forceUpdateFromAnyVersion), cancellationToken).ConfigureAwait(false);
+    /// <summary>Provisions a local package for future users through DISM with an explicit license policy.</summary>
     public void Provision(FileSystemPath package, IEnumerable<FileSystemPath>? dependencies = null, FileSystemPath? license = null, bool skipLicense = false, CancellationToken cancellationToken = default)
         => new DismTool().ProvisionPackage(package, dependencies, license, skipLicense, cancellationToken);
+    /// <summary>Offloads package provisioning and waits for started servicing work to finish.</summary>
     public Task ProvisionAsync(FileSystemPath package, IEnumerable<FileSystemPath>? dependencies = null, FileSystemPath? license = null, bool skipLicense = false, CancellationToken cancellationToken = default)
     { var snapshot = dependencies?.ToArray(); return Task.Run(() => Provision(package, snapshot, license, skipLicense, cancellationToken), cancellationToken); }
+    /// <summary>Registers an existing application manifest for the current user.</summary>
     public void RegisterManifest(FileSystemPath manifest, CancellationToken cancellationToken = default)
         => runtime.Run(new RuntimeRequest { Operation = "Register", Target = (manifest ?? throw new ArgumentNullException(nameof(manifest))).Value }, cancellationToken);
+    /// <summary>Registers an existing manifest through the isolated Windows Runtime host.</summary>
     public Task RegisterManifestAsync(FileSystemPath manifest, CancellationToken cancellationToken = default)
         => runtime.RunAsync(new RuntimeRequest { Operation = "Register", Target = (manifest ?? throw new ArgumentNullException(nameof(manifest))).Value }, cancellationToken);
+    /// <summary>Resets the selected installed package's application data. This discards that package's user state.</summary>
     public void ResetData(string fullName, CancellationToken cancellationToken = default)
     { AppxPackageInfo.RequireIdentity(fullName); runtime.Run(new RuntimeRequest { Operation = "Reset", Target = fullName }, cancellationToken); }
+    /// <summary>Requests application-data reset asynchronously; cancellation does not restore discarded state.</summary>
     public Task ResetDataAsync(string fullName, CancellationToken cancellationToken = default)
     { AppxPackageInfo.RequireIdentity(fullName); return runtime.RunAsync(new RuntimeRequest { Operation = "Reset", Target = fullName }, cancellationToken); }
+    /// <summary>Rechecks the selected package and applies the explicit protection, source, and all-user removal policy.</summary>
     public void Remove(string fullName, AppxPackageSource source = AppxPackageSource.Installed, bool allUsers = false, bool allowProtected = false, CancellationToken cancellationToken = default)
     {
         AppxPackageInfo.RequireIdentity(fullName);
@@ -100,8 +114,10 @@ public sealed class AppxPackageManager
         else
             runtime.Run(new RuntimeRequest { Operation = "Remove", Target = fullName, AllUsers = allUsers }, cancellationToken);
     }
+    /// <summary>Offloads package removal while retaining native failure and cancellation behavior.</summary>
     public Task RemoveAsync(string fullName, AppxPackageSource source = AppxPackageSource.Installed, bool allUsers = false, bool allowProtected = false, CancellationToken cancellationToken = default)
         => Task.Run(() => Remove(fullName, source, allUsers, allowProtected, cancellationToken), cancellationToken);
+    /// <summary>Explains whether the observed package falls under the library's default removal protections.</summary>
     public static PackageRemovalAssessment AssessRemoval(AppxPackageInfo package)
     {
         if (package == null)

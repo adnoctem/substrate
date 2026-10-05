@@ -55,15 +55,14 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "pwsh -NoProfile -File PSFoundation.ps1 release -Prepare -Version ${nextRelease.version}"
+        "prepareCmd": "pwsh -NoProfile -File tools/release.ps1 -Prepare -Version ${nextRelease.version}"
       }
     ],
     [
       "@semantic-release/git",
       {
         "assets": [
-          "CHANGELOG.md",
-          "src/PSFoundation.psd1"
+          "CHANGELOG.md"
         ]
       }
     ]

@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace PSFoundation.Windows;
 
+/// <summary>Physical-memory byte counts and load percentage observed at one point in time.</summary>
 public sealed class MemorySnapshot
 {
     public ulong TotalBytes { get; }
@@ -23,6 +24,7 @@ public sealed class MemorySnapshot
     }
 }
 
+/// <summary>Logical-volume capacity and free-space byte counts obtained from disk inventory.</summary>
 public sealed class DiskSnapshot
 {
     public string Name { get; }
@@ -57,6 +59,7 @@ public sealed class DiskInventory
     { Disks = Array.AsReadOnly(disks.ToArray()); AssociationError = associationError; }
 }
 
+/// <summary>Local hostname and optional DNS resolution evidence, retaining lookup failure details.</summary>
 public sealed class HostnameInfo
 {
     public string Hostname { get; }
@@ -66,6 +69,7 @@ public sealed class HostnameInfo
     { Hostname = hostname; FullyQualifiedDomainName = fqdn; ResolutionError = error; }
 }
 
+/// <summary>A collection of machine observations taken sequentially, without atomic snapshot guarantees.</summary>
 public sealed class SystemSnapshot
 {
     public WindowsVersionInfo OperatingSystem { get; }

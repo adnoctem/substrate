@@ -92,6 +92,7 @@ public sealed partial class OfficeMediaManager
             }
         }
     }
+    /// <summary>Downloads Office media through a trusted ODT executable and records a manifest for subsequent verification.</summary>
     public OfficeMediaAssessment Prepare(OfficeConfiguration configuration, FileSystemPath destination, FileSystemPath executable,
         CancellationToken cancellationToken = default, string? exactVersionText = null)
         => PrepareAsync(configuration, destination, executable, cancellationToken, exactVersionText).GetAwaiter().GetResult();

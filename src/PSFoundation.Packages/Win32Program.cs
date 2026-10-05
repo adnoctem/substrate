@@ -57,6 +57,7 @@ public sealed class Win32Program
         ? unchecked((uint)value.GetData<int>()) : (uint?)null;
 }
 
+/// <summary>A registration location whose program inventory could not be read.</summary>
 public sealed class ProgramInventoryError
 {
     public ProgramRegistryLocation Location { get; }

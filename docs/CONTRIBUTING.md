@@ -1,377 +1,100 @@
-# Ad Noctem Collective - `PSFoundation` Repository Contributing Guidelines
+# Contributing
 
-Contributions are welcome via GitHub's Pull Requests. This document outlines the process to help get your contribution accepted.
+PSFoundation v2 uses C# domain libraries with a PowerShell adapter. The frozen v1 scripts remain available for compatibility comparisons;
+they are not the production module build input.
 
-## Building
+## Prerequisites
 
-On `MVProwess/v2`, install the .NET SDK pinned in `global.json` and initialize the PowerShell dependencies below. Run `baseline` and `build`
-before the package tests. Use `test -Managed` for C# suites and `format -Managed` (or `format -Managed -Check`) for C# formatting. Managed
-build warnings are errors; CI restores enforce NuGet lock files. Generated files, packages and module staging stay under `build/`, and
-deployment archives stay under `dist/`. See [the registry checkpoint](migration/registry.md) for the current migration boundary and runtime
-validation limits.
+Develop on x64 Windows with the SDK selected by `global.json`, .NET Framework 4.8 or later, PowerShell 7.4+, Windows PowerShell 5.1, Bun
+1.4.2, Git, and pre-commit 4.6.0. The SDK version is a development requirement; importing the module does not require the SDK or DocFX.
+Framework tests on a machine with 4.8.1 exercise that installed runtime, not a separate 4.8 installation.
 
-The project uses the `PSFoundation.ps1` launcher script in the repository root to drive all development workflows.
-
-Before running anything else, you must initialize the project. This downloads the PowerShell module dependencies declared in
-[`src/PSFoundation.psd1`](../src/PSFoundation.psd1) and the dev dependencies in
-[`tools/dev-dependencies.json`](../tools/dev-dependencies.json):
-
-```pwsh
-.\PSFoundation.ps1 init
-```
-
-Additional aliases recognised for this command are `initialize`, `setup`, and `bootstrap`.
-
-The launcher maps short, familiar command names to the scripts located in the [`tools/`](../tools) directory:
-
-| Command   | Aliases                            | Target                   | Purpose                                             |
-| --------- | ---------------------------------- | ------------------------ | --------------------------------------------------- |
-| `init`    | `initialize`, `setup`, `bootstrap` | `tools/initialize.ps1`   | Install required PowerShell modules                 |
-| `format`  | `fmt`, `fix`                       | `tools/format.ps1`       | Format all PowerShell sources with PSScriptAnalyzer |
-| `lint`    | `check`, `analyze`                 | `tools/lint.ps1`         | Run PSScriptAnalyzer rule checks                    |
-| `build`   | `bundle`, `package`                | `tools/build.ps1`        | Create distribution archives                        |
-| `test`    | `tests`, `pester`                  | `tools/test.ps1`         | Run Pester tests for the module                     |
-| `deps`    | `dependencies`                     | `tools/dependencies.ps1` | Check and update PowerShell Gallery dependencies    |
-| `release` | `publish`                          | `tools/release.ps1`      | Publish module to PowerShell Gallery                |
-
-Any arguments supplied after the command are forwarded directly to the underlying script. For example, `.\PSFoundation.ps1 format -Check` is
-equivalent to running `.\tools\format.ps1 -Check`.
-
-### Source Formatting
-
-Format all PowerShell sources in the repository in place:
-
-```pwsh
-.\PSFoundation.ps1 format
-```
-
-To check formatting without modifying files, suitable for CI jobs and pre-commit hooks:
-
-```pwsh
-.\PSFoundation.ps1 format -Check
-```
-
-The formatter delegates whitespace, brace, indentation, and casing rules entirely to PSScriptAnalyzer via
-[`PSScriptAnalyzerSettings.psd1`](../PSScriptAnalyzerSettings.psd1) and performs no repository-specific post-processing beyond encoding and
-line-ending normalization on write.
-
-Output defaults to:
-
-- **Encoding**: UTF-8 with BOM (required for reliable parsing under Windows PowerShell 5.1)
-- **Line endings**: CRLF
-- **Indentation**: 2 spaces
-- **Hashtable assignments**: align the `=` signs in multiline hashtables
-- **Excluded directories**: `.git`, `.idea`, `dist`, `build`, `secrets` (unless `-IncludeSecrets` is supplied)
-
-VS Code's PowerShell extension uses `powershell.scriptAnalysis.settingsPath` for diagnostics and separate `powershell.codeFormatting.*`
-settings for editor formatting. To match the repository, add these settings to your local `.vscode/settings.json` (ignored by Git):
-
-```json
-{
-  "powershell.scriptAnalysis.enable": true,
-  "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
-  "powershell.codeFormatting.preset": "Custom",
-  "powershell.codeFormatting.alignPropertyValuePairs": true,
-  "powershell.codeFormatting.pipelineIndentationStyle": "IncreaseIndentationForFirstPipeline",
-  "powershell.codeFormatting.useCorrectCasing": true,
-  "[powershell]": {
-    "editor.defaultFormatter": "ms-vscode.powershell",
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true,
-    "editor.detectIndentation": false
-  }
-}
-```
-
-Keep the editor settings, `PSScriptAnalyzerSettings.psd1`, and Super-Linter's `.github/linters/.powershell-psscriptanalyzer.psd1`
-synchronized when changing formatting conventions.
-
-To limit the scope, pass explicit paths:
-
-```pwsh
-.\PSFoundation.ps1 format -Path ./src,./tests
-```
-
-### Linting
-
-Run PSScriptAnalyzer against all PowerShell sources under the repository root (the `src/` and `tests/` directories, the `tools/` scripts,
-and `PSFoundation.ps1`). The `.git`, `.idea`, `dist`, `build`, and `secrets` directories are excluded by default:
-
-```pwsh
-.\PSFoundation.ps1 lint
-```
-
-Target specific files or directories:
-
-```pwsh
-.\PSFoundation.ps1 lint -Path ./src,./tests
-```
-
-The linter exits with code `1` when any analyzer findings remain, making it suitable for CI and pre-commit usage. Findings are printed as a
-table listing the rule name, severity, file, line, and message.
-
-### Building Distribution Archives
-
-Create clean deployment archives containing the `src/` directory with its relative layout preserved:
-
-```pwsh
-.\PSFoundation.ps1 build
-```
-
-By default, both a `.zip` and a `.tar.gz` archive are written to the `dist/` directory. Existing archives with the same names are
-overwritten.
-
-Build only a specific format:
-
-```pwsh
-.\PSFoundation.ps1 build -Format Zip
-```
-
-Override the output directory or archive base name:
-
-```pwsh
-.\PSFoundation.ps1 build -OutputDirectory C:\Temp -Name PSFoundation-v1.0.0
-```
-
-### Pre-Commit Hooks
-
-The repository ships a pre-configured [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) that runs formatting and linting checks
-automatically before each commit. After installing [pre-commit](https://pre-commit.com/), activate the hooks from the repository root:
-
-```pwsh
+```powershell
+dotnet msbuild tools/tasks.proj -t:Restore
 pre-commit install
+dotnet msbuild tools/tasks.proj -t:Verify
 ```
 
-The hooks invoke `.\PSFoundation.ps1 format -Check` and `.\PSFoundation.ps1 lint` under both PowerShell 7 (`pwsh`) and Windows PowerShell
-5.1 (`powershell.exe`), matching the CI engine matrix. Both engines must be available on the development host; run `.\PSFoundation.ps1 init`
-in each engine to install its dependencies. Formatting writes use PowerShell 7.
+Restore uses NuGet lock files, the local .NET tool manifest, exact PowerShell tool versions in `tools/dev-dependencies.json`, and
+`bun.lock`. PowerShell tools are restored under `build/tools/modules`; no installation of the legacy runtime dependencies is needed.
 
-Run format checks, lint, and tests under both engines before handing changes back. Passing tests under both engines does not replace lint:
-some PSScriptAnalyzer rules, including singular-noun detection, use different implementations between engines.
+## Daily workflow
 
-### Running Tests
+| Task                          | Command                                             |
+| ----------------------------- | --------------------------------------------------- |
+| Compile                       | `dotnet msbuild tools/tasks.proj -t:Build`          |
+| Stage the module              | `dotnet msbuild tools/tasks.proj -t:Stage`          |
+| Run managed tests             | `dotnet msbuild tools/tasks.proj -t:TestManaged`    |
+| Run packaged-module tests     | `dotnet msbuild tools/tasks.proj -t:TestPowerShell` |
+| Build help and reference      | `dotnet msbuild tools/tasks.proj -t:Docs`           |
+| Refresh tracked help metadata | `dotnet msbuild tools/tasks.proj -t:UpdateHelp`     |
+| Apply formatting              | `dotnet msbuild tools/tasks.proj -t:Format`         |
+| Check style and analysis      | `dotnet msbuild tools/tasks.proj -t:Check`          |
+| Create archives               | `dotnet msbuild tools/tasks.proj -t:Pack`           |
+| Complete verification         | `dotnet msbuild tools/tasks.proj -t:Verify`         |
 
-Run all Pester tests:
+The default configuration is Release. Use `-p:Configuration=Debug` when needed. Restore explicitly before running these tasks on a clean
+checkout. Build compiles only; Stage assembles the module; HelpFiles adds runtime help. Pack includes staging and help through target
+dependencies. Direct `dotnet build PSFoundation.slnx` remains supported for ordinary compilation.
 
-```pwsh
-.\PSFoundation.ps1 test
+For a focused Pester investigation, the supporting runner accepts `./tools/test.ps1 -Path ./tests/PowerShell/Registry.Tests.ps1`. It
+defaults to the v2 suite; archived root-level tests exercise v1. PowerShell source coverage measures compatibility scripts only and is
+informational, not C# coverage.
+
+## Formatting and hooks
+
+C# uses four spaces. PowerShell uses two spaces, CRLF, and UTF-8 with BOM for Windows PowerShell 5.1. The repository formatter and
+PSScriptAnalyzer share the checked-in settings. PlatyPS command Markdown and the generated API catalog have their own generation
+conventions.
+
+Run `pre-commit run --all-files` before committing. The hooks check PowerShell and C# style, Markdown, spelling, and workflow configuration.
+They do not build the entire documentation site or run the test suite at every commit. CI runs the same hooks and MSBuild targets. Both
+PowerShell editions are tested as runtime hosts, without repeating every managed test per shell.
+
+## Documentation
+
+See [documentation maintenance](documentation.md). XML comments describe the reusable .NET API. PowerShell Markdown describes command
+behavior, while compiled metadata supplies parameter binding details. The generated [API catalog](API.md) leads to the reference. Build the
+site under `build/docs/site`; no site is published by the build.
+
+When changing commands, update the owning catalog, implement the adapter, run UpdateHelp, and review the resulting command pages. Keep
+non-obvious defaults, exceptions, ownership, platform requirements, and cancellation behavior documented. Prefer representative examples and
+focused functional tests to repetitive property documentation and implementation-mirroring tests.
+
+## Packaging and releases
+
+Import the staged module in a fresh process:
+
+```powershell
+Import-Module ./build/module/PSFoundation/PSFoundation.psd1
+Get-Help Get-OfficeInventory -Full
 ```
 
-Run a specific test file:
+A rebuild cannot unload assemblies already imported by an existing PowerShell process. Keep the loader, both binary directories, helper
+executable, configuration, data, and help together when copying the package.
 
-```pwsh
-.\PSFoundation.ps1 test -Path .\tests\registry.Tests.ps1
+Semantic-release passes its selected version to `tools/release.ps1 -Prepare`, which verifies and packages that version. The v1 manifest
+remains frozen. Versions below 2.0.0 are rejected: the first v2 release needs an intentional major-release decision. The release workflow
+remains manual and requires `PSFOUNDATION_RELEASE_ENABLED=true` on a supported release branch.
+
+```powershell
+./tools/release.ps1 -Prepare -Version 2.0.0 -DryRun
+./tools/release.ps1 -Publish -Version 2.0.0 -DryRun
 ```
 
-Tests require Pester 5.0 or higher, which is installed automatically with `.\PSFoundation.ps1 init`. The runner exits with 1 for failed
-tests, failed test containers, or no discovered tests; successful runs exit with 0.
+Actual publication uses the already verified staged files and rejects changed contents. Set `NUGET_API_KEY` only in the publishing
+environment. Never put a key in command-line arguments or an MSBuild property. Ordinary Verify does not publish. Scheduled upstream checks
+are also separate from ordinary tests.
 
-Collect an informational coverage baseline and NUnit test results:
+## Commit conventions
 
-```pwsh
-.\PSFoundation.ps1 test -Coverage -OutputDirectory build/test-results
-```
+Use `type(scope): summary` with an imperative, lowercase summary and no trailing period. Types: feat, fix, docs, refactor, test, chore,
+build, ci. Scopes: src, tools, tests, config, docs. Include a body of at least 20 characters, except for docs commits. Explain the problem,
+resulting behavior, and relevant validation. Use a BREAKING CHANGE footer only when an intentional compatibility change requires a major
+release.
 
-Coverage measures `src/*.ps1` and writes `coverage.xml` in JaCoCo format alongside `tests.xml`. There is no coverage percentage gate.
-`-OutputDirectory` alone writes test results without collecting coverage; `-Coverage` defaults to `build/test-results` when no directory is
-given. CI uploads these reports for every OS and PowerShell matrix entry, including failed runs that produced reports.
+## Live validation
 
-Initial baseline (2026-09-16, Pester 6.0.1): 361 passing tests and three existing skips on each engine. Source command coverage is 49.24% on
-Windows PowerShell 5.1 and 49.48% on PowerShell 7. This is a measurement to guide further tests, not a required percentage.
-
-Tests tagged `Integration` are excluded unless `-IncludeIntegration` is supplied. Use that tag for new privileged or environment-dependent
-integration tests; run them only on a prepared disposable host. The existing explicitly skipped device/firewall tests remain skipped. The
-ordinary suite uses mocked installer/update providers, temporary files, and disposable current-user registry values. Native process tests
-compile a harmless fixture with the Windows .NET Framework C# compiler and exercise real argument handling and process cleanup.
-
-### Publishing a Release
-
-The release pipeline is driven by [semantic-release](../.releaserc) (see
-[`.github/workflows/release.yaml`](../.github/workflows/release.yaml)):
-
-Version 1.8.7 is the frozen v1 baseline. CI continues validating `main`, `next`, and `MVProwess/v2`, but successful tests no longer trigger
-a release. Publishing is manual through `workflow_dispatch`, requires the repository variable `PSFOUNDATION_RELEASE_ENABLED` to be exactly
-`true`, and is restricted to `main` or `next`. Leave that variable unset or false during the rewrite. The release job validates its selected
-revision before publishing; feature branches cannot publish. Restoring automatic releases and selecting the v2 release policy are separate
-release-readiness tasks.
-
-1. `tools/release.ps1 -Prepare -Version <next>` (invoked by the `@semantic-release/exec` plugin) writes the resolved version into
-   `src/PSFoundation.psd1` — `ModuleVersion`, plus the `Prerelease` key under `PSData` for suffix versions like `1.1.0-beta.1` — rebuilds
-   the `dist/` archives and regenerates `dist/CHECKSUMS_SHA256.txt`. The manifest change is committed as part of the release commit, so the
-   module source, the GitHub release bundles and the PSGallery package always carry the same version.
-2. `tools/release.ps1 -Version <next>` publishes the module from `./src` to the PowerShell Gallery. The module manifest is the single source
-   of truth for the published version; a supplied `-Version` must match it or the publish is aborted.
-
-Running the prepare phase manually:
-
-```pwsh
-.\PSFoundation.ps1 release -Prepare -Version 1.0.0
-```
-
-Preview what would happen without making changes:
-
-```pwsh
-.\PSFoundation.ps1 release -Version 1.0.0 -DryRun
-```
-
-Skip the build step when archives are already present:
-
-```pwsh
-.\PSFoundation.ps1 release -Version 1.0.0 -NuGetApiKey $env:NUGET_API_KEY -SkipBuild
-```
-
-The release tool generates `dist/CHECKSUMS_SHA256.txt` for all built archives, suitable for CI artifact validation and the semantic-release
-asset pipeline defined in [`.releaserc`](../.releaserc).
-
-## Commit Message Format
-
-This specification is inspired by and supersedes the **AngularJS commit message format**.
-
-We have very precise rules over how our Git commit messages must be formatted. This format leads to **easier to read commit history**.
-
-Each commit message consists of a **header**, a **body**, and a **footer**.
-
-```text
-<header>
-<BLANK LINE>
-<body>
-<BLANK LINE>
-<footer>
-```
-
-The `header` is mandatory and must conform to the [Commit Message Header](#commit-header) format.
-
-The `body` is mandatory for all commits except for those of type "docs". When the body is present it must be at least 20 characters long and
-must conform to the [Commit Message Body](#commit-body) format.
-
-The `footer` is optional. The [Commit Message Footer](#commit-footer) format describes what the footer is used for and the structure it must
-have.
-
-### <a name="commit-header"></a>Commit Message Header
-
-```text
-<type>(<scope>): <short summary>
-  │       │             │
-  │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
-  │       │
-  │       └─⫸ Commit Scope: src|tools|tests|config|docs
-  │
-  └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|test|chore
-```
-
-The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is optional.
-
-#### Type
-
-Must be one of the following:
-
-- **feat**: New features
-- **fix**: Bugfixes
-- **docs**: Documentation changes
-- **refactor**: Code changes which neither add features nor fix bugs
-- **test**: Adding tests or improving upon existing tests
-- **chore**: Miscellaneous maintenance tasks which can generally be ignored
-- **build**: Changes or improvements to the build tool or to the project's dependencies (_supported Scopes_: `tools`)
-- **ci**: Changes to CI configuration files and scripts (_supported Scopes_: `actions`)
-
-#### Scopes
-
-The following is the list of supported scopes:
-
-- `src` — Changes to the module source code (`src/`)
-- `tools` — Changes to development tooling (`tools/`)
-- `tests` — Changes to the test suite (`tests/`)
-- `config` — Changes to configuration files (`.editorconfig`, `.gitattributes`, `.pre-commit-config.yaml`, etc.)
-- `docs` — Documentation changes (`README.md`, `docs/`, `CONTRIBUTING.md`)
-
-#### Summary
-
-Use the summary field to provide a succinct description of the change:
-
-- use the imperative, present tense: "change" not "changed" nor "changes"
-- don't capitalize the first letter
-- no dot (.) at the end
-
-#### <a name="commit-body"></a>Commit Message Body
-
-Just as in the summary, use the imperative, present tense: "fix" not "fixed" nor "fixes".
-
-Explain the motivation for the change in the commit message body. This commit message should explain _why_ you are making the change. You
-can include a comparison of the previous behavior with the new behavior in order to illustrate the impact of the change.
-
-#### <a name="commit-footer"></a>Commit Message Footer
-
-The footer can contain information about breaking changes and deprecations and is also the place to reference GitHub issues, Jira tickets,
-and other PRs that this commit closes or is related to. For example:
-
-```text
-BREAKING CHANGE: <breaking change summary>
-<BLANK LINE>
-<breaking change description + migration instructions>
-<BLANK LINE>
-<BLANK LINE>
-Fixes #<issue number>
-```
-
-or
-
-```text
-DEPRECATED: <what is deprecated>
-<BLANK LINE>
-<deprecation description + recommended update path>
-<BLANK LINE>
-<BLANK LINE>
-Closes #<pr number>
-```
-
-Breaking Change section should start with the phrase "BREAKING CHANGE: " followed by a summary of the breaking change, a blank line, and a
-detailed description of the breaking change that also includes migration instructions.
-
-Similarly, a Deprecation section should start with "DEPRECATED: " followed by a short description of what is deprecated, a blank line, and a
-detailed description of the deprecation that also mentions the recommended update path.
-
-#### Revert commits
-
-If the commit reverts a previous commit, it should begin with `revert:`, followed by the header of the reverted commit.
-
-The content of the commit message body should contain:
-
-- information about the SHA of the commit being reverted in the following format: `This reverts commit <SHA>`,
-- a clear description of the reason for reverting the commit message.
-
-## How to Contribute
-
-1. Fork this repository, develop, and test your changes
-2. Run `.\PSFoundation.ps1 format` and `.\PSFoundation.ps1 lint` to ensure your changes pass all checks
-3. Add your GitHub username to the [`AUTHORS`](../.github/AUTHORS) and [`CODEOWNERS`](../.github/CODEOWNERS) files
-4. Submit a pull request
-
-_**NOTE**_: In order to make testing and merging of PRs easier, please submit changes to unrelated areas of the repository in separate PRs.
-
-### Technical Requirements
-
-- Must target PowerShell 5.0 or higher (every script must include `#Requires -Version 5.0`)
-- Must pass `.\PSFoundation.ps1 format -Check` with no formatting drift
-- Must pass `.\PSFoundation.ps1 lint` with zero PSScriptAnalyzer findings
-- Module functions under `src/` must include comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, `.EXAMPLE`)
-- New or updated functions must have corresponding Pester tests in `tests/`
-
-### Versioning
-
-The `PSFoundation` PowerShell module declared in [`src/PSFoundation.psd1`](../src/PSFoundation.psd1) follows [SemVer](https://semver.org/).
-
-When cutting a release through the automated pipeline, the version is determined by semantic-release from the
-[conventional commits](#commit-message-format) and written into the manifest automatically by `tools/release.ps1 -Prepare`; no manual bump
-is required. A manual bump is only needed when publishing outside the pipeline. The manifest must always stay in sync with the highest
-released version.
-
-Any change to the module source (`src/`), the module manifest, or a change that alters the public API surface of the module requires a
-version bump in the manifest. Documentation-only changes do not require a bump.
-
-Breaking (backwards incompatible) changes to the module must:
-
-1. Bump the MAJOR version in the module manifest
-2. Describe the breaking change and migration instructions in the commit message footer
-3. Update the module release notes if they exist
-
-New features and non-breaking enhancements bump the MINOR version. Bugfixes and documentation bumps increment the PATCH version.
+Keep administrative mutation tests separate from ordinary development checks. Use disposable or recoverable Windows machines for Office
+deployment, Windows Update servicing, AppX lifecycle operations, and remote directory or certificate workflows. Track remaining evidence in
+[migration progress](migration/progress.md).

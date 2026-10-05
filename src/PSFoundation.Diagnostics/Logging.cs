@@ -35,8 +35,11 @@ public sealed class LogEntry
     }
 }
 
+/// <summary>A caller-provided destination for structured log events.</summary>
+/// <remarks>Implementations define their concurrency and durability guarantees. Sink failures propagate to the caller.</remarks>
 public interface ILogSink
 {
+    /// <summary>Writes an event using the destination's cancellation and persistence policy.</summary>
     Task WriteAsync(LogEntry entry, CancellationToken cancellationToken = default);
 }
 
@@ -50,6 +53,8 @@ public sealed class LogManager
         if (this.sinks.Any(s => s == null))
             throw new ArgumentException("Sinks cannot contain null.", nameof(sinks));
     }
+    /// <summary>Writes to each configured sink in order, stopping at the first exception or cancellation.</summary>
+    /// <remarks>Earlier sinks may already have persisted the event. The manager does not dispose sinks or retry writes.</remarks>
     public async Task WriteAsync(LogEntry entry, CancellationToken cancellationToken = default)
     {
         if (entry == null)
@@ -61,6 +66,7 @@ public sealed class LogManager
             await sink.WriteAsync(entry, cancellationToken).ConfigureAwait(false);
         }
     }
+    /// <summary>Blocks until the ordered sink writes complete; errors propagate without an aggregate wrapper.</summary>
     public void Write(LogEntry entry, CancellationToken cancellationToken = default) => WriteAsync(entry, cancellationToken).GetAwaiter().GetResult();
 }
 
@@ -71,9 +77,12 @@ public sealed class JsonLineLogSink : ILogSink, IDisposable
     private readonly bool leaveOpen;
     private readonly SemaphoreSlim gate = new SemaphoreSlim(1, 1);
     private bool disposed;
+    /// <param name="writer">Destination writer. This sink serializes its own writes, not writes made through other references.</param>
+    /// <param name="leaveOpen">Keep the supplied writer open when disposing the sink; defaults to true.</param>
     public JsonLineLogSink(TextWriter writer, bool leaveOpen = true)
     { this.writer = writer ?? throw new ArgumentNullException(nameof(writer)); this.leaveOpen = leaveOpen; }
 
+    /// <summary>Appends one structured event as a JSON line, without automatic flushing.</summary>
     /// <remarks>Cancellation is observed before acquiring the write lock and before writing; an in-flight TextWriter write cannot be cancelled.
     /// A writer failure may leave a partial line. Disposal waits for an active write, rejects queued writes and honors leaveOpen.</remarks>
     public async Task WriteAsync(LogEntry entry, CancellationToken cancellationToken = default)
@@ -111,6 +120,7 @@ public sealed class JsonLineLogSink : ILogSink, IDisposable
         finally { gate.Release(); }
     }
 
+    /// <summary>Flushes the writer after active writes complete. Cancellation does not interrupt an in-flight writer flush.</summary>
     public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -124,6 +134,7 @@ public sealed class JsonLineLogSink : ILogSink, IDisposable
         finally { gate.Release(); }
     }
 
+    /// <summary>Waits for an active write and closes the writer only when ownership was explicitly transferred.</summary>
     public void Dispose()
     {
         gate.Wait();

@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Json;
 
 namespace PSFoundation.Security;
 
+/// <summary>A known event identifier with its log, provider, and optional classification.</summary>
 public sealed class SecurityEventDefinition
 {
     public int Id { get; }

@@ -26,9 +26,11 @@ public sealed class SystemManager
         if (this.registry.MachineName != null)
             throw new ArgumentException("System inventory requires a local registry manager.", nameof(registry));
     }
+    /// <summary>Reads Windows version registration from the configured registry manager.</summary>
     public WindowsVersionInfo GetOperatingSystem() => new WindowsVersionInfo(registry.GetValues(VersionPath));
     public int GetBuildNumber() => Convert.ToInt32(RequiredVersionValue("CurrentBuild"), CultureInfo.InvariantCulture);
     public string GetEdition() => Convert.ToString(RequiredVersionValue("EditionID"), CultureInfo.InvariantCulture)!;
+    /// <summary>Reads DisplayVersion, falling back to ReleaseId for older registrations.</summary>
     public string GetDisplayVersion()
     {
         var value = registry.GetValue(VersionPath, "DisplayVersion");
@@ -38,6 +40,7 @@ public sealed class SystemManager
     private object RequiredVersionValue(string name) => registry.GetValue(VersionPath, name)?.Data
         ?? throw new IOException("Required Windows version value is missing: " + name);
 
+    /// <summary>Observes physical memory through GlobalMemoryStatusEx; byte counts refer to the local host.</summary>
     public MemorySnapshot GetMemory()
     {
         RequireWindows();
@@ -46,8 +49,10 @@ public sealed class SystemManager
             throw new Win32Exception(Marshal.GetLastWin32Error(), "GlobalMemoryStatusEx failed.");
         return new MemorySnapshot(data.TotalPhysical, data.AvailablePhysical, data.Load);
     }
+    /// <summary>Returns elapsed Windows uptime from the native monotonic tick counter.</summary>
     public TimeSpan GetUptime() { RequireWindows(); return TimeSpan.FromMilliseconds(GetTickCount64()); }
 
+    /// <summary>Resolves the local hostname with a caller-supplied waiting limit; resolution failures remain available in the result.</summary>
     /// <remarks>The native DNS resolver cannot be interrupted on every supported runtime. Cancellation/timeout ends the caller's wait;
     /// any pending resolver operation finishes in the background without retaining unmanaged resources owned by this library.</remarks>
     public async Task<HostnameInfo> GetHostnameAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
@@ -78,10 +83,15 @@ public sealed class SystemManager
         }
         catch (SocketException error) { return new HostnameInfo(name, null, error); }
     }
+    /// <summary>Synchronously obtains hostname and DNS evidence using the same bounded waiting policy.</summary>
     public HostnameInfo GetHostname(TimeSpan timeout, CancellationToken cancellationToken = default)
         => GetHostnameAsync(timeout, cancellationToken).GetAwaiter().GetResult();
 
+    /// <summary>Enumerates usable disk volumes through physical disk and partition associations.</summary>
+    /// <param name="timeout">Maximum duration of each CIM operation, rather than the entire inventory.</param>
+    /// <param name="includeNonFixed">Include removable and other non-fixed volumes that have a reported size.</param>
     /// <param name="allowLogicalFallback">When true, failed physical associations fall back to logical volumes and retain the original error.</param>
+    /// <param name="cancellationToken">Cancels CIM operations and stops enumeration between association reads.</param>
     /// <remarks>The timeout applies to each CIM operation. Cancellation also applies between association reads.</remarks>
     public DiskInventory GetDisks(TimeSpan timeout, bool includeNonFixed = false, bool allowLogicalFallback = false, CancellationToken cancellationToken = default)
     {
@@ -135,10 +145,12 @@ public sealed class SystemManager
             return new DiskInventory(disks.Values.OrderBy(disk => disk.Name, StringComparer.OrdinalIgnoreCase), failure);
         }
     }
+    /// <summary>Offloads disk inventory while retaining fallback diagnostics and per-operation CIM timeout behavior.</summary>
     /// <remarks>CIM has synchronous native calls; this overload offloads them. Providers must honor cancellation and operation timeouts.</remarks>
     public Task<DiskInventory> GetDisksAsync(TimeSpan timeout, bool includeNonFixed = false, bool allowLogicalFallback = false, CancellationToken cancellationToken = default)
         => Task.Run(() => GetDisks(timeout, includeNonFixed, allowLogicalFallback, cancellationToken), cancellationToken);
 
+    /// <summary>Combines operating-system, memory, hostname, and disk observations; these reads are not an atomic machine snapshot.</summary>
     public async Task<SystemSnapshot> GetSnapshotAsync(TimeSpan timeout, bool allowLogicalDiskFallback = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -11,6 +11,7 @@ namespace PSFoundation.Office;
 
 public enum OfficeAppPathState { Uncertain, Missing, Present }
 public enum OfficeAppPathReason { InvalidTarget, UnresolvedEnvironment, UnsupportedDrive, FilesystemRedirection, ReparsePoint, UnexpectedPathType, ExecutablePresent, TargetNotFound, AccessDenied, ProbeFailed }
+/// <summary>Observed application registration, resolved executable, and reasons an App Paths entry may be stale or unusable.</summary>
 public sealed class OfficeAppPathEvidence
 {
     public RegistryView RegistryView { get; }

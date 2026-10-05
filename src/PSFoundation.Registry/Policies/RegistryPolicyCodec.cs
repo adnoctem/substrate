@@ -6,6 +6,7 @@ using System.Threading;
 
 namespace PSFoundation.Registry.Policies;
 
+/// <summary>A malformed registry.pol stream, with its failure location retained for diagnosis.</summary>
 public sealed class RegistryPolicyFormatException : IOException
 {
     public long Offset { get; }

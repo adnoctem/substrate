@@ -14,8 +14,10 @@ public sealed class RegistryFileService
         : this(manager, new RegistryCommandRunner(view: (manager ?? throw new ArgumentNullException(nameof(manager))).View, timeout: timeout)) { }
     internal RegistryFileService(RegistryManager manager, IRegistryCommandRunner runner) { this.manager = manager; this.runner = runner; }
 
+    /// <summary>Exports a local subtree to a registry text file; overwriting requires explicit permission.</summary>
     public void Export(RegistryPath path, string destination, bool overwrite = false, CancellationToken cancellationToken = default) =>
         ExportAsync(path, destination, overwrite, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Runs reg.exe export with a bounded timeout and the manager's resolved registry view.</summary>
     public Task ExportAsync(RegistryPath path, string destination, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         RequireLocal();
@@ -26,6 +28,7 @@ public sealed class RegistryFileService
 
     /// <summary>Imports the entire file using the selected view. Cancellation/failure may leave partial registry changes.</summary>
     public void Import(string source, CancellationToken cancellationToken = default) => ImportAsync(source, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Runs reg.exe import after validating the file. Cancellation or failure can leave partial registry changes.</summary>
     public async Task ImportAsync(string source, CancellationToken cancellationToken = default)
     {
         RequireLocal();
@@ -77,6 +80,7 @@ public sealed class RegistryFileService
     }
 }
 
+/// <summary>A failed reg.exe operation with captured standard output, standard error, and any observed exit code.</summary>
 public sealed class RegistryCommandException : IOException
 {
     public int? ExitCode { get; }

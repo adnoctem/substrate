@@ -9,6 +9,7 @@ using PSFoundation.Diagnostics;
 namespace PSFoundation.Windows;
 
 public enum SystemIntegrityStatus { Clean, Violations, CouldNotRun, Failed }
+/// <summary>SFC verification output, native exit evidence, and a bounded supporting log excerpt.</summary>
 public sealed class SystemIntegrityReport
 {
     public SystemIntegrityStatus Status { get; }
@@ -17,6 +18,7 @@ public sealed class SystemIntegrityReport
     public IReadOnlyList<string> LogExcerpt { get; }
     internal SystemIntegrityReport(SystemIntegrityStatus status, int exitCode, string detail, string[] log) { Status = status; ExitCode = exitCode; Detail = detail; LogExcerpt = Array.AsReadOnly(log); }
 }
+/// <summary>Runs Windows system-file verification without requesting repair and classifies available diagnostics.</summary>
 public sealed class SystemIntegrityManager
 {
     /// <summary>Runs SFC verify-only. No repair or elevation occurs. Cancellation terminates only this verifier process.</summary>

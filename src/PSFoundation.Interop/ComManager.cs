@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace PSFoundation.Interop;
 
+/// <summary>Creates and scopes COM objects with explicit lifetime and apartment requirements.</summary>
 public sealed class ComManager
 {
     /// <summary>Releases one reference on an object the caller owns. Never final-releases a shared RCW.

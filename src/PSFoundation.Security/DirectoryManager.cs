@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace PSFoundation.Security;
 
+/// <summary>Observed domain and forest FSMO role holders.</summary>
 public sealed class DirectoryRoleHolders
 {
     public string SchemaMaster { get; }
@@ -32,6 +33,7 @@ public sealed class DirectoryRoleHolders
         PdcEmulator = pdc.Name;
     }
 }
+/// <summary>A directory account-lockout event with the observed caller and event timestamp.</summary>
 public sealed class AccountLockout
 {
     public DateTime? TimeCreated { get; }

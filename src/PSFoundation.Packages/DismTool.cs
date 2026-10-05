@@ -11,8 +11,10 @@ namespace PSFoundation.Packages;
 /// <summary>Explicit online AppX provisioning through the Windows system DISM tool. Never reboots or changes installed user registrations.</summary>
 public sealed class DismTool
 {
+    /// <summary>Queries provisioned AppX packages using the system DISM executable.</summary>
     public IReadOnlyList<AppxPackageInfo> GetProvisionedPackages(CancellationToken cancellationToken = default)
         => ParseProvisionedPackages(Run(new[] { "/Get-ProvisionedAppxPackages" }, cancellationToken).StandardOutput);
+    /// <summary>Runs DISM provisioning with explicit dependencies and license handling.</summary>
     public void ProvisionPackage(FileSystemPath package, IEnumerable<FileSystemPath>? dependencies = null, FileSystemPath? license = null, bool skipLicense = false, CancellationToken cancellationToken = default)
     {
         if (package == null)
@@ -25,6 +27,7 @@ public sealed class DismTool
             arguments.Add("/SkipLicense");
         Run(arguments, cancellationToken);
     }
+    /// <summary>Removes provisioning for an exact package full name; this does not mean every existing user registration was removed.</summary>
     public void RemoveProvisionedPackage(string fullName, CancellationToken cancellationToken = default)
     { AppxPackageInfo.RequireIdentity(fullName); Run(new[] { "/Remove-ProvisionedAppxPackage", "/PackageName:" + fullName }, cancellationToken); }
     /// <summary>Parses DISM output requested with /English. Unknown heading/progress lines are ignored; incomplete package records fail.</summary>

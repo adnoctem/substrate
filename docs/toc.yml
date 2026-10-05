@@ -1,0 +1,18 @@
+- name: Overview
+  href: index.md
+- name: API catalog
+  href: API.md
+- name: .NET reference
+  href: ../build/docs/api/toc.yml
+- name: Architecture
+  href: architecture.md
+- name: Documentation
+  href: documentation.md
+- name: Registry guide
+  href: registry-api.md
+- name: Networking guide
+  href: networking-api.md
+- name: Vendor updates
+  href: vendor-updates.md
+- name: Troubleshooting
+  href: troubleshooting.md

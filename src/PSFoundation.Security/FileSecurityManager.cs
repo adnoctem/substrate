@@ -10,6 +10,7 @@ namespace PSFoundation.Security;
 
 [Flags]
 public enum FileSecurityParts { Owner = 1, Group = 2, Access = 4, Audit = 8 }
+/// <summary>A copied Windows security descriptor; returned binary or mutable forms do not mutate this instance.</summary>
 public sealed class FileSecurityDescriptor
 {
     private readonly byte[] bytes;

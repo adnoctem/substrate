@@ -84,14 +84,14 @@ detailed snapshot API remains case-sensitive and type-aware even though the olde
 Run through the launcher:
 
 ```powershell
-.\PSFoundation.ps1 baseline
-.\PSFoundation.ps1 build -Format Zip
-.\PSFoundation.ps1 format -Managed -Check
-.\PSFoundation.ps1 format -Check
-.\PSFoundation.ps1 lint
-.\PSFoundation.ps1 test -Managed
-.\PSFoundation.ps1 test -Path tests/PowerShell
-.\PSFoundation.ps1 test
+dotnet msbuild tools/tasks.proj -t:Baseline
+dotnet msbuild tools/tasks.proj -t:Pack
+dotnet msbuild tools/tasks.proj -t:CheckManaged
+dotnet msbuild tools/tasks.proj -t:CheckPowerShell
+dotnet msbuild tools/tasks.proj -t:CheckPowerShell
+dotnet msbuild tools/tasks.proj -t:TestManaged
+dotnet msbuild tools/tasks.proj -t:TestPowerShell
+dotnet msbuild tools/tasks.proj -t:Test
 pre-commit run --all-files
 ```
 

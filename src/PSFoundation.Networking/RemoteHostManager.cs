@@ -12,6 +12,7 @@ using PSFoundation.Interop;
 namespace PSFoundation.Networking;
 
 public enum RemoteChannel { Dns, Icmp, WsMan, RemoteRegistry, Rpc, Rdp, CredSsp }
+/// <summary>Evidence from one reachability mechanism. Successful transport access does not prove application health.</summary>
 public sealed class RemoteChannelResult
 {
     public RemoteChannel Channel { get; }
@@ -22,6 +23,7 @@ public sealed class RemoteChannelResult
     internal RemoteChannelResult(RemoteChannel channel, bool reachable, string detail, long? latency = null, string? state = null)
     { Channel = channel; Reachable = reachable; Detail = detail; LatencyMilliseconds = latency; ServiceState = state; }
 }
+/// <summary>Independent channel observations for a remote host, with no single implied availability verdict.</summary>
 public sealed class RemoteHostReport
 {
     public string ComputerName { get; }
@@ -32,8 +34,11 @@ public sealed class RemoteHostReport
 /// <summary>Independent reachability evidence. Optional authentication is explicit; a successful port probe never proves application health.</summary>
 public sealed class RemoteHostManager
 {
+    /// <summary>Collects DNS, ICMP, WSMan, registry-service and RPC evidence, with explicit optional RDP and CredSSP probes.</summary>
+    /// <remarks>The timeout applies to individual probes; total duration can exceed it. Supplying CredSSP credentials explicitly authorizes that authentication attempt.</remarks>
     public RemoteHostReport Probe(string computerName, TimeSpan timeout, bool includeRdp = false, NetworkCredential? credSspCredential = null, CancellationToken cancellationToken = default)
         => ProbeAsync(computerName, timeout, includeRdp, credSspCredential, cancellationToken).GetAwaiter().GetResult();
+    /// <inheritdoc cref="Probe"/>
     public async Task<RemoteHostReport> ProbeAsync(string computerName, TimeSpan timeout, bool includeRdp = false, NetworkCredential? credSspCredential = null, CancellationToken cancellationToken = default)
     {
         NetworkWait.CheckTimeout(timeout);

@@ -3,6 +3,7 @@ using PSFoundation.Registry;
 
 namespace PSFoundation.Windows;
 
+/// <summary>An observed Windows file association between an identifier and its program registration.</summary>
 public sealed class ApplicationAssociation
 {
     public string Extension { get; }
@@ -10,6 +11,7 @@ public sealed class ApplicationAssociation
     public string Command { get; }
     internal ApplicationAssociation(string extension, string programId, string command) { Extension = extension; ProgramId = programId; Command = command; }
 }
+/// <summary>Reads and explicitly imports or exports Windows default-application associations.</summary>
 public sealed class ApplicationAssociationManager
 {
     private readonly RegistryManager registry;

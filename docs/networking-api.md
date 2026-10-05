@@ -1,4 +1,6 @@
-# Reusable networking API
+# Using the networking library
+
+This guide illustrates common workflows. The generated [API catalog](API.md) links to the complete member reference.
 
 `PSFoundation.Networking` provides address validation, network calculations, local Windows adapter inventory and TCP probes for other
 applications. It does not load PowerShell, display prompts, choose a log destination or change network configuration.
@@ -82,6 +84,6 @@ NetAdapter module for its CIM object type extensions, while C# performs the quer
 `Show-Color` also lives in `compat.ps1`: C# supplies the palette and PowerShell writes colored host output. It explicitly declares unused
 remaining arguments and supports standard PowerShell flags, allowing parameter completion.
 
-This slice does not migrate `Get-UserInfo` or `Test-RemoteHostReachability`; identity and PowerShell remoting remain separate pending work.
-The reusable TCP probe does not imply credentials, remoting setup or remote administration. See
-[the compatibility ledger](migration/compatibility-exceptions.md) for the exact exceptions and remaining provider-failure validation.
+`Get-UserInfo` uses the Windows identity API; `Test-RemoteHostReachability` uses the networking remoting API. The reusable TCP probe does
+not imply credentials, remoting setup or remote administration. The repository's `docs/migration/compatibility-exceptions.md` records the
+exact exceptions and remaining provider-failure validation.

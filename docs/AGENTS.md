@@ -1,66 +1,63 @@
 # AGENTS.md - PSFoundation
 
-`PSFoundation` is a PowerShell module library for Windows administration (registry, networking, security, packages, system, ...) supporting
-Windows PowerShell 5.1 and PowerShell 7+. `src/` is the module source, `tools/` the dev tooling, `tests/` the Pester suite. See
-`docs/CONTRIBUTING.md` for full details.
+PSFoundation provides reusable C# libraries and a PowerShell module for Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Read
+[CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
 
-## All dev tasks go through the launcher
+## Repository tasks
 
-```pwsh
-.\PSFoundation.ps1 <command>   # forwards to tools/<command>.ps1, passes remaining args through
-```
+Use `dotnet msbuild tools/tasks.proj -t:<Target>`. Restore first on a fresh checkout.
 
-| Command   | Aliases                            | Purpose                                                                                              |
-| --------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `init`    | `initialize`, `setup`, `bootstrap` | Install module deps (`src/PSFoundation.psd1`) + dev deps (`tools/dev-dependencies.json`). Run first. |
-| `format`  | `fmt`, `fix`                       | Format all PowerShell sources with PSScriptAnalyzer. `-Check` verifies without writing.              |
-| `lint`    | `check`, `analyze`                 | PSScriptAnalyzer rule check. **Exits 1 on any finding** (CI + pre-commit rely on this).              |
-| `build`   | `bundle`, `package`                | Create `dist/` archives (zip + tar.gz).                                                              |
-| `test`    | `tests`, `pester`                  | Run Pester 5 tests; exits with the failed count. `-Path` limits to one file.                         |
-| `deps`    | `dependencies`                     | Check/update PowerShell Gallery dependencies.                                                        |
-| `release` | `publish`                          | Publish to PSGallery. Dry-run: `-DryRun`.                                                            |
+| Target         | Purpose                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| Restore        | Restore locked NuGet packages, DocFX, PowerShell tools, and formatter |
+| Build / Stage  | Compile / assemble the importable module                              |
+| Test           | Managed tests plus packaged-module checks in both PowerShell hosts    |
+| UpdateHelp     | Explicitly refresh tracked PowerShell metadata and API catalog        |
+| Docs           | Validate help and build the reference site                            |
+| Format / Check | Apply formatting / check formatting and analysis                      |
+| Pack           | Create archives and checksums under dist                              |
+| Verify         | Check, test, document, and package                                    |
+| Clean          | Remove generated output while retaining dependency caches             |
 
-Verification order: `.\PSFoundation.ps1 format -Check` then `lint` then `test`.
+Before committing or handing changed files back, run `pre-commit run --all-files`. Resolve findings and rerun after hooks modify files. For
+implementation changes, run the relevant MSBuild targets and finish with `Verify` when changing the build or packaging pipeline.
 
-Before preparing a commit message or handing changes back, run `pre-commit run --all-files`. Resolve findings and rerun after any hook
-modifies files so the final check passes on the proposed changes.
+## Architecture and public APIs
 
-## Adding a public function
+- Reusable libraries have no PowerShell dependency, prompts, host UI assumptions, or implicit elevation. Applications own policy.
+- Use Manager for owned domain behavior and Tool for external executables. Keep preparation, validation, and execution explicit.
+- Define cancellation and partial-completion behavior for long operations. Release native resources deterministically.
+- Public PowerShell ownership is declared in `tools/compiled-commands.psd1` and `tools/compatibility-commands.psd1`.
+- Implement compiled commands in the PowerShell adapter; keep host compatibility functions in its `compat.ps1`.
+- C# comments feed DocFX. Reviewed `docs/commands/PSFoundation` Markdown feeds PlatyPS and packaged help.
+- Document meaningful contracts without adding filler comments to obvious members. UpdateHelp refreshes metadata; review its output.
+- Frozen `src/*.ps1` files are v1 comparison material. Do not add new production behavior there.
 
-- Extend an existing domain file and its matching test file when they are a suitable home for new functions. Create a new source file only
-  when no existing domain fits. Keep repository filenames free of spaces; use temporary test paths when testing whitespace handling.
-- Every `*.ps1` in `src/` is dot-sourced automatically by `src/PSFoundation.psm1` (except `common.ps1`, sourced first) — no manual wiring.
-- Register the function in **both** `$publicFunctions` in `src/PSFoundation.psm1` **and** `FunctionsToExport` in `src/PSFoundation.psd1`
-  (aliases likewise: `$publicAliases` / `AliasesToExport`). Missing either means the function is not exported.
-- Add comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, `.EXAMPLE`) and a matching `tests/<domain>.Tests.ps1` Pester test.
+## Conventions
 
-## Conventions & gotchas
+- C#: four-space indentation, nullable references, deterministic builds, warnings as errors. Follow the existing domain layout.
+- PowerShell: two-space indentation, UTF-8 with BOM, CRLF; the formatter normalizes encoding. Shipped scripts remain compatible with 5.1.
+- Development scripts may use PowerShell 7 when declared with Requires. Keep runtime and development prerequisites distinct.
+- Keep repository filenames free of spaces; test whitespace paths using temporary fixtures.
+- Prefer focused functional tests for substantial behavior. Live administrative mutations belong on disposable or recoverable machines.
+- Conventional commits: `type(scope): summary`, with scopes `src|tools|tests|config|docs`. Types:
+  `feat|fix|docs|refactor|test|chore|build|ci`. A body of at least 20 characters is required except for docs commits.
+- Semantic-release supplies the release version to verification and staging. Do not manually bump the frozen v1 manifest.
+- Publishing is explicitly gated. No pushing or publishing without user authorization.
 
-- Formatting is PSScriptAnalyzer-driven: 2-space indent, UTF-8 **with BOM**, CRLF; `format` normalizes encoding/line endings on write. UTF-8
-  BOM is required for Windows PowerShell 5.1 parsing.
-- `format`/`lint` exclude `.git`, `.idea`, `dist` and `build`.
-- Target PowerShell 5.1+; avoid PS7-only syntax. New `src/` scripts start with `#Requires -Version 5.0`; tests use `#Requires -Version 5.1`
-  plus the Pester 5 module requirement.
-- Commits: conventional commits `type(scope): summary`; types `feat|fix|docs|refactor|test|chore|build|ci`, scopes
-  `src|tools|tests|config|docs`. Body mandatory (>= 20 chars) except for `docs` commits.
-- Never bump `ModuleVersion` in `src/PSFoundation.psd1` manually — semantic-release (`.releaserc`, branches `main`/`next`) writes it via
-  `tools/release.ps1 -Prepare`.
-- pre-commit hooks (`.pre-commit-config.yaml`) run format/lint and prettier on Markdown (prettier runs via `bun`); install once with
-  `pre-commit install`.
+## Security review rules
 
-## Security review rules (non-negotiable)
-
-- Never commit secrets, credentials, tokens, or private machine configuration. Keep test fixtures synthetic or sanitized. Do not log secrets
-  or pass them in process arguments; encoding is not encryption.
-- Verify downloaded executable content against an independently trusted hash or signature before execution. Do not disable certificate
-  validation or bypass integrity failures to make a download succeed.
-- Do not use `Invoke-Expression` on string-built commands. Keep executable code separate from data; when crossing process boundaries,
-  constrain supported value types and quote all user-controlled values.
+- Never commit secrets, credentials, tokens, or private machine configuration. Fixtures must be synthetic or sanitized.
+- Do not log secrets or put them in process arguments. Encoding is not encryption.
+- Verify downloaded executable content against independently trusted hashes or signatures before execution.
+- Never disable certificate validation or bypass integrity failures.
+- Do not use Invoke-Expression with constructed commands. Keep code separate from data and constrain values crossing process boundaries.
 
 ## Layout
 
-- `src/<domain>.ps1` — module function library (common, registry, networking, security, ...) plus `PSFoundation.psd1`/`.psm1`
-- `tests/<domain>.Tests.ps1` — Pester 5 tests mirroring `src/` per domain
-- `tools/` — dev scripts behind the launcher, `dev-dependencies.json`
-- `dist/`, `build/` — gitignored build output
-- `docs/` — project docs. **This file lives at `docs/AGENTS.md`; the root `AGENTS.md` is a symlink to it — edit `docs/AGENTS.md`.**
+- `src/PSFoundation.*`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
+- `tests/PSFoundation.*.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
+- `tests/*.Tests.ps1`: retained v1 reference tests, excluded from the ordinary v2 run.
+- `tools/`: MSBuild orchestration and supporting scripts; `tools/module.psd1`: v2 manifest template.
+- `docs/`: documentation sources; `build/`, `dist/`: ignored output.
+- This file lives at `docs/AGENTS.md`; root `AGENTS.md` is a symlink. Edit this file.

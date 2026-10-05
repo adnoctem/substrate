@@ -38,6 +38,7 @@ public sealed class CertificateInfo
     public X509Certificate2 OpenCertificate() => new X509Certificate2(encoded);
 }
 
+/// <summary>Windows trust status and public signer evidence; an acceptable signer must still match the caller's publisher policy.</summary>
 public sealed class AuthenticodeVerification
 {
     public FileSystemPath Path { get; }
@@ -67,6 +68,7 @@ public sealed class AuthenticodeVerification
 /// A result describes the file at observation time and is not reusable execution authorization.</remarks>
 public sealed class AuthenticodeVerifier
 {
+    /// <summary>Evaluates Windows Authenticode trust under the selected network-access policy and retains signature evidence.</summary>
     public AuthenticodeVerification Verify(FileSystemPath path, SignatureNetworkAccess networkAccess = SignatureNetworkAccess.Online, CancellationToken cancellationToken = default)
     {
         if (path == null)
@@ -80,6 +82,7 @@ public sealed class AuthenticodeVerifier
         using (var file = new FileStream(path.Value, FileMode.Open, FileAccess.Read, FileShare.Read))
             return VerifyFile(path, file, networkAccess, cancellationToken);
     }
+    /// <summary>Offloads native signature verification; cancellation is observed at supported checkpoints.</summary>
     /// <remarks>Offloads the native call. Cancellation is checked before and after it; Windows trust-provider calls cannot be interrupted.</remarks>
     public Task<AuthenticodeVerification> VerifyAsync(FileSystemPath path, SignatureNetworkAccess networkAccess = SignatureNetworkAccess.Online, CancellationToken cancellationToken = default)
         => Task.Run(() => Verify(path, networkAccess, cancellationToken), cancellationToken);

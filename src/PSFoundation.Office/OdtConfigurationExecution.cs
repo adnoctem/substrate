@@ -109,6 +109,7 @@ public sealed partial class OdtTool
             writer.WriteEndElement();
         }
     }
+    /// <summary>Runs a generated configuration using protected temporary files and explicit execution settings.</summary>
     public ProcessResult InvokeConfiguration(FileSystemPath executable, XmlDocument document, FileSystemPath directory,
         OdtMode mode = OdtMode.Configure, SecureString? productKey = null, CancellationToken cancellationToken = default)
         => InvokeConfigurationAsync(executable, document, directory, mode, productKey, cancellationToken).GetAwaiter().GetResult();

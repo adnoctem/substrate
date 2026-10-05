@@ -13,6 +13,7 @@ using PSFoundation.Windows;
 namespace PSFoundation.Security;
 
 public enum DefenderExclusionKind { Path, Extension, Process }
+/// <summary>A detached Defender threat observation with its native identifier and current state.</summary>
 public sealed class DefenderThreat
 {
     public CimRecord Data { get; }
@@ -22,6 +23,7 @@ public sealed class DefenderThreat
     public string? DescriptionUrl => string.IsNullOrEmpty(Name) ? null : DefenderManager.GetThreatDescriptionUrl(Name!);
     internal DefenderThreat(CimRecord data) => Data = data;
 }
+/// <summary>A detached Defender detection record, distinct from proof that remediation succeeded.</summary>
 public sealed class DefenderDetection
 {
     public CimRecord Data { get; }
@@ -32,6 +34,7 @@ public sealed class DefenderDetection
     public bool ActionSucceeded => Data.GetValue("ActionSuccess") is bool success && success;
     internal DefenderDetection(CimRecord data) => Data = data;
 }
+/// <summary>Observed Defender exclusion lists grouped by their native exclusion kind.</summary>
 public sealed class DefenderExclusions
 {
     public IReadOnlyList<string> Paths { get; }
@@ -52,31 +55,44 @@ public sealed class DefenderManager
     private const string Namespace = @"root\Microsoft\Windows\Defender";
     private readonly CimSession? session;
     public DefenderManager(CimSession? session = null) => this.session = session;
+    /// <summary>Reads Defender threat observations through its CIM provider.</summary>
     public IReadOnlyList<DefenderThreat> GetThreats(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Array.AsReadOnly(Query("MSFT_MpThreat", timeout, cancellationToken).Select(record => new DefenderThreat(record)).ToArray());
+    /// <summary>Offloads threat inventory with a per-operation timeout.</summary>
     public Task<IReadOnlyList<DefenderThreat>> GetThreatsAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => GetThreats(timeout, cancellationToken), cancellationToken);
+    /// <summary>Reads detection records, optionally filtering by initial detection time.</summary>
     public IReadOnlyList<DefenderDetection> GetDetections(TimeSpan timeout, DateTime? detectedSince = null, CancellationToken cancellationToken = default)
         => Array.AsReadOnly(Query("MSFT_MpThreatDetection", timeout, cancellationToken).Select(record => new DefenderDetection(record))
             .Where(record => !detectedSince.HasValue || record.InitialDetectionTime >= detectedSince.Value).ToArray());
+    /// <summary>Offloads detection inventory without changing Defender configuration.</summary>
     public Task<IReadOnlyList<DefenderDetection>> GetDetectionsAsync(TimeSpan timeout, DateTime? detectedSince = null, CancellationToken cancellationToken = default)
         => Task.Run(() => GetDetections(timeout, detectedSince, cancellationToken), cancellationToken);
+    /// <summary>Returns a detached record of Defender computer status.</summary>
     public CimRecord GetStatus(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Query("MSFT_MpComputerStatus", timeout, cancellationToken).Single();
+    /// <summary>Offloads the Defender status query.</summary>
     public Task<CimRecord> GetStatusAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => GetStatus(timeout, cancellationToken), cancellationToken);
+    /// <summary>Reads configured exclusion paths, processes, extensions, and IP addresses.</summary>
     public DefenderExclusions GetExclusions(TimeSpan timeout, CancellationToken cancellationToken = default)
         => new DefenderExclusions(Query("MSFT_MpPreference", timeout, cancellationToken).Single());
+    /// <summary>Offloads exclusion inventory without modifying it.</summary>
     public Task<DefenderExclusions> GetExclusionsAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => GetExclusions(timeout, cancellationToken), cancellationToken);
+    /// <summary>Adds explicitly supplied exclusions of one kind and returns the native provider status.</summary>
     public uint AddExclusions(DefenderExclusionKind kind, IEnumerable<string> values, TimeSpan timeout, CancellationToken cancellationToken = default)
         => ChangeExclusions("Add", kind, values, timeout, cancellationToken);
+    /// <summary>Removes explicitly supplied exclusions of one kind and returns the native provider status.</summary>
     public uint RemoveExclusions(DefenderExclusionKind kind, IEnumerable<string> values, TimeSpan timeout, CancellationToken cancellationToken = default)
         => ChangeExclusions("Remove", kind, values, timeout, cancellationToken);
+    /// <summary>Offloads the explicit exclusion addition; this can reduce protection for matching content.</summary>
     public Task<uint> AddExclusionsAsync(DefenderExclusionKind kind, IEnumerable<string> values, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => AddExclusions(kind, values, timeout, cancellationToken), cancellationToken);
+    /// <summary>Offloads removal of the selected exclusions.</summary>
     public Task<uint> RemoveExclusionsAsync(DefenderExclusionKind kind, IEnumerable<string> values, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => RemoveExclusions(kind, values, timeout, cancellationToken), cancellationToken);
+    /// <summary>Builds an escaped Microsoft threat-information URL without opening a browser or contacting the site.</summary>
     public static string GetThreatDescriptionUrl(string threatName)
     {
         if (string.IsNullOrWhiteSpace(threatName))

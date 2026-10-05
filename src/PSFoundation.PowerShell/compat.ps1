@@ -5,26 +5,7 @@ $script:ProtectedServiceNames = @('RemoteAccess', 'RemoteRegistry')
 
 function Install-UPFAppxPackage {
   <#
-  .SYNOPSIS
-    Installs or provisions a local AppX/MSIX package.
-  .DESCRIPTION
-    Uses native Windows deployment for current-user installs and system DISM for provisioning. Windows validates package signatures.
-  .PARAMETER Path
-    Local package file.
-  .PARAMETER DependencyPath
-    Local dependency package files.
-  .PARAMETER LicensePath
-    Optional provisioning license.
-  .PARAMETER Provisioned
-    Provision for future users.
-  .PARAMETER SkipLicense
-    Explicitly skip provisioning license processing.
-  .PARAMETER ForceUpdateFromAnyVersion
-    Allow a package downgrade.
-  .PARAMETER DryRun
-    Preview without applying changes.
-  .EXAMPLE
-    Install-UPFAppxPackage -Path '.\Example.msix' -DryRun
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
   [OutputType([PSCustomObject])]
@@ -49,18 +30,7 @@ function Install-UPFAppxPackage {
 
 function Update-UPFAppxPackage {
   <#
-  .SYNOPSIS
-    Updates a package using a local AppX/MSIX file.
-  .DESCRIPTION
-    Reuses the native install operation with explicit version replacement.
-  .PARAMETER Path
-    Local package file.
-  .PARAMETER DependencyPath
-    Dependency files.
-  .PARAMETER DryRun
-    Preview without applying changes.
-  .EXAMPLE
-    Update-UPFAppxPackage -Path '.\Example.msix' -DryRun
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
   [OutputType([PSCustomObject])]
@@ -74,26 +44,7 @@ function Update-UPFAppxPackage {
 
 function Install-UPFAppxPackageSet {
   <#
-  .SYNOPSIS
-    Installs a sequence of local AppX/MSIX packages.
-  .DESCRIPTION
-    Applies the singular native install operation with the same confirmation and result handling.
-  .PARAMETER Path
-    Package files.
-  .PARAMETER DependencyPath
-    Shared dependency files.
-  .PARAMETER Provisioned
-    Provision for future users.
-  .PARAMETER SkipLicense
-    Skip provisioning license processing.
-  .PARAMETER ForceUpdateFromAnyVersion
-    Permit version replacement.
-  .PARAMETER PassThru
-    Return lifecycle results.
-  .PARAMETER DryRun
-    Preview without applying changes.
-  .EXAMPLE
-    Install-UPFAppxPackageSet -Path '.\One.msix', '.\Two.msix' -PassThru -DryRun
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
   [OutputType([PSCustomObject])]
@@ -114,28 +65,7 @@ function Install-UPFAppxPackageSet {
 
 function Uninstall-UPFAppxPackageSet {
   <#
-  .SYNOPSIS
-    Resolves package patterns and removes eligible AppX/MSIX packages.
-  .DESCRIPTION
-    Uses the native discovery and singular removal APIs. Protected removals require both IncludeProtected and Force.
-  .PARAMETER Pattern
-    Wildcard package patterns.
-  .PARAMETER Installed
-    Include installed packages; enabled by default.
-  .PARAMETER Provisioned
-    Include provisioning records.
-  .PARAMETER AllUsers
-    Include all user registrations.
-  .PARAMETER IncludeProtected
-    Consider protected packages.
-  .PARAMETER Force
-    Allow protected removal with IncludeProtected.
-  .PARAMETER PassThru
-    Return lifecycle results.
-  .PARAMETER DryRun
-    Preview without applying changes.
-  .EXAMPLE
-    Uninstall-UPFAppxPackageSet -Pattern 'Microsoft.Zune*' -DryRun -PassThru
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
   [OutputType([PSCustomObject])]
@@ -167,16 +97,7 @@ function Uninstall-UPFAppxPackageSet {
 
 function Merge-ObjectArrays {
   <#
-  .SYNOPSIS
-    Merges matching override properties into the base array in place.
-  .DESCRIPTION
-    Matches Name and, when supplied, Path. Changes only existing base keys.
-  .PARAMETER Base
-    Base records to modify.
-  .PARAMETER Overrides
-    Override records containing matching identity and replacement properties.
-  .EXAMPLE
-    Merge-ObjectArrays -Base $base -Overrides $overrides
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Preserves the public v1 name.')]
   [OutputType([void])]
@@ -186,14 +107,7 @@ function Merge-ObjectArrays {
 
 function Get-DefaultApp {
   <#
-  .SYNOPSIS
-    Retrieves the current user's default application command for an extension.
-  .DESCRIPTION
-    Resolves the UserChoice ProgId and its registered open command without executing it.
-  .PARAMETER FileExtension
-    File extension including its leading dot.
-  .EXAMPLE
-    Get-DefaultApp -FileExtension '.txt'
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [OutputType([string])]
   param ([Parameter(Mandatory = $true)][string]$FileExtension)
@@ -204,22 +118,7 @@ function Get-DefaultApp {
 
 function Request-AdministratorPrivilege {
   <#
-  .SYNOPSIS
-    Relaunches the calling entry script through an explicit Windows UAC request.
-  .DESCRIPTION
-    Returns immediately when elevated. Otherwise forwards inert arguments to
-    the same PowerShell executable, waits and exits with the child's exit code.
-    Encoded arguments are not encrypted: never pass secrets in command arguments.
-  .PARAMETER ScriptPath
-    Entry script, defaulting to the caller's script path.
-  .PARAMETER BoundParameters
-    Named arguments including explicit switch values. Elevated is reserved.
-  .PARAMETER ArgumentList
-    Positional arguments. Only inert scalar values and arrays are accepted.
-  .PARAMETER IsElevatedRelaunch
-    Loop guard passed from the caller's Elevated switch.
-  .EXAMPLE
-    Request-AdministratorPrivilege -BoundParameters $PSBoundParameters -ArgumentList $args -IsElevatedRelaunch:$Elevated
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   [OutputType([void])]
@@ -254,22 +153,7 @@ function Request-AdministratorPrivilege {
 
 function New-EncryptedCredentialFile {
   <#
-  .SYNOPSIS
-    Stores a credential and a separate random AES key in protected files.
-  .DESCRIPTION
-    Uses the compatible v1 file format. Restricts access before writing secret
-    bytes. The caller must control both parent directories. The two file
-    replacements are not transactional; recreate the pair after a partial failure.
-  .PARAMETER Path
-    Credential destination.
-  .PARAMETER KeyPath
-    Separate key destination.
-  .PARAMETER Credential
-    Credential to store without an interactive prompt.
-  .PARAMETER UserName
-    Account name for an explicit interactive password prompt.
-  .EXAMPLE
-    New-EncryptedCredentialFile -Path '.\credential.bin' -KeyPath '.\credential.key' -Credential (Get-Credential)
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [OutputType([PSCustomObject])]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
@@ -300,16 +184,7 @@ function New-EncryptedCredentialFile {
 
 function Get-OfficeDeploymentRecovery {
   <#
-  .SYNOPSIS
-    Reads a protected Office recovery record without resuming it.
-  .DESCRIPTION
-    Uses the native journal reader to validate schema, identity, scope and fingerprints. A checkpoint does not authorize replay.
-  .PARAMETER RunId
-    Run identifier returned by an Office operation.
-  .PARAMETER LogRoot
-    Protected local recovery directory.
-  .EXAMPLE
-    Get-OfficeDeploymentRecovery -RunId $result.RunId
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   [OutputType([PSCustomObject])]
@@ -400,20 +275,7 @@ function ConvertFrom-PSFOfficeMediaAssessment {
 
 function Save-OfficeDeploymentMedia {
   <#
-  .SYNOPSIS
-    Prepares a verified Office package and publishes its manifest last.
-  .DESCRIPTION
-    Downloads only during explicit preparation. C# verifies and publishes the package without replacing incomplete or incompatible media.
-  .PARAMETER Configuration
-    Requested product, ordered languages, channel, architecture and optional build.
-  .PARAMETER SourcePath
-    New dedicated package directory whose parent already exists.
-  .PARAMETER OdtPath
-    Existing Microsoft-signed Office Deployment Tool setup.exe.
-  .PARAMETER DryRun
-    Validate and preview without writes or downloads.
-  .EXAMPLE
-    Save-OfficeDeploymentMedia -Configuration $target -SourcePath C:\Media\Office -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Media names the deployment payload as a collective noun.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -437,17 +299,7 @@ function Save-OfficeDeploymentMedia {
 
 function Test-OfficeDeploymentMedia {
   <#
-  .SYNOPSIS
-    Validates an Office package, manifest, payloads, paths, and write protection.
-  .DESCRIPTION
-    C# validates schema-2 manifests and protected payloads. The compatibility boundary retains the original JSON object and fingerprint.
-    Validation performs no writes, downloads or native Office execution.
-  .PARAMETER SourcePath
-    Absolute package directory containing psfoundation-office-media.json.
-  .PARAMETER Configuration
-    Optional target whose requested languages must be available in the package.
-  .EXAMPLE
-    Test-OfficeDeploymentMedia -SourcePath C:\Media\Office -Configuration $target
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Media names the deployment payload as a collective noun.')]
   [CmdletBinding()]
@@ -529,28 +381,7 @@ function New-PSFOfficeProtectedDirectory {
 
 function Get-OfficeDeploymentPlan {
   <#
-  .SYNOPSIS
-    Builds a read-only Office operation plan with explicit authority.
-  .DESCRIPTION
-    C# evaluates the requested scope and observations. PowerShell retains schema validation, media discovery and the existing fingerprint format.
-  .PARAMETER Action
-    Install, Remove, Migrate, Update or a narrowly scoped maintenance operation.
-  .PARAMETER Configuration
-    Ordered target configuration. Not required for removal.
-  .PARAMETER SourcePath
-    Prepared media package, checked without downloading.
-  .PARAMETER RemoveProductId
-    Exact Click-to-Run products selected for removal.
-  .PARAMETER RemoveMsi
-    Explicit broad MSI removal consent for migration.
-  .PARAMETER Language
-    Exact resources selected by a language operation.
-  .PARAMETER Settings
-    Update settings or application preferences.
-  .PARAMETER Inventory
-    Optional offline observation, never trusted by execution.
-  .EXAMPLE
-    Get-OfficeDeploymentPlan -Action Install -Configuration $target -SourcePath C:\Media\Office
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   [OutputType([PSCustomObject])]
@@ -616,16 +447,7 @@ function New-PSFOfficeXml {
 
 function Test-OfficeDeployment {
   <#
-  .SYNOPSIS
-    Compares observed Office state with an explicit target.
-  .DESCRIPTION
-    Retains configuration validation and report objects while C# assesses discrepancies and missing evidence.
-  .PARAMETER Configuration
-    Configuration from New-OfficeDeploymentConfiguration.
-  .PARAMETER Inventory
-    Optional observation for offline assessment. Execution always rediscovers state.
-  .EXAMPLE
-    Test-OfficeDeployment -Configuration $configuration
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   [OutputType([PSCustomObject])]
@@ -640,28 +462,7 @@ function Test-OfficeDeployment {
 
 function Install-Win32Program {
   <#
-  .SYNOPSIS
-    Runs a caller-selected local installer through the C# package API.
-  .DESCRIPTION
-    Retains PowerShell path validation, confirmation and result fields. Preparation and execution are provided by C#.
-  .PARAMETER Path
-    Existing executable or MSI installer.
-  .PARAMETER ArgumentList
-    Literal installer arguments.
-  .PARAMETER NoWait
-    Starts the installer without claiming completion.
-  .PARAMETER PassThru
-    Uses the legacy ExitCode status text.
-  .PARAMETER DryRun
-    Previews execution through WhatIf.
-  .PARAMETER SuccessExitCodes
-    Exit codes accepted as successful.
-  .PARAMETER RebootExitCodes
-    Successful exit codes requiring a restart.
-  .PARAMETER RunId
-    Optional caller correlation identifier.
-  .EXAMPLE
-    Install-Win32Program -Path '.\setup.exe' -ArgumentList '/quiet' -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
   [OutputType([PSCustomObject])]
@@ -687,18 +488,7 @@ function Install-Win32Program {
 
 function Set-ServiceStartupState {
   <#
-  .SYNOPSIS
-    Sets service startup types with confirmation and protection rules.
-  .DESCRIPTION
-    Uses native C# service inventory and mutation. Filters and protected names are checked against each resolved service.
-  .PARAMETER Name
-    Service names or wildcard patterns.
-  .PARAMETER StartupType
-    Automatic, Manual or Disabled.
-  .PARAMETER Filter
-    Exact service names to exclude.
-  .EXAMPLE
-    Set-ServiceStartupState -Name 'Fax' -StartupType Disabled -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess = $true)]
   param (
@@ -718,16 +508,7 @@ function Set-ServiceStartupState {
 
 function Import-SecurityEventConfiguration {
   <#
-  .SYNOPSIS
-    Reads and caches literal security event configuration data.
-  .DESCRIPTION
-    Keeps the module-local cache while C# parses the data without executing expressions.
-  .PARAMETER Path
-    Path to the security event data file.
-  .PARAMETER Force
-    Replaces the cached configuration.
-  .EXAMPLE
-    Import-SecurityEventConfiguration -Force
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param ([string]$Path = (Join-Path $PSScriptRoot 'security.psd1'), [switch]$Force)
@@ -740,16 +521,7 @@ function Import-SecurityEventConfiguration {
 
 function Get-SecurityEventGroup {
   <#
-  .SYNOPSIS
-    Gets a named security event group.
-  .DESCRIPTION
-    Resolves the group from the supplied or cached configuration through C#.
-  .PARAMETER Name
-    Group name.
-  .PARAMETER Configuration
-    Event configuration hashtable.
-  .EXAMPLE
-    Get-SecurityEventGroup -Name Logon
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param ([Parameter(Mandatory = $true)][string]$Name, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
@@ -758,24 +530,7 @@ function Get-SecurityEventGroup {
 
 function Get-SecurityEventDefinition {
   <#
-  .SYNOPSIS
-    Finds event definitions using the C# event catalog.
-  .DESCRIPTION
-    Preserves original definition hashtables and optional filters.
-  .PARAMETER Group
-    Semantic group.
-  .PARAMETER LogName
-    Event channel.
-  .PARAMETER ProviderName
-    Event provider.
-  .PARAMETER Id
-    Event identifiers.
-  .PARAMETER Name
-    Logical event name.
-  .PARAMETER Configuration
-    Event configuration hashtable.
-  .EXAMPLE
-    Get-SecurityEventDefinition -Group Logon -Id 4624
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param ([string]$Group, [string]$LogName, [string]$ProviderName, [int[]]$Id, [string]$Name, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
@@ -784,18 +539,7 @@ function Get-SecurityEventDefinition {
 
 function Resolve-WindowsEventMappedField {
   <#
-  .SYNOPSIS
-    Resolves an event field's semantic mapping.
-  .DESCRIPTION
-    Retains integer and string key handling from the original command.
-  .PARAMETER MapName
-    Field map name.
-  .PARAMETER Value
-    Field value.
-  .PARAMETER Configuration
-    Event configuration hashtable.
-  .EXAMPLE
-    Resolve-WindowsEventMappedField -MapName LogonType -Value 10
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param ([Parameter(Mandatory = $true)][string]$MapName, [Parameter(Mandatory = $true)][object]$Value, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
@@ -804,16 +548,7 @@ function Resolve-WindowsEventMappedField {
 
 function ConvertFrom-WinEvent {
   <#
-  .SYNOPSIS
-    Converts an event record to the established enriched result shape.
-  .DESCRIPTION
-    Uses the C# bounded XML parser and retains the supplied record on the result.
-  .PARAMETER Event
-    An event record with a ToXml method.
-  .PARAMETER Configuration
-    Event configuration hashtable.
-  .EXAMPLE
-    Get-WinEvent -LogName System -MaxEvents 1 | ConvertFrom-WinEvent
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param ([Parameter(Mandatory = $true, ValueFromPipeline = $true)][object]$Event, [hashtable]$Configuration = (Import-SecurityEventConfiguration))
@@ -822,37 +557,7 @@ function ConvertFrom-WinEvent {
 
 function Get-WindowsEventByDefinition {
   <#
-    .SYNOPSIS
-      Generic event query helper wrapping Get-WinEvent -FilterHashtable.
-    .DESCRIPTION
-      Queries Windows event logs using filter-hashtable-based queries for
-      performance. Accepts event definitions, a group name, or ID lists.
-      Definitions are grouped by LogName to minimise individual queries.
-      Supports remote computers and optional channel skipping.
-    .PARAMETER Definition
-      Array of event definition hashtables.
-    .PARAMETER Group
-      Semantic group name resolved from the configuration.
-    .PARAMETER Id
-      Event IDs to query (bypasses definition lookup).
-    .PARAMETER LogName
-      Event log channel(s) to query.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER SkipMissingChannel
-      Skip channels that do not exist rather than throwing.
-    .PARAMETER MaxEvents
-      Maximum events to return per log/channel query.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsEventByDefinition -Group 'Logon' -StartTime (Get-Date).AddHours(-4)
-    .EXAMPLE
-      PS> Get-WindowsEventByDefinition -Id 4624, 4625 -LogName 'Security' -MaxEvents 100
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -897,37 +602,7 @@ function Get-WindowsEventByDefinition {
 
 function Get-WindowsLogonEvent {
   <#
-    .SYNOPSIS
-      Queries and normalises logon-related security events.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the Logon group. Supports
-      filtering by event ID and logon type. Suppresses noisy system accounts
-      by default unless -IncludeSystem is supplied.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all Logon group IDs.
-    .PARAMETER LogonType
-      Filter by numeric logon type(s), e.g. 10 for RDP.
-    .PARAMETER IncludeSystem
-      Include system and machine accounts normally suppressed.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsLogonEvent -Id 4625
-      Returns failed logon events from the past 24 hours.
-    .EXAMPLE
-      PS> Get-WindowsLogonEvent -Id 4624 -LogonType 10
-      Returns successful RDP logons.
-    .EXAMPLE
-      PS> Get-WindowsLogonEvent -Id 4624, 4800, 4801 -LogonType 2, 7
-      Returns local console and unlock activity.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -961,33 +636,7 @@ function Get-WindowsLogonEvent {
 
 function Get-WindowsAccountChangeEvent {
   <#
-    .SYNOPSIS
-      Queries account lifecycle and group membership change events.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the AccountChange group.
-      Supports filtering by target user, subject user, and event ID.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all AccountChange group IDs.
-    .PARAMETER TargetUserName
-      Filter by the target account name of the change.
-    .PARAMETER SubjectUserName
-      Filter by the account that performed the change.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsAccountChangeEvent -Id 4720
-      Returns user account creation events.
-    .EXAMPLE
-      PS> Get-WindowsAccountChangeEvent -Id 4728, 4732 -StartTime (Get-Date).AddDays(-7)
-      Returns group membership additions for the past 7 days.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -1021,28 +670,7 @@ function Get-WindowsAccountChangeEvent {
 
 function Get-WindowsServiceEvent {
   <#
-    .SYNOPSIS
-      Queries service lifecycle, failure, and installation events.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the Service group. Supports
-      filtering by service name and event ID.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all Service group IDs.
-    .PARAMETER ServiceName
-      Filter by the service name involved.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsServiceEvent -Id 7045
-      Returns new service installation events (common persistence vector).
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -1073,27 +701,7 @@ function Get-WindowsServiceEvent {
 
 function Get-WindowsBootEvent {
   <#
-    .SYNOPSIS
-      Queries boot, shutdown, and crash events.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the BootShutdown group.
-      Covers unexpected reboots, BSODs, clean shutdowns, and service
-      lifecycle transitions.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all BootShutdown group IDs.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsBootEvent -Id 41, 1001
-      Returns unexpected shutdowns and BSOD events.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -1121,33 +729,7 @@ function Get-WindowsBootEvent {
 
 function Get-WindowsPowerShellEvent {
   <#
-    .SYNOPSIS
-      Queries PowerShell operational telemetry events.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the PowerShell group. Supports
-      filtering by event ID, executing user, and script block content pattern.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all PowerShell group IDs.
-    .PARAMETER UserName
-      Filter by the user account that executed the PowerShell code.
-    .PARAMETER ScriptBlockText
-      Regex pattern to search within captured script block content.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsPowerShellEvent -Id 4104
-      Returns script block logging events (highest-value PowerShell event).
-    .EXAMPLE
-      PS> Get-WindowsPowerShellEvent -ScriptBlockText 'DownloadString|FromBase64'
-      Returns PowerShell events matching suspicious download or encoding patterns.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -1181,28 +763,7 @@ function Get-WindowsPowerShellEvent {
 
 function Get-WindowsScheduledTaskEvent {
   <#
-    .SYNOPSIS
-      Queries scheduled task lifecycle telemetry.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the ScheduledTask group.
-      Supports filtering by event ID and task name.
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all ScheduledTask group IDs.
-    .PARAMETER TaskName
-      Filter by the name of the scheduled task.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsScheduledTaskEvent -Id 106, 140, 141
-      Returns task registration, update, and deletion events.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -1233,29 +794,7 @@ function Get-WindowsScheduledTaskEvent {
 
 function Get-WindowsSysmonEvent {
   <#
-    .SYNOPSIS
-      Queries Sysmon telemetry if the channel is available.
-    .DESCRIPTION
-      Wraps Get-WindowsEventByDefinition for the Sysmon group with
-      -SkipMissingChannel enabled by default (Sysmon is optional).
-    .PARAMETER StartTime
-      Earliest event timestamp. Defaults to 24 hours ago.
-    .PARAMETER EndTime
-      Latest event timestamp. Defaults to now.
-    .PARAMETER Id
-      Specific event IDs to return. Defaults to all Sysmon group IDs.
-    .PARAMETER ComputerName
-      Target remote computer(s).
-    .PARAMETER MaxEvents
-      Maximum events to return.
-    .PARAMETER Configuration
-      Configuration hashtable. Defaults to cached.
-    .EXAMPLE
-      PS> Get-WindowsSysmonEvent -Id 1
-      Returns Sysmon process creation events.
-    .EXAMPLE
-      PS> Get-WindowsSysmonEvent -Id 3, 22
-      Returns Sysmon network connection and DNS query events.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param(
@@ -1283,12 +822,7 @@ function Get-WindowsSysmonEvent {
 
 function Get-UserInfo {
   <#
-  .SYNOPSIS
-    Retrieves the effective Windows identity, administrator status and SID.
-  .DESCRIPTION
-    Uses the C# identity manager and preserves the original hashtable and extra-argument handling.
-  .EXAMPLE
-    Get-UserInfo
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [OutputType([hashtable])]
   param ()
@@ -1297,14 +831,7 @@ function Get-UserInfo {
 
 function Get-UserSID {
   <#
-  .SYNOPSIS
-    Resolves a Windows account name to its security identifier.
-  .DESCRIPTION
-    Uses native account translation through the C# identity manager.
-  .PARAMETER UserName
-    Local or domain account name to resolve.
-  .EXAMPLE
-    Get-UserSID -UserName 'DOMAIN\user'
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [OutputType([string])]
   param ([Parameter(Mandatory = $true)][string]$UserName)
@@ -1317,14 +844,7 @@ function Get-UserSID {
 
 function Test-LGPOInstalled {
   <#
-  .SYNOPSIS
-    Returns whether the LGPO executable exists at the specified path.
-  .DESCRIPTION
-    Uses C# for filesystem checks and preserves PowerShell provider and empty-path handling.
-  .PARAMETER Path
-    Literal executable path. Defaults to the module's ProgramData tools directory.
-  .EXAMPLE
-    Test-LGPOInstalled
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   [OutputType([bool])]
@@ -1343,17 +863,7 @@ function Test-LGPOInstalled {
 
 function Invoke-LGPO {
   <#
-  .SYNOPSIS
-    Applies a policy text file or GPO backup using an existing LGPO executable.
-  .DESCRIPTION
-    Preserves validation and confirmation in PowerShell. C# executes the process and returns application evidence.
-    Policy application is not transactional; cancellation does not interrupt an already started application.
-  .PARAMETER PolicyPath
-    Existing policy text file or GPO backup directory.
-  .PARAMETER LgpoExe
-    Trusted executable path. Defaults to the module's ProgramData tools directory.
-  .EXAMPLE
-    Invoke-LGPO -PolicyPath '.\policy.txt' -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding(SupportsShouldProcess)]
   [OutputType([PSCustomObject])]
@@ -1377,18 +887,7 @@ function Invoke-LGPO {
 
 function Show-Color {
   <#
-  .SYNOPSIS
-    Displays the available console colors.
-  .DESCRIPTION
-    Displays each ConsoleColor name in its own color. Standard PowerShell parameters
-    such as Verbose, ErrorAction and InformationAction are discoverable through tab completion.
-    ArgumentList accepts unused arguments for compatibility with the original function.
-  .PARAMETER ArgumentList
-    Extra arguments accepted and ignored for compatibility. They do not filter the colors.
-  .EXAMPLE
-    Show-Color
-  .EXAMPLE
-    Show-Color -Verbose
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ArgumentList', Justification = 'Unused extra arguments are intentionally accepted to preserve the original Show-Color API.')]
   [CmdletBinding()]
@@ -1420,16 +919,7 @@ function Invoke-PSFNetworkCompatibility {
 
 function Get-DefaultNetworkAdapter {
   <#
-  .SYNOPSIS
-    Resolves the default IPv4 adapter using the lowest route metric.
-  .DESCRIPTION
-    Preserves the original PowerShell arguments and CIM result objects; C# performs the queries and selection.
-  .PARAMETER Type
-    Filters the selected adapter by Any, WiFi, Ethernet or VPN.
-  .PARAMETER Required
-    Throws instead of logging and returning no adapter.
-  .EXAMPLE
-    Get-DefaultNetworkAdapter -Type Ethernet -Required
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([ValidateSet('Any', 'WiFi', 'Ethernet', 'VPN')][string]$Type = 'Any', [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-DefaultNetworkAdapter' @PSBoundParameters
@@ -1437,18 +927,7 @@ function Get-DefaultNetworkAdapter {
 
 function Get-IPAddress {
   <#
-  .SYNOPSIS
-    Returns an address from the selected adapter.
-  .DESCRIPTION
-    Prefers a non-link-local IPv6 address and preserves legacy argument handling.
-  .PARAMETER AddressFamily
-    IPv4 or IPv6; defaults to IPv4.
-  .PARAMETER Adapter
-    An adapter returned by Get-DefaultNetworkAdapter. Omit to resolve the default adapter.
-  .PARAMETER Required
-    Throws if the address is unavailable.
-  .EXAMPLE
-    Get-IPAddress -AddressFamily IPv6
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([ValidateSet('IPv4', 'IPv6')][string]$AddressFamily = 'IPv4', [PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-IPAddress' @PSBoundParameters
@@ -1456,16 +935,7 @@ function Get-IPAddress {
 
 function Get-SubnetMask {
   <#
-  .SYNOPSIS
-    Returns the IPv4 subnet mask paired with the adapter's IPv4 address.
-  .DESCRIPTION
-    Preserves legacy argument handling while C# reads the supplied adapter data.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if the mask is unavailable.
-  .EXAMPLE
-    Get-SubnetMask
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-SubnetMask' @PSBoundParameters
@@ -1473,18 +943,7 @@ function Get-SubnetMask {
 
 function Get-DefaultGateway {
   <#
-  .SYNOPSIS
-    Returns the selected adapter's gateway for the requested address family.
-  .DESCRIPTION
-    Keeps the original arguments and result while C# selects the gateway.
-  .PARAMETER AddressFamily
-    IPv4 or IPv6; defaults to IPv4.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if the gateway is unavailable.
-  .EXAMPLE
-    Get-DefaultGateway -AddressFamily IPv6
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([ValidateSet('IPv4', 'IPv6')][string]$AddressFamily = 'IPv4', [PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-DefaultGateway' @PSBoundParameters
@@ -1492,18 +951,7 @@ function Get-DefaultGateway {
 
 function Get-DNSServer {
   <#
-  .SYNOPSIS
-    Returns the selected adapter's DNS servers for the requested address family.
-  .DESCRIPTION
-    Keeps the original arguments, server order and pipeline output.
-  .PARAMETER AddressFamily
-    IPv4 or IPv6; defaults to IPv4.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if no DNS servers are configured for the family.
-  .EXAMPLE
-    Get-DNSServer
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([ValidateSet('IPv4', 'IPv6')][string]$AddressFamily = 'IPv4', [PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-DNSServer' @PSBoundParameters
@@ -1511,16 +959,7 @@ function Get-DNSServer {
 
 function Get-MACAddress {
   <#
-  .SYNOPSIS
-    Returns the selected adapter's MAC address.
-  .DESCRIPTION
-    Retains the original string format and argument handling.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if no MAC address is available.
-  .EXAMPLE
-    Get-MACAddress
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-MACAddress' @PSBoundParameters
@@ -1528,18 +967,7 @@ function Get-MACAddress {
 
 function Get-NetworkPrefix {
   <#
-  .SYNOPSIS
-    Returns the selected adapter's IPv4 network address or IPv6 prefix.
-  .DESCRIPTION
-    C# performs the calculation while this function preserves the original calling conventions.
-  .PARAMETER AddressFamily
-    IPv4 or IPv6; defaults to IPv4.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if the required address or mask is unavailable.
-  .EXAMPLE
-    Get-NetworkPrefix -AddressFamily IPv6
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Alias('Get-Network', 'Get-Prefix')]
   param ([ValidateSet('IPv4', 'IPv6')][string]$AddressFamily = 'IPv4', [PSCustomObject]$Adapter, [switch]$Required)
@@ -1548,18 +976,7 @@ function Get-NetworkPrefix {
 
 function Get-NetworkPrefixCIDR {
   <#
-  .SYNOPSIS
-    Returns the selected adapter's network prefix with its prefix length.
-  .DESCRIPTION
-    Retains the original aliases and CIDR string output.
-  .PARAMETER AddressFamily
-    IPv4 or IPv6; defaults to IPv4.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if the required address or mask is unavailable.
-  .EXAMPLE
-    Get-NetworkPrefixCIDR
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Alias('Get-NetworkCIDR', 'Get-PrefixCIDR')]
   param ([ValidateSet('IPv4', 'IPv6')][string]$AddressFamily = 'IPv4', [PSCustomObject]$Adapter, [switch]$Required)
@@ -1568,16 +985,7 @@ function Get-NetworkPrefixCIDR {
 
 function Get-BroadcastAddress {
   <#
-  .SYNOPSIS
-    Computes the IPv4 broadcast address from the selected adapter's address and mask.
-  .DESCRIPTION
-    Retains the original arguments and address string output.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if the address or mask is unavailable.
-  .EXAMPLE
-    Get-BroadcastAddress
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-BroadcastAddress' @PSBoundParameters
@@ -1585,16 +993,7 @@ function Get-BroadcastAddress {
 
 function Get-MulticastAddress {
   <#
-  .SYNOPSIS
-    Computes the solicited-node multicast address for the selected IPv6 address.
-  .DESCRIPTION
-    Retains the original arguments and address string output.
-  .PARAMETER Adapter
-    A previously resolved adapter; defaults to the default adapter.
-  .PARAMETER Required
-    Throws if no IPv6 address is available.
-  .EXAMPLE
-    Get-MulticastAddress
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   param ([PSCustomObject]$Adapter, [switch]$Required)
   Invoke-PSFNetworkCompatibility -Operation 'Get-MulticastAddress' @PSBoundParameters
@@ -1602,33 +1001,7 @@ function Get-MulticastAddress {
 
 function Get-DefenderThreatDetection {
   <#
-    .SYNOPSIS
-      Retrieves Microsoft Defender threat detections, optionally filtered by date.
-    .DESCRIPTION
-      Wraps Get-MpThreatDetection.  -Date sets a cutoff -- only detections with an
-      InitialDetectionTime on or after that point are returned.  -OutputPath and
-      -OutputFormat control whether results are printed to the terminal or written
-      to a file (TXT or JSON).
-    .PARAMETER Date
-      Cutoff date for detections.  Accepts any value that Get-Date can parse
-      (string, DateTime, etc.).  Defaults to right now.
-    .PARAMETER OutputPath
-      File path to write results to.  When omitted, results are printed to the
-      terminal.
-    .PARAMETER OutputFormat
-      Output format: TXT (Formatted-List) or JSON.  Defaults to TXT.
-    .PARAMETER IncludeURLs
-      Augment each detection with a ThreatDescriptionURL property pointing to the
-      official Microsoft threat encyclopedia entry.
-    .EXAMPLE
-      Get-DefenderThreatDetection
-      Prints all threat detections to the terminal.
-    .EXAMPLE
-      Get-DefenderThreatDetection -Date '2026-04-01' -OutputPath '.\detections.json' -OutputFormat JSON
-      Writes detections since April 1st 2026 as JSON.
-    .EXAMPLE
-      Get-DefenderThreatDetection -IncludeURLs -OutputPath '.\detections.json' -OutputFormat JSON
-      Writes detections as JSON, each augmented with a ThreatDescriptionURL.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param (
@@ -1679,28 +1052,7 @@ function Get-DefenderThreatDetection {
 
 function Get-DefenderThreat {
   <#
-    .SYNOPSIS
-      Retrieves the full Microsoft Defender threat catalog.
-    .DESCRIPTION
-      Wraps Get-MpThreat.  -OutputPath and -OutputFormat control whether results
-      are printed to the terminal or written to a file (TXT or JSON).
-    .PARAMETER OutputPath
-      File path to write results to.  When omitted, results are printed to the
-      terminal.
-    .PARAMETER OutputFormat
-      Output format: TXT (Formatted-List) or JSON.  Defaults to TXT.
-    .PARAMETER IncludeURLs
-      Augment each threat with a ThreatDescriptionURL property pointing to the
-      official Microsoft threat encyclopedia entry.
-    .EXAMPLE
-      Get-DefenderThreat
-      Prints the threat catalog to the terminal.
-    .EXAMPLE
-      Get-DefenderThreat -OutputPath '.\threats.json' -OutputFormat JSON
-      Writes the threat catalog as JSON.
-    .EXAMPLE
-      Get-DefenderThreat -IncludeURLs -OutputFormat JSON
-      Prints the threat catalog as JSON, each augmented with a ThreatDescriptionURL.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param (
@@ -1746,33 +1098,7 @@ function Get-DefenderThreat {
 
 function Find-NewlyWrittenObject {
   <#
-    .SYNOPSIS
-      Finds files written near a point in time (e.g. around a Defender detection).
-    .DESCRIPTION
-      Recursively scans C:\ (or a custom path) for files whose LastWriteTime falls
-      within a configurable window around the supplied -Date.  Designed to help
-      identify artifacts dropped by malware at the time of a Defender alert.
-      Results can be printed to the terminal or exported as TXT / JSON.
-    .PARAMETER Date
-      Anchor date/time.  Accepts any value that Get-Date can parse (string,
-      DateTime, etc.).  Defaults to right now.
-    .PARAMETER Before
-      Number of hours before the anchor date to include.  Defaults to 2.
-    .PARAMETER After
-      Number of hours after the anchor date to include.  Defaults to 1.
-    .PARAMETER Path
-      Root path to search.  Defaults to the system drive (C:\).
-    .PARAMETER OutputPath
-      File path to write results to.  When omitted, results are printed to the
-      terminal.
-    .PARAMETER OutputFormat
-      Output format: TXT (Formatted custom table) or JSON.  Defaults to TXT.
-    .EXAMPLE
-      Find-NewlyWrittenObject -Date '2026-04-30 10:15'
-      Searches for files written between 08:15 and 11:15 on 2026-04-30.
-    .EXAMPLE
-      Find-NewlyWrittenObject -Date '2026-04-30' -Before 4 -After 2 -OutputPath '.\artifacts.json' -OutputFormat JSON
-      Wider window, exported as JSON.
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [CmdletBinding()]
   param (
@@ -1882,26 +1208,7 @@ function Invoke-PSFOfficeRecovery {
 
 function Install-Office {
   <#
-    .SYNOPSIS
-      Installs Office only on a clean machine or returns a verified compliant no-op.
-    .DESCRIPTION
-      Accepts only an Install plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .PARAMETER ProductKey
-      Optional SecureString volume key; never serialized or passed on a command line.
-    .EXAMPLE
-      $plan | Install-Office -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -1945,24 +1252,7 @@ function Install-Office {
 
 function Uninstall-Office {
   <#
-    .SYNOPSIS
-      Removes only explicitly selected Click-to-Run products.
-    .DESCRIPTION
-      Accepts only a Remove plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Uninstall-Office -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2002,26 +1292,7 @@ function Uninstall-Office {
 
 function Switch-OfficeDeployment {
   <#
-    .SYNOPSIS
-      Executes an approved replacement after staging and verifying all destination media.
-    .DESCRIPTION
-      Accepts only a Migrate plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .PARAMETER ProductKey
-      Optional SecureString volume key; never serialized or passed on a command line.
-    .EXAMPLE
-      $plan | Switch-OfficeDeployment -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2065,24 +1336,7 @@ function Switch-OfficeDeployment {
 
 function Update-Office {
   <#
-    .SYNOPSIS
-      Updates a pinned Office build while preserving other deployment dimensions.
-    .DESCRIPTION
-      Accepts only an Update plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Update-Office -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2122,24 +1376,7 @@ function Update-Office {
 
 function Set-OfficeUpdateConfiguration {
   <#
-    .SYNOPSIS
-      Applies explicitly selected update settings without installing Office.
-    .DESCRIPTION
-      Accepts only a SetUpdateConfiguration plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Set-OfficeUpdateConfiguration -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2179,24 +1416,7 @@ function Set-OfficeUpdateConfiguration {
 
 function Add-OfficeLanguage {
   <#
-    .SYNOPSIS
-      Adds selected full-UI languages while preserving primary language and existing resources.
-    .DESCRIPTION
-      Accepts only an AddLanguage plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Add-OfficeLanguage -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2236,24 +1456,7 @@ function Add-OfficeLanguage {
 
 function Remove-OfficeLanguage {
   <#
-    .SYNOPSIS
-      Removes selected non-primary languages without removing the suite.
-    .DESCRIPTION
-      Accepts only a RemoveLanguage plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Remove-OfficeLanguage -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2293,24 +1496,7 @@ function Remove-OfficeLanguage {
 
 function Set-OfficeApplicationSelection {
   <#
-    .SYNOPSIS
-      Changes application exclusions while preserving product, build, architecture, and languages.
-    .DESCRIPTION
-      Accepts only a SetApplicationSelection plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Set-OfficeApplicationSelection -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2350,24 +1536,7 @@ function Set-OfficeApplicationSelection {
 
 function Set-OfficeApplicationPreference {
   <#
-    .SYNOPSIS
-      Applies validated Office preferences to existing and future users through ODT customize.
-    .DESCRIPTION
-      Accepts only a SetApplicationPreference plan. Revalidates current inventory and media before
-      confirmation and again under the shared deployment lock. Returns one final
-      result after cleanup. Native failures may have changed machine state.
-    .PARAMETER Plan
-      Matching plan from Get-OfficeDeploymentPlan; pipeline input is supported.
-    .PARAMETER OdtPath
-      Existing Microsoft-signed ODT setup.exe; never downloaded automatically.
-    .PARAMETER LogRoot
-      Local Administrators/SYSTEM-only journal and log directory.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize closing Office applications across sessions.
-    .PARAMETER DryRun
-      Return a read-only preview without journals, staging, or installer invocation.
-    .EXAMPLE
-      $plan | Set-OfficeApplicationPreference -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'The shared lifecycle calls ShouldProcess on the supplied PSCmdlet before any mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2691,25 +1860,7 @@ function Get-PSFOfficeExecutionContext {
 
 function Resume-OfficeInstallation {
   <#
-    .SYNOPSIS
-      Verifies or continues the same interrupted Office installation.
-    .DESCRIPTION
-      Reopens a protected Install journal. Fully compliant targets are verified
-      without reinstalling. Pre-launch work may continue. Uncertain partial ODT
-      installations return UnsupportedRecoveryState pending disposable-VM validation.
-      This command cannot inherit migration or removal authority.
-    .PARAMETER Recovery
-      Recovery descriptor from Get-OfficeDeploymentRecovery.
-    .PARAMETER OdtPath
-      Existing verified ODT setup.exe for supported continuation.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize application closure during continuation.
-    .PARAMETER ProductKey
-      Fresh SecureString volume key when needed; never loaded from a journal.
-    .PARAMETER DryRun
-      Preview continuation without writes or process invocation.
-    .EXAMPLE
-      $recovery | Resume-OfficeInstallation -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Shared lifecycle calls the supplied PSCmdlet ShouldProcess before mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2749,24 +1900,7 @@ function Resume-OfficeInstallation {
 
 function Resume-OfficeMigration {
   <#
-    .SYNOPSIS
-      Verifies or continues an explicitly authorized Office migration.
-    .DESCRIPTION
-      Reopens a protected Migrate journal, checks current products against its
-      original scope, and confirms the revised outstanding plan. Never expands
-      removal to newly discovered products or resumes across a pending reboot.
-    .PARAMETER Recovery
-      Recovery descriptor from Get-OfficeDeploymentRecovery.
-    .PARAMETER OdtPath
-      Existing verified ODT setup.exe for supported continuation.
-    .PARAMETER ForceCloseApps
-      Explicitly authorize application closure during continuation.
-    .PARAMETER ProductKey
-      Fresh SecureString volume key when needed; never persisted.
-    .PARAMETER DryRun
-      Preview continuation without writes or process invocation.
-    .EXAMPLE
-      $recovery | Resume-OfficeMigration -OdtPath C:\ODT\setup.exe -WhatIf
+  .EXTERNALHELP PSFoundation-help.xml
   #>
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Shared lifecycle calls the supplied PSCmdlet ShouldProcess before mutation.')]
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -2806,26 +1940,8 @@ function Resume-OfficeMigration {
 
 function Convert-Quote {
   <#
-  .SYNOPSIS
-    Converts single quotes to double quotes or vice versa in a specified file.
-  .DESCRIPTION
-    This function reads the content of a file and replaces all single quotes with double quotes or all double quotes with single quotes, based on the specified parameter. It is useful for standardizing quote usage in configuration files, scripts, or any text files.
-  .PARAMETER Path
-    The full path to the file that needs to be processed. The file must exist and be accessible for reading and writing.
-  .PARAMETER To
-    Specifies the type of quote conversion to perform. Acceptable values are "Single" for converting double quotes to single quotes and "Double" for converting single quotes to double quotes. The default value is "Double".
-  .EXAMPLE
-    PS> Convert-Quote -Path 'C:\config.txt' -To 'Single'
-    This command converts all double quotes in the file 'C:\config.txt' to single quotes.
-  .EXAMPLE
-    PS> Convert-Quote -Path 'C:\config.txt' -To 'Double'
-    This command converts all single quotes in the file 'C:\config.txt' to double quotes.
-  .LINK
-    https://github.com/adnoctem/winkit/blob/main/lib/data.ps1
-  .NOTES
-    Author: MVProwess <info@mvprowess.com>
-    License: MIT
-    #>
+  .EXTERNALHELP PSFoundation-help.xml
+  #>
 
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Function merges two object arrays; existing public name is intentionally plural.')]
   [OutputType([void])]
@@ -2845,46 +1961,7 @@ function Convert-Quote {
 
 function New-DriveMapping {
   <#
-    .SYNOPSIS
-      New-DriveMapping - Persistently maps a local folder to a drive letter.
-    .DESCRIPTION
-      Creates a persistent mapping of a local folder (e.g. C:\Development) to a
-      drive letter (e.g. D:) via the DOS Devices registry key, plus a matching
-      Explorer volume-label entry under DriveIcons.
-
-      The mapping only takes effect for the current session once the registry
-      value is read at logon; a reboot is required for it to become visible to
-      Explorer and most applications. Unlike the reference implementation, this
-      function NEVER reboots by default - a restart only happens when -Restart
-      is explicitly supplied.
-
-      Requires elevation (writes HKLM registry values).
-    .PARAMETER DriveLetter
-      Drive letter to map to Path. Must not be a physical volume, and must not
-      already be mapped (unless -Force).
-    .PARAMETER Path
-      Folder path to map to DriveLetter. Must exist and must not be a root-level
-      folder.
-    .PARAMETER SourceDriveLabel
-      Label to apply to the source drive in Explorer. Default: current volume
-      label (or the existing DriveIcons label when the volume has none).
-    .PARAMETER DriveLabel
-      Volume label for the mapped drive. Default: leaf folder name of Path.
-    .PARAMETER Restart
-      When supplied, restarts the machine after the mapping is created. A
-      library function never reboots the machine silently - this is opt-in.
-    .PARAMETER Force
-      Override an existing mapping on DriveLetter, and override the source
-      drive's DriveIcons label.
-    .OUTPUTS
-      PSCustomObject - New-OperationResult-shaped result.
-    .EXAMPLE
-      PS> New-DriveMapping -DriveLetter 'D' -Path 'C:\Development'
-    .LINK
-      https://github.com/adnoctem/winkit/lib/system.ps1
-    .NOTES
-      Author: MVProwess <info@mvprowess.com>
-      License: MIT
+  .EXTERNALHELP PSFoundation-help.xml
   #>
 
   [OutputType([PSCustomObject])]
@@ -2944,37 +2021,7 @@ function New-DriveMapping {
 
 function Remove-DriveMapping {
   <#
-    .SYNOPSIS
-      Remove-DriveMapping - Removes a persistent folder-to-drive-letter mapping.
-    .DESCRIPTION
-      Removes a mapping created by New-DriveMapping: deletes the DOS Devices
-      value, removes the mapped drive's DriveIcons label, and - when the removed
-      mapping was the last one to its source drive - restores the source
-      drive's volume label.
-
-      Never reboots by default; a restart only happens when -Restart is
-      explicitly supplied.
-
-      Requires elevation (writes HKLM registry values).
-    .PARAMETER DriveLetter
-      The mapped drive letter to remove. Must currently be mapped.
-    .PARAMETER SourceDriveLabel
-      Label to restore on the source drive. Default: the label previously
-      stored in DriveIcons, or 'System'/'Data' based on the drive role.
-    .PARAMETER Restart
-      When supplied, restarts the machine after the mapping is removed.
-    .PARAMETER Force
-      Force restoring the source drive label even when other mappings to the
-      source drive remain.
-    .OUTPUTS
-      PSCustomObject - New-OperationResult-shaped result.
-    .EXAMPLE
-      PS> Remove-DriveMapping -DriveLetter 'D'
-    .LINK
-      https://github.com/adnoctem/winkit/lib/system.ps1
-    .NOTES
-      Author: MVProwess <info@mvprowess.com>
-      License: MIT
+  .EXTERNALHELP PSFoundation-help.xml
   #>
 
   [OutputType([PSCustomObject])]

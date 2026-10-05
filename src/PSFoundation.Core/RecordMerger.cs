@@ -7,6 +7,8 @@ namespace PSFoundation.Core;
 /// <summary>Applies overrides to the first matching record, copying only fields already present. Mutations are deliberate and not transactional.</summary>
 public sealed class RecordMerger
 {
+    /// <summary>Updates the first record matching each override's Name and optional Path, without adding new fields.</summary>
+    /// <remarks>String matches ignore case. Overrides without a Name or matching record are skipped; earlier mutations survive later failures.</remarks>
     public void ApplyOverrides(IEnumerable<IDictionary<string, object?>> records, IEnumerable<IReadOnlyDictionary<string, object?>> overrides)
     {
         var targets = (records ?? throw new ArgumentNullException(nameof(records))).ToArray();
@@ -28,8 +30,11 @@ public sealed class RecordMerger
         ? string.Equals(Convert.ToString(left), Convert.ToString(right), StringComparison.OrdinalIgnoreCase) : Equals(left, right);
 }
 public enum QuoteStyle { Single, Double }
+/// <summary>Literal text transformations with no shell parsing or escaping policy.</summary>
 public static class TextConverter
 {
+    /// <summary>Replaces every opposite-style quote with the selected quote character.</summary>
+    /// <remarks>This is textual substitution, not safe command-line quoting or a language-aware syntax conversion.</remarks>
     public static string ConvertQuotes(string text, QuoteStyle style)
     {
         if (text == null)

@@ -132,6 +132,7 @@ public sealed class OfficeLanguageTransition
         Removed = Array.AsReadOnly(before.Except(target.Languages, StringComparer.OrdinalIgnoreCase).ToArray());
     }
 }
+/// <summary>A pure planning decision, including prerequisites, blockers, and language transitions.</summary>
 public sealed class OfficeDeploymentPlan
 {
     public OfficeDeploymentRequest Request { get; }

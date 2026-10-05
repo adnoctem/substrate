@@ -43,20 +43,28 @@ public sealed partial class OdtTool
     }
     public ProcessResult Invoke(FileSystemPath executable, OdtMode mode, FileSystemPath? configuration = null, CancellationToken cancellationToken = default)
         => InvokeAsync(executable, mode, configuration, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Runs ODT download mode and retains the native process outcome.</summary>
     public Task<ProcessResult> DownloadAsync(FileSystemPath executable, FileSystemPath configuration, CancellationToken cancellationToken = default)
         => InvokeAsync(executable, OdtMode.Download, configuration, cancellationToken);
+    /// <summary>Runs ODT configure mode and waits for launched servicing work to finish.</summary>
     public Task<ProcessResult> ConfigureAsync(FileSystemPath executable, FileSystemPath configuration, CancellationToken cancellationToken = default)
         => InvokeAsync(executable, OdtMode.Configure, configuration, cancellationToken);
+    /// <summary>Runs ODT customize mode and returns native execution evidence.</summary>
     public Task<ProcessResult> CustomizeAsync(FileSystemPath executable, FileSystemPath configuration, CancellationToken cancellationToken = default)
         => InvokeAsync(executable, OdtMode.Customize, configuration, cancellationToken);
+    /// <summary>Launches ODT help mode asynchronously.</summary>
     public Task<ProcessResult> HelpAsync(FileSystemPath executable, CancellationToken cancellationToken = default)
         => InvokeAsync(executable, OdtMode.Help, cancellationToken: cancellationToken);
+    /// <summary>Runs ODT download mode using an existing configuration file; does not configure the Office installation.</summary>
     public ProcessResult Download(FileSystemPath executable, FileSystemPath configuration, CancellationToken cancellationToken = default)
         => DownloadAsync(executable, configuration, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Runs ODT configure mode, which may modify the Office installation.</summary>
     public ProcessResult Configure(FileSystemPath executable, FileSystemPath configuration, CancellationToken cancellationToken = default)
         => ConfigureAsync(executable, configuration, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Runs ODT customize mode for an explicitly supplied configuration.</summary>
     public ProcessResult Customize(FileSystemPath executable, FileSystemPath configuration, CancellationToken cancellationToken = default)
         => CustomizeAsync(executable, configuration, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Launches the tool's help mode explicitly.</summary>
     public ProcessResult Help(FileSystemPath executable, CancellationToken cancellationToken = default)
         => HelpAsync(executable, cancellationToken).GetAwaiter().GetResult();
 
@@ -136,6 +144,7 @@ public sealed partial class OdtTool
             }
         }
     }
+    /// <summary>Downloads and extracts a verified Microsoft ODT distribution to the requested destination.</summary>
     public OdtAssessment Install(FileSystemPath destination, TimeSpan downloadTimeout, OdtSource? source = null, CancellationToken cancellationToken = default)
         => InstallAsync(destination, downloadTimeout, source, cancellationToken).GetAwaiter().GetResult();
 

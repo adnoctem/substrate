@@ -79,6 +79,7 @@ public enum RegistryRestoreMode { Merge, Replace }
 public enum RegistryChangeAction { CreateKey, SetValue, DeleteValue, DeleteKey }
 public enum RegistryApplyStatus { Completed, Conflict, Failed, Cancelled }
 
+/// <summary>One proposed registry mutation with observed before and desired after data.</summary>
 public sealed class RegistryChange
 {
     public RegistryChangeAction Action { get; }

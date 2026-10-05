@@ -14,6 +14,7 @@ public sealed class RegistrySnapshotService
     private readonly RegistryManager manager;
     public RegistrySnapshotService(RegistryManager manager) => this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
 
+    /// <summary>Records key absence separately from value absence, together with the manager's machine and registry view.</summary>
     public RegistryValueSnapshot CaptureValue(RegistryPath path, string name = "")
     {
         RegistryValueEntry.ValidateName(name);
@@ -35,9 +36,11 @@ public sealed class RegistrySnapshotService
         return new RegistryTreeSnapshot(root, manager.View, keys, manager.MachineName);
     }
 
+    /// <summary>Captures a subtree on a worker thread, checking cancellation between native registry reads.</summary>
     public Task<RegistryTreeSnapshot> CaptureTreeAsync(RegistryPath root, CancellationToken cancellationToken = default) =>
         Task.Run(() => CaptureTree(root, cancellationToken), cancellationToken);
 
+    /// <summary>Reads current state and creates a reviewable restoration plan without applying it.</summary>
     public RegistryChangePlan PlanRestore(RegistryTreeSnapshot desired, RegistryRestoreMode mode = RegistryRestoreMode.Merge, CancellationToken cancellationToken = default)
     {
         if (desired == null)
@@ -135,6 +138,7 @@ public sealed class RegistrySnapshotService
         catch (Exception error) when (IsOperational(error)) { return new RegistryApplyResult(RegistryApplyStatus.Failed, completed, current, error); }
     }
 
+    /// <summary>Applies a reviewed plan on a worker thread. Cancellation is recorded in the result with completed writes.</summary>
     public Task<RegistryApplyResult> ApplyAsync(RegistryChangePlan plan, CancellationToken cancellationToken = default, IProgress<RegistryChange>? progress = null) =>
         Task.Run(() => Apply(plan, cancellationToken, progress));
 

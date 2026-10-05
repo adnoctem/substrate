@@ -5,17 +5,17 @@
   Installs the PSFoundation module to the local PowerShell module path.
 
 .DESCRIPTION
-  Copies or symlinks the src/ directory into the user's PowerShell Modules path
+  Copies or symlinks the staged build/module/PSFoundation/ directory into the user's PowerShell Modules path
   so that the module can be imported with Import-Module PSFoundation from any
   session. By default, files are copied. Use -SymbolicLink to create a directory
   junction instead (instant updates, suitable for active development).
 
-  The module version is read from src/PSFoundation.psd1 and used to create the
+  The module version is read from build/module/PSFoundation/PSFoundation.psd1 and used to create the
   versioned module folder. Use -Undo to remove a previously installed copy.
 
 .PARAMETER SymbolicLink
   Create a directory junction instead of copying files. The junction points back
-  to the src/ directory so changes take effect immediately without reinstalling.
+  to the staged build/module/PSFoundation/ directory so changes take effect immediately without reinstalling.
 
 .PARAMETER Undo
   Remove the installed module from the local module path. Works for both copy
@@ -62,7 +62,7 @@ param (
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Split-Path -Path $PSScriptRoot -Parent))
-$srcPath = Join-Path -Path $repositoryRoot -ChildPath 'src'
+$srcPath = Join-Path -Path $repositoryRoot -ChildPath 'build/module/PSFoundation'
 $manifestPath = Join-Path -Path $srcPath -ChildPath 'PSFoundation.psd1'
 
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {

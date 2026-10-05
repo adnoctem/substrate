@@ -6,6 +6,7 @@ namespace PSFoundation.Registry;
 [Flags]
 public enum RegistrySearchTargets { KeyNames = 1, ValueNames = 2, ValueData = 4, All = KeyNames | ValueNames | ValueData }
 
+/// <summary>Selects registry names or data to search, case sensitivity, and maximum traversal depth.</summary>
 public sealed class RegistrySearchOptions
 {
     public RegistrySearchTargets Targets { get; }
@@ -23,6 +24,7 @@ public sealed class RegistrySearchOptions
     }
 }
 
+/// <summary>The key or named value that matched a literal search, with flags identifying the matching fields.</summary>
 public sealed class RegistrySearchMatch
 {
     public RegistryPath Path { get; }

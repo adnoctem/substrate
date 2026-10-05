@@ -8,6 +8,7 @@ using Microsoft.Management.Infrastructure;
 
 namespace PSFoundation.Windows;
 
+/// <summary>A service's configured account identity and observed host.</summary>
 public sealed class ServiceAccountUsage
 {
     public string ComputerName { get; }
@@ -17,6 +18,7 @@ public sealed class ServiceAccountUsage
     public uint ProcessId { get; }
     internal ServiceAccountUsage(string computer, CimRecord data) { ComputerName = computer; DisplayName = data.GetValue("DisplayName") as string ?? ""; StartName = data.GetValue("StartName") as string ?? ""; State = data.GetValue("State") as string ?? ""; ProcessId = Convert.ToUInt32(data.GetValue("ProcessId"), CultureInfo.InvariantCulture); }
 }
+/// <summary>A task's configured principal and run level, rather than proof that the task is currently running.</summary>
 public sealed class ScheduledTaskAccountUsage
 {
     public string ComputerName { get; }

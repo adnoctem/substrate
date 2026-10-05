@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace PSFoundation.Office;
 
+/// <summary>An observed Office process identity, including start time to detect process identifier reuse.</summary>
 public sealed class OfficeApplicationProcess
 {
     public int ProcessId { get; }

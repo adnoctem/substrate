@@ -6,6 +6,7 @@ using System.Threading;
 
 namespace PSFoundation.Diagnostics;
 
+/// <summary>Specifies how cancellation or timeout affects a started process. WaitForExit can continue waiting without terminating native work.</summary>
 public enum ProcessStopBehavior { TerminateProcess, TerminateTree, WaitForExit }
 
 /// <summary>A shell-free Windows process request. Arguments and environment are copied; credentials must not be placed in arguments.</summary>

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 
 namespace PSFoundation.Networking;
 
+/// <summary>Strict IP literal parsing and address calculations without DNS or network access.</summary>
 public static class IPAddressParser
 {
     /// <summary>Parses address literals only. IPv4 requires four decimal octets without leading zeros; host names, brackets and whitespace are rejected.</summary>

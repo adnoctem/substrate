@@ -20,6 +20,7 @@ public sealed class ErrorTranslation
     { Code = code; Domain = domain; Benign = benign; Detail = detail; }
 }
 
+/// <summary>Maps known native error codes to curated guidance. Unknown or ambiguous codes remain untranslated.</summary>
 public sealed class ErrorTranslator
 {
     private static readonly Regex TextCodes = new Regex(@"(?i)(?<![\w])(?:0x[0-9a-f]{8}|-\d{10}|[23]\d{9})(?![\w])", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));

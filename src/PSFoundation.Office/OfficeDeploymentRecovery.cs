@@ -31,11 +31,15 @@ public sealed partial class OfficeDeploymentManager
         using (var key = productKey?.Copy())
             return await OnWorker(() => Recover(runId, expectedAction, options, key, true, cancellationToken), cancellationToken).ConfigureAwait(false);
     }
+    /// <summary>Continues only an installation checkpoint whose protected journal and current machine state prove continuation is safe.</summary>
+    /// <remarks>Unknown native outcomes and historical pilot journals are not replayed. Recovery is not a rollback mechanism.</remarks>
     public async Task<OfficeDeploymentResult> ResumeInstallationAsync(string runId, OfficeDeploymentOptions options, SecureString? productKey = null, CancellationToken cancellationToken = default)
     {
         using (var key = productKey?.Copy())
             return await OnWorker(() => Recover(runId, OfficeDeploymentAction.Install, options, key, false, cancellationToken), cancellationToken).ConfigureAwait(false);
     }
+    /// <summary>Continues a migration only from an accepted checkpoint after revalidating journal, machine, media, and action authority.</summary>
+    /// <remarks>A completed-removal checkpoint can authorize the installation phase; an uncertain in-flight native phase cannot.</remarks>
     public async Task<OfficeDeploymentResult> ResumeMigrationAsync(string runId, OfficeDeploymentOptions options, SecureString? productKey = null, CancellationToken cancellationToken = default)
     {
         using (var key = productKey?.Copy())

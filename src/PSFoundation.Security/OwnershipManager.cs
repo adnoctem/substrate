@@ -14,6 +14,7 @@ namespace PSFoundation.Security;
 /// <remarks>Changes are not transactional. Cancellation or failure preserves prior successful changes. Never deletes contents or follows filesystem reparse points.</remarks>
 public sealed class OwnershipManager
 {
+    /// <summary>Changes filesystem ownership and optionally grants full control to a selected SID, skipping reparse points.</summary>
     public void SetFileOwner(FileSystemPath path, SecurityIdentifier owner, SecurityIdentifier? grantFullControl = null, bool recurse = false, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
         if (path == null)
@@ -47,8 +48,10 @@ public sealed class OwnershipManager
                     pending.Push(child);
         }
     }
+    /// <summary>Offloads filesystem ownership changes; cancellation retains changes already made.</summary>
     public Task SetFileOwnerAsync(FileSystemPath path, SecurityIdentifier owner, SecurityIdentifier? grantFullControl = null, bool recurse = false, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
         => Task.Run(() => SetFileOwner(path, owner, grantFullControl, recurse, progress, cancellationToken), cancellationToken);
+    /// <summary>Changes registry ownership, optionally recursively and with a full-control grant to the owner.</summary>
     public void SetRegistryOwner(RegistryPath path, SecurityIdentifier owner, bool grantFullControl = true, bool recurse = false, RegistryManager? registry = null, IProgress<RegistryPath>? progress = null, CancellationToken cancellationToken = default)
     {
         if (path == null)
@@ -83,6 +86,7 @@ public sealed class OwnershipManager
                     pending.Push(child);
         }
     }
+    /// <summary>Offloads registry ownership changes while preserving the caller's identity after temporary privilege use.</summary>
     public Task SetRegistryOwnerAsync(RegistryPath path, SecurityIdentifier owner, bool grantFullControl = true, bool recurse = false, RegistryManager? registry = null, IProgress<RegistryPath>? progress = null, CancellationToken cancellationToken = default)
         => Task.Run(() => SetRegistryOwner(path, owner, grantFullControl, recurse, registry, progress, cancellationToken), cancellationToken);
 }

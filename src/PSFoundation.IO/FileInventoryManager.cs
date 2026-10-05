@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace PSFoundation.IO;
 
+/// <summary>Detached filesystem evidence, including UTC write time and byte length, rather than an open file handle.</summary>
 public sealed class FileSnapshot
 {
     public FileSystemPath Path { get; }
@@ -28,12 +29,14 @@ public sealed class FileSnapshot
         Length = file.Length;
     }
 }
+/// <summary>A filesystem location that could not be observed and the exception explaining why.</summary>
 public sealed class FileInventoryError
 {
     public string Path { get; }
     public Exception Error { get; }
     internal FileInventoryError(string path, Exception error) { Path = path; Error = error; }
 }
+/// <summary>File observations and retained traversal errors; inspect completeness before treating missing entries as absent.</summary>
 public sealed class FileInventory
 {
     public IReadOnlyList<FileSnapshot> Files { get; }

@@ -6,25 +6,25 @@
 
 .DESCRIPTION
   Thin wrapper around Remove-PSModule from the PSFoundation module source.
-  Dot-sources the implementation directly, bypassing module-manifest validation.
+  Imports the staged v2 module; build it before invoking this optional helper.
 
   By default, keeps only the newest version of each module and removes older
   ones. Use -All to remove every version (prompts for confirmation unless
   -Force), or -LatestToKeep to control how many versions are retained.
 
   Usage:
-    .\PSFoundation.ps1 prune [-Name <regex>] [-All] [-LatestToKeep <int>] [-Scope <scope>] [-Path <dir>] [-Force] [-WhatIf]
+    .\tools\prune.ps1 [-Name <regex>] [-All] [-LatestToKeep <int>] [-Scope <scope>] [-Path <dir>] [-Force] [-WhatIf]
 
 .EXAMPLE
-  .\PSFoundation.ps1 prune -WhatIf
+  .\tools\prune.ps1 -WhatIf
   Previews which old module versions would be removed.
 
 .EXAMPLE
-  .\PSFoundation.ps1 prune -All -Force
+  .\tools\prune.ps1 -All -Force
   Removes all CurrentUser module versions without prompting.
 
 .EXAMPLE
-  .\PSFoundation.ps1 prune -Name 'Pester' -LatestToKeep 2
+  .\tools\prune.ps1 -Name 'Pester' -LatestToKeep 2
   Keeps the two newest Pester versions, removes older ones.
 
 .LINK
@@ -53,13 +53,13 @@ param(
 )
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
-$maintenancePath = Join-Path -Path $repoRoot -ChildPath 'src/maintenance.ps1'
+$maintenancePath = Join-Path -Path $repoRoot -ChildPath 'build/module/PSFoundation/PSFoundation.psd1'
 
 if (-not (Test-Path -LiteralPath $maintenancePath -PathType Leaf)) {
   Write-Error "Module source not found: $maintenancePath"
   exit 1
 }
 
-. $maintenancePath
+Import-Module $maintenancePath -Force -ErrorAction Stop
 Remove-PSModule @PSBoundParameters
 exit $LASTEXITCODE

@@ -8,6 +8,7 @@ using PSFoundation.IO;
 namespace PSFoundation.Security;
 
 public enum WindowsEventSourceKind { Channel, File }
+/// <summary>A bounded event query for a live channel or saved file, with explicit ordering and time filters.</summary>
 public sealed class WindowsEventQuery
 {
     public string Source { get; }

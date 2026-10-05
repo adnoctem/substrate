@@ -15,7 +15,7 @@ repos:
     rev: v0.49.1
     hooks:
       - id: markdownlint
-        exclude: ^CHANGELOG\.md$
+        exclude: ^(CHANGELOG\.md$|docs/commands/)
         args:
           - "-c"
           - ".github/linters/.markdown-lint.yml"
@@ -43,48 +43,26 @@ repos:
           - "--config"
           - ".github/linters/.typos.toml"
 
-  # Local hooks
+  # Local hooks use the same MSBuild targets as CI.
   - repo: local
     hooks:
-      - id: prettier-format
-        name: Prettier format
-        entry: bun x prettier@3.9.9 --write "**/*.md" --prose-wrap=always --end-of-line=crlf --print-width=140
+      - id: prettier-check
+        name: Markdown format check
+        entry: bun run check
         language: system
         pass_filenames: false
+        types: [markdown]
 
-      - id: powershell-format-check
-        name: PowerShell 7 format check
-        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 format -Check
+      - id: powershell-check
+        name: PowerShell format and analysis
+        entry: dotnet msbuild tools/tasks.proj -t:CheckPowerShell -nologo
         language: system
         pass_filenames: false
+        files: '\.(ps1|psm1|psd1)$'
 
       - id: csharp-format-check
         name: C# format check
-        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 format -Managed -Check
+        entry: dotnet msbuild tools/tasks.proj -t:CheckManaged -nologo
         language: system
         pass_filenames: false
-        files: '\.(cs|csproj|slnx)$'
-
-      - id: windows-powershell-format-check
-        name: Windows PowerShell 5.1 format check
-        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 format -Check
-        language: system
-        pass_filenames: false
-
-      - id: powershell-format
-        name: PowerShell format
-        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 format
-        language: system
-        pass_filenames: false
-
-      - id: psscriptanalyzer
-        name: PSScriptAnalyzer (PowerShell 7)
-        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 lint
-        language: system
-        pass_filenames: false
-
-      - id: windows-powershell-psscriptanalyzer
-        name: PSScriptAnalyzer (Windows PowerShell 5.1)
-        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./PSFoundation.ps1 lint
-        language: system
-        pass_filenames: false
+        files: '\.(cs|csproj|slnx|props|targets|proj)$'

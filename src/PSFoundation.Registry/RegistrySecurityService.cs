@@ -30,6 +30,7 @@ public sealed class RegistrySecurityDescriptor
     }
 }
 
+/// <summary>Reads and writes selected registry security sections without enabling privileges or choosing an inheritance policy.</summary>
 public sealed class RegistrySecurityService
 {
     private readonly RegistryManager manager;

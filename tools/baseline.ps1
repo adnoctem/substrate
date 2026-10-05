@@ -7,7 +7,7 @@
 .PARAMETER Inventory
   Records public command dependencies and migration status in docs/migration/commands.json.
 .EXAMPLE
-  .\PSFoundation.ps1 baseline -WriteFixtures
+  dotnet msbuild tools/tasks.proj -t:Baseline
 #>
 [CmdletBinding()]
 param ([switch]$WriteFixtures, [switch]$Inventory)

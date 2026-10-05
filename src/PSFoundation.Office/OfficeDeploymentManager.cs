@@ -8,18 +8,24 @@ using PSFoundation.IO;
 namespace PSFoundation.Office;
 
 /// <summary>Explicit scoped Office operations. No prompts, implicit elevation, downloads, retries or reboots.</summary>
+/// <remarks>Each execution method accepts only its corresponding plan action and rechecks live prerequisites.
+/// Product keys are borrowed and copied for execution; the caller retains ownership of the original secure string.
+/// Once native servicing starts, cancellation waits for it to settle and prevents later phases rather than terminating it.
+/// A returned result can describe partial or unverified changes. Inspect status, verification, and cleanup evidence before continuing.</remarks>
 public sealed partial class OfficeDeploymentManager
 {
     private readonly OfficeDeploymentRuntime runtime;
     public OfficeDeploymentManager() : this(new OfficeDeploymentRuntime()) { }
     internal OfficeDeploymentManager(OfficeDeploymentRuntime runtime) { this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime)); }
 
+    /// <summary>Observes the machine and media, then produces a reviewable plan without executing deployment.</summary>
     public OfficeDeploymentPlanDocument GetPlan(OfficeDeploymentRequest request, CancellationToken cancellationToken = default)
     {
         var inventory = runtime.Inventory(cancellationToken);
         var plan = OfficeDeploymentPlanDocument.Create(request, inventory);
         return plan.Refresh(inventory, runtime.Media(plan, cancellationToken));
     }
+    /// <summary>Collects planning evidence on a worker thread without changing the Office installation.</summary>
     public Task<OfficeDeploymentPlanDocument> GetPlanAsync(OfficeDeploymentRequest request, CancellationToken cancellationToken = default)
         => Task.Run(() => GetPlan(request, cancellationToken), cancellationToken);
 
@@ -30,6 +36,7 @@ public sealed partial class OfficeDeploymentManager
         using (var key = productKey?.Copy())
             return Preflight(plan, expectedAction, options, key, cancellationToken);
     }
+    /// <summary>Revalidates a reviewed plan on a worker thread without launching ODT or granting future execution authority.</summary>
     public async Task<OfficeDeploymentResult> PreviewAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentAction expectedAction, OfficeDeploymentOptions options,
         SecureString? productKey = null, CancellationToken cancellationToken = default)
     {
@@ -37,43 +44,61 @@ public sealed partial class OfficeDeploymentManager
             return await OnWorker(() => Preview(plan, expectedAction, options, key, cancellationToken), cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Executes an install plan after rechecking its action, machine, media, and runtime prerequisites.</summary>
     public OfficeDeploymentResult Install(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, SecureString? productKey = null, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.Install, options, productKey, cancellationToken);
+    /// <summary>Executes only a removal plan and records native phases and post-operation evidence.</summary>
     public OfficeDeploymentResult Remove(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.Remove, options, null, cancellationToken);
+    /// <summary>Executes a migration plan with durable recovery records; completed native changes are not automatically rolled back.</summary>
     public OfficeDeploymentResult Migrate(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, SecureString? productKey = null, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.Migrate, options, productKey, cancellationToken);
+    /// <summary>Executes a reviewed update plan and verifies the resulting Office inventory.</summary>
     public OfficeDeploymentResult Update(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.Update, options, null, cancellationToken);
+    /// <summary>Applies only a plan whose action adds Office languages.</summary>
     public OfficeDeploymentResult AddLanguage(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.AddLanguage, options, null, cancellationToken);
+    /// <summary>Applies only a plan whose action removes Office languages.</summary>
     public OfficeDeploymentResult RemoveLanguage(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.RemoveLanguage, options, null, cancellationToken);
+    /// <summary>Applies a reviewed application-selection plan through ODT.</summary>
     public OfficeDeploymentResult SetApplicationSelection(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.SetApplicationSelection, options, null, cancellationToken);
+    /// <summary>Applies a reviewed update-configuration plan through ODT.</summary>
     public OfficeDeploymentResult SetUpdateConfiguration(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.SetUpdateConfiguration, options, null, cancellationToken);
+    /// <summary>Applies a reviewed application-preference plan through ODT.</summary>
     public OfficeDeploymentResult SetApplicationPreferences(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => Execute(plan, OfficeDeploymentAction.SetApplicationPreference, options, null, cancellationToken);
 
+    /// <summary>Runs the validated install workflow on a dedicated worker and returns durable execution evidence.</summary>
     /// <remarks>The complete operation stays on one worker so deployment mutex ownership never crosses an await. Once ODT starts, cancellation
     /// waits for it to exit, records observed progress, prevents another phase and performs cleanup before returning a result.</remarks>
     public Task<OfficeDeploymentResult> InstallAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, SecureString? productKey = null, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.Install, options, productKey, cancellationToken);
+    /// <summary>Runs the validated removal workflow and waits for started native work to settle.</summary>
     public Task<OfficeDeploymentResult> RemoveAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.Remove, options, null, cancellationToken);
+    /// <summary>Runs the validated migration workflow, retaining recovery evidence if execution is interrupted.</summary>
     public Task<OfficeDeploymentResult> MigrateAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, SecureString? productKey = null, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.Migrate, options, productKey, cancellationToken);
+    /// <summary>Runs an Office update workflow without implicitly rebooting or retrying.</summary>
     public Task<OfficeDeploymentResult> UpdateAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.Update, options, null, cancellationToken);
+    /// <summary>Runs a validated language-addition plan without authorizing other deployment actions.</summary>
     public Task<OfficeDeploymentResult> AddLanguageAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.AddLanguage, options, null, cancellationToken);
+    /// <summary>Runs a validated language-removal plan without authorizing other deployment actions.</summary>
     public Task<OfficeDeploymentResult> RemoveLanguageAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.RemoveLanguage, options, null, cancellationToken);
+    /// <summary>Runs a validated application-selection plan and verifies its observed result.</summary>
     public Task<OfficeDeploymentResult> SetApplicationSelectionAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.SetApplicationSelection, options, null, cancellationToken);
+    /// <summary>Runs a validated update-configuration plan and records its observed result.</summary>
     public Task<OfficeDeploymentResult> SetUpdateConfigurationAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.SetUpdateConfiguration, options, null, cancellationToken);
+    /// <summary>Runs a validated preference plan and records its observed result.</summary>
     public Task<OfficeDeploymentResult> SetApplicationPreferencesAsync(OfficeDeploymentPlanDocument plan, OfficeDeploymentOptions options, CancellationToken cancellationToken = default)
         => ExecuteAsync(plan, OfficeDeploymentAction.SetApplicationPreference, options, null, cancellationToken);
 

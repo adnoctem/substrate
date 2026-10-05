@@ -1,0 +1,5 @@
+{
+  "proseWrap": "always",
+  "endOfLine": "crlf",
+  "printWidth": 140
+}

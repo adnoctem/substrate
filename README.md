@@ -15,78 +15,37 @@
 [![Semantic Release](https://img.shields.io/badge/Semantic_Release-enabled-brightgreen?logo=semanticrelease&logoColor=E5E4E7)][semantic_release]
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovate&logoColor=1A1F6C)][renovate]
 [![PreCommit](https://img.shields.io/badge/PreCommit-enabled-brightgreen?logo=precommit&logoColor=FAB040)][precommit]
-[![Super-Linter](https://github.com/adnoctem/PSFoundation/actions/workflows/superlint.yaml/badge.svg)][superlinter_action]
 
 `PSFoundation` is an open-source [MIT][license]-licensed [PowerShell][powershell] module library written and maintained by the [Ad Noctem
 Collective][org] for Windows system administration, configuration management, and automation. The module targets both desktop Windows
 installations and Windows Server environments and supports [PowerShell][powershell] 5.1 and above, including Windows PowerShell 5.1 as well
 as newer PowerShell 7+ releases. It is published to the [PowerShell Gallery][psgallery_package] for easy discovery and installation.
 
-The [`src`](src) directory contains the module source code — a collection of PowerShell functions organized by domain (registry, networking,
-security, packages, system, etc.) — bundled together as a single importable module. The [`tools`](tools) directory contains the repository's
-development tooling for building, formatting, linting, testing, and publishing the module.
+The v2 implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter preserves 188 commands and four
+aliases, using compiled cmdlets and a small compatibility script. Frozen v1 scripts remain in the repository for comparison tests.
 
-### Module Coverage
+See the [API catalog](docs/API.md), [architecture](docs/architecture.md), and [contributor guide](docs/CONTRIBUTING.md). The generated
+reference describes Registry, Networking, IO, Diagnostics, Policies, Packages, Security, Windows, Interop, and Office APIs.
 
-PSFoundation provides functions across these domains:
+## Development
 
-| Module File        | Domain                                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `provisioning.ps1` | Offline domain join blob provisioning and djoin file creation                                                                  |
-| `common.ps1`       | Operation result helpers and registry setting state management                                                                 |
-| `data.ps1`         | Data transformation utilities (quote conversion, object merging)                                                               |
-| `devices.ps1`      | Print and scan device enumeration and management                                                                               |
-| `errors.ps1`       | Domain-specific deployment error guidance for AppX, WinGet, DISM, and MSI                                                      |
-| `interop.ps1`      | COM interop and Outlook automation                                                                                             |
-| `log.ps1`          | Console logging helpers                                                                                                        |
-| `networking.ps1`   | IP validation, adapter resolution, address calculation, remote host reachability                                               |
-| `packages.ps1`     | Win32 and AppX package lifecycle management                                                                                    |
-| `office.ps1`       | Office deployment planning, verified media, scoped ODT operations, and protected recovery records                              |
-| `permissions.ps1`  | Elevation, ownership takeover, and encrypted credential files                                                                  |
-| `policies.ps1`     | LGPO integration and binary registry.pol reading and writing, including lossless raw round trips                               |
-| `registry.ps1`     | Registry key and value CRUD with path resolution                                                                               |
-| `security.ps1`     | Defender, firewall, event log analysis, certificate inventory, script signing                                                  |
-| `settings.ps1`     | Default application associations                                                                                               |
-| `system.ps1`       | OS version, .NET version, drive mapping, pending-reboot and file integrity checks, service account search, file lock diagnosis |
-| `updates.ps1`      | Windows Update and Microsoft Store update management                                                                           |
-| `user.ps1`         | User and SID information, AD credential validation, lockout source and FSMO reporting                                          |
+```powershell
+# Restore pinned tools and dependencies.
+dotnet msbuild tools/tasks.proj -t:Restore
 
-## TL;DR
+# Format, validate, test both PowerShell hosts, document, and package.
+dotnet msbuild tools/tasks.proj -t:Format
+dotnet msbuild tools/tasks.proj -t:Verify
 
-```pwsh
-# Install from PowerShell Gallery
-Install-Module -Name PSFoundation
+# Import the staged v2 package in a fresh PowerShell process.
+Import-Module ./build/module/PSFoundation/PSFoundation.psd1
 
-# Or initialize the repository (download dependencies)
-.\PSFoundation.ps1 init
-# also: .\PSFoundation.ps1 initialize | setup | bootstrap
-
-# format all PowerShell source files
-.\PSFoundation.ps1 format
-# also: .\PSFoundation.ps1 fmt | fix
-
-# check formatting without modifying (CI / pre-commit)
-.\PSFoundation.ps1 format -Check
-
-# run PSScriptAnalyzer lint checks
-.\PSFoundation.ps1 lint
-# also: .\PSFoundation.ps1 check | analyze
-
-# build distribution archives (ZIP + tar.gz)
-.\PSFoundation.ps1 build
-# also: .\PSFoundation.ps1 bundle | package
-
-# run all Pester tests
-.\PSFoundation.ps1 test
-# also: .\PSFoundation.ps1 pester
-
-# publish module to PowerShell Gallery
-.\PSFoundation.ps1 release -Version 1.0.0 -NuGetApiKey $env:NUGET_API_KEY
-# also: .\PSFoundation.ps1 publish
-
-# dry-run release (build + checksums without publishing)
-.\PSFoundation.ps1 release -Version 1.0.0 -DryRun
+# Check the same hooks used in CI.
+pre-commit run --all-files
 ```
+
+The SDK is selected by `global.json`. Developer tasks use PowerShell 7 and Bun; packaged commands support Windows PowerShell 5.1 and
+PowerShell 7 on x64 Windows. Build output stays under `build/`, archives under `dist/`. Publishing remains separately gated.
 
 ### Registry policy files
 
@@ -541,4 +500,3 @@ _Assets provided by:_ **[Microsoft Corporation][microsoft]**
 [semantic_release]: https://semantic-release.org/
 [renovate]: https://renovatebot.com/
 [precommit]: https://pre-commit.com/
-[superlinter_action]: https://github.com/marketplace/actions/super-linter

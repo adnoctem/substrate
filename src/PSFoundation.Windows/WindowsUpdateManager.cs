@@ -10,6 +10,7 @@ using PSFoundation.Registry;
 
 namespace PSFoundation.Windows;
 
+/// <summary>A detached update identity, revision, classification, and installation/download observation.</summary>
 public sealed class WindowsUpdateInfo
 {
     public Guid UpdateId { get; }
@@ -39,6 +40,7 @@ public sealed class WindowsUpdateInfo
         Categories = names.AsReadOnly();
     }
 }
+/// <summary>Per-update native operation status, HRESULT, and reboot requirement.</summary>
 public sealed class WindowsUpdateResult
 {
     public WindowsUpdateInfo Update { get; }
@@ -48,6 +50,7 @@ public sealed class WindowsUpdateResult
     internal WindowsUpdateResult(WindowsUpdateInfo update, AutomationObject result)
     { Update = update; HResult = Convert.ToInt32(result.Get("HResult")); ResultCode = Convert.ToInt32(result.Get("ResultCode")); RebootRequired = Convert.ToBoolean(result.Get("RebootRequired")); }
 }
+/// <summary>A detached historical update operation with its time and native outcome.</summary>
 public sealed class WindowsUpdateHistoryEntry
 {
     public Guid UpdateId { get; }
@@ -72,8 +75,11 @@ public sealed class WindowsUpdateHistoryEntry
 /// <remarks>Cancellation requests WUA abort and waits for the native job to settle before releasing its objects. An in-flight installation may have changed the machine.</remarks>
 public sealed class WindowsUpdateManager
 {
+    /// <summary>Scans the configured Windows Update source for visible, uninstalled updates.</summary>
     public IReadOnlyList<WindowsUpdateInfo> FindAvailable(CancellationToken cancellationToken = default) => Find(false, cancellationToken);
+    /// <summary>Performs an available-update scan on a worker thread; cancellation requests native abort.</summary>
     public Task<IReadOnlyList<WindowsUpdateInfo>> FindAvailableAsync(CancellationToken cancellationToken = default) => Task.Run(() => FindAvailable(cancellationToken), cancellationToken);
+    /// <summary>Queries installed updates through Windows Update Agent.</summary>
     public IReadOnlyList<WindowsUpdateInfo> FindInstalled(CancellationToken cancellationToken = default) => Find(true, cancellationToken);
     private static IReadOnlyList<WindowsUpdateInfo> Find(bool installed, CancellationToken token)
     {
@@ -87,14 +93,19 @@ public sealed class WindowsUpdateManager
         { token.ThrowIfCancellationRequested(); using var update = updates.Child("Item", i); records.Add(new WindowsUpdateInfo(update)); }
         return records.AsReadOnly();
     }
+    /// <summary>Downloads and installs the exact selected update identities, requiring explicit acceptance of outstanding license agreements.</summary>
     public IReadOnlyList<WindowsUpdateResult> Install(IEnumerable<Guid> updateIds, bool acceptLicenseAgreements = false, CancellationToken cancellationToken = default)
         => Execute(SnapshotIds(updateIds), false, acceptLicenseAgreements, cancellationToken);
+    /// <summary>Downloads and installs selected identities on a worker thread. The result reports native outcomes and reboot requirements.</summary>
     public Task<IReadOnlyList<WindowsUpdateResult>> InstallAsync(IEnumerable<Guid> updateIds, bool acceptLicenseAgreements = false, CancellationToken cancellationToken = default)
     { var ids = SnapshotIds(updateIds); return Task.Run(() => Execute(ids, false, acceptLicenseAgreements, cancellationToken), cancellationToken); }
+    /// <summary>Requests removal of the selected installed update identities, rejecting updates that Windows cannot uninstall.</summary>
     public IReadOnlyList<WindowsUpdateResult> Uninstall(IEnumerable<Guid> updateIds, CancellationToken cancellationToken = default)
         => Execute(SnapshotIds(updateIds), true, false, cancellationToken);
+    /// <summary>Removes selected updates on a worker thread; cancellation may follow partially completed native changes.</summary>
     public Task<IReadOnlyList<WindowsUpdateResult>> UninstallAsync(IEnumerable<Guid> updateIds, CancellationToken cancellationToken = default)
     { var ids = SnapshotIds(updateIds); return Task.Run(() => Execute(ids, true, false, cancellationToken), cancellationToken); }
+    /// <summary>Sets visibility for selected update identities. Earlier changes remain if a later change fails.</summary>
     public void SetHidden(IEnumerable<Guid> updateIds, bool hidden, CancellationToken cancellationToken = default)
     {
         var ids = SnapshotIds(updateIds);
@@ -105,6 +116,7 @@ public sealed class WindowsUpdateManager
         for (var i = 0; i < Count(updates); i++)
         { cancellationToken.ThrowIfCancellationRequested(); using var update = updates.Child("Item", i); update.Set("IsHidden", hidden); }
     }
+    /// <summary>Returns newest-first Windows Update history, optionally limiting the number of entries.</summary>
     public IReadOnlyList<WindowsUpdateHistoryEntry> GetHistory(int? last = null, CancellationToken cancellationToken = default)
     {
         if (last < 0)
@@ -123,8 +135,10 @@ public sealed class WindowsUpdateManager
         { cancellationToken.ThrowIfCancellationRequested(); using var entry = entries.Child("Item", i); records.Add(new WindowsUpdateHistoryEntry(entry)); }
         return records.AsReadOnly();
     }
+    /// <summary>Reads the Windows Update reboot flag without scanning, installing, or restarting.</summary>
     public bool IsRebootRequired()
     { using var info = AutomationObject.Create("Microsoft.Update.SystemInfo"); return Convert.ToBoolean(info.Get("RebootRequired")); }
+    /// <summary>Observes update service selection, automatic-update settings, and configured target group without changing policy.</summary>
     public IReadOnlyDictionary<string, object?> GetConfiguration()
     {
         using var session = Session();

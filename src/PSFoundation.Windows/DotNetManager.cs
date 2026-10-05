@@ -11,6 +11,7 @@ using PSFoundation.Registry;
 
 namespace PSFoundation.Windows;
 
+/// <summary>A .NET Framework registration with its registry location, reported version, and release evidence.</summary>
 public sealed class FrameworkRegistration
 {
     public RegistryPath Path { get; }
@@ -32,12 +33,14 @@ public sealed class FrameworkRegistration
     private RegistryValue? Value(string name) => Values.TryGetValue(name, out var value) ? value : null;
     private uint? Number(string name) => Value(name)?.Kind == RegistryValueKind.DWord ? unchecked((uint)Value(name)!.GetData<int>()) : (uint?)null;
 }
+/// <summary>A .NET Framework registration location that could not be inspected.</summary>
 public sealed class FrameworkInventoryError
 {
     public RegistryPath Path { get; }
     public Exception Error { get; }
     internal FrameworkInventoryError(RegistryPath path, Exception error) { Path = path; Error = error; }
 }
+/// <summary>Observed .NET Framework installations together with any retained read errors.</summary>
 public sealed class FrameworkInventory
 {
     public IReadOnlyList<FrameworkRegistration> Registrations { get; }

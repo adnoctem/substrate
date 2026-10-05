@@ -9,6 +9,7 @@ using PSFoundation.Windows;
 
 namespace PSFoundation.Office;
 
+/// <summary>Windows version and architecture evidence used to assess deployment prerequisites.</summary>
 public sealed class OfficeHostPlatform
 {
     public int ProductType { get; }
@@ -18,6 +19,7 @@ public sealed class OfficeHostPlatform
     public OfficeHostPlatform(int productType, int buildNumber, int processorArchitecture)
     { ProductType = productType; BuildNumber = buildNumber; ProcessorArchitecture = processorArchitecture; }
 }
+/// <summary>Observed deployment activity that may block concurrent Office servicing.</summary>
 public sealed class OfficeDeploymentActivity
 {
     public IReadOnlyList<CimRecord> Installers { get; }

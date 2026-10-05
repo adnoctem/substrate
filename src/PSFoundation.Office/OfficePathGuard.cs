@@ -7,6 +7,7 @@ using PSFoundation.Security;
 
 namespace PSFoundation.Office;
 
+/// <summary>A path protection or identity failure retained for deployment diagnostics.</summary>
 [Serializable]
 public sealed class OfficePathDiagnostic
 {

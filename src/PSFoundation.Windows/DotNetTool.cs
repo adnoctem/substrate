@@ -11,6 +11,7 @@ using PSFoundation.IO;
 namespace PSFoundation.Windows;
 
 public enum DotNetComponentKind { Runtime, Sdk }
+/// <summary>One SDK or runtime installation reported by the selected dotnet executable.</summary>
 public sealed class DotNetComponent
 {
     public DotNetComponentKind Kind { get; }
@@ -20,6 +21,7 @@ public sealed class DotNetComponent
     internal DotNetComponent(DotNetComponentKind kind, string? name, string version, string baseDirectory)
     { Kind = kind; Name = name; Version = version; BaseDirectory = baseDirectory; }
 }
+/// <summary>Parsed dotnet listing rows and lines that could not be interpreted.</summary>
 public sealed class DotNetListing
 {
     public IReadOnlyList<DotNetComponent> Components { get; }
@@ -51,6 +53,7 @@ public sealed class DotNetListing
         return new DotNetListing(components, lines, unknown);
     }
 }
+/// <summary>Native dotnet process evidence together with the parsed component listing.</summary>
 public sealed class DotNetQueryResult
 {
     public ProcessResult Process { get; }

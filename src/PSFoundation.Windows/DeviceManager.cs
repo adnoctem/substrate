@@ -12,6 +12,7 @@ using Microsoft.Management.Infrastructure.Options;
 namespace PSFoundation.Windows;
 
 public enum PrinterInventorySource { PrintManagement, Cim }
+/// <summary>A detached printer observation from the selected Windows provider.</summary>
 public sealed class PrinterInfo
 {
     public string Name { get; }
@@ -40,6 +41,7 @@ public sealed class PrinterInfo
         Source = source;
     }
 }
+/// <summary>Printer observations with their provider and retained fallback diagnostics.</summary>
 public sealed class PrinterInventory
 {
     public IReadOnlyList<PrinterInfo> Printers { get; }
@@ -47,6 +49,7 @@ public sealed class PrinterInventory
     internal PrinterInventory(IEnumerable<PrinterInfo> printers, IEnumerable<Exception> errors)
     { Printers = Array.AsReadOnly(printers.ToArray()); Errors = Array.AsReadOnly(errors.ToArray()); }
 }
+/// <summary>A detached scanner identity discovered through Windows Image Acquisition.</summary>
 public sealed class ScannerInfo
 {
     public string? Name { get; }
@@ -77,6 +80,7 @@ public sealed class ScannerInfo
 /// <summary>Native Windows printer and WIA discovery. Native objects are detached and released before results reach the caller.</summary>
 public sealed class DeviceManager
 {
+    /// <summary>Reads printer inventory, retaining provider and fallback evidence; fallback must be explicitly allowed.</summary>
     public PrinterInventory GetPrinters(TimeSpan timeout, bool preferPrintManagement = true, bool allowFallback = false, CancellationToken cancellationToken = default)
     {
         CheckTimeout(timeout);
@@ -114,9 +118,11 @@ public sealed class DeviceManager
         cancellationToken.ThrowIfCancellationRequested();
         return new PrinterInventory(legacy, errors);
     }
+    /// <summary>Offloads printer inventory with the same explicit provider-fallback policy.</summary>
     /// <remarks>Offloads synchronous CIM calls; cancellation and timeouts depend on the native provider honoring them.</remarks>
     public Task<PrinterInventory> GetPrintersAsync(TimeSpan timeout, bool preferPrintManagement = true, bool allowFallback = false, CancellationToken cancellationToken = default)
         => Task.Run(() => GetPrinters(timeout, preferPrintManagement, allowFallback, cancellationToken), cancellationToken);
+    /// <summary>Returns printers marked as default in the observed CIM inventory.</summary>
     public IReadOnlyList<PrinterInfo> GetDefaultPrinters(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Array.AsReadOnly(GetPrinters(timeout, false, cancellationToken: cancellationToken).Printers.Where(printer => printer.IsDefault).ToArray());
 
@@ -151,11 +157,14 @@ public sealed class DeviceManager
             finally { selected?.Dispose(); }
         }
     }
+    /// <summary>Offloads default-printer selection without changing any other printer settings.</summary>
     public Task<uint> SetDefaultPrinterAsync(string name, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => SetDefaultPrinter(name, timeout, cancellationToken), cancellationToken);
 
+    /// <summary>Reads WIA scanner identities into detached records, releasing the native enumeration objects.</summary>
     public IReadOnlyList<ScannerInfo> GetScanners(CancellationToken cancellationToken = default)
         => GetScannersAsync(cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Enumerates WIA scanners on a worker thread with cancellation checks between native operations.</summary>
     /// <remarks>WIA is created and released on a dedicated STA worker. No caller apartment or UI is required.
     /// Cancellation is checked between COM calls; an in-flight driver call cannot be interrupted.</remarks>
     public Task<IReadOnlyList<ScannerInfo>> GetScannersAsync(CancellationToken cancellationToken = default)

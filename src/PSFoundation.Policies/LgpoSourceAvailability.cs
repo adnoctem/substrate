@@ -2,6 +2,7 @@ using System;
 
 namespace PSFoundation.Policies;
 
+/// <summary>Reachability evidence for an LGPO source, independent of archive or executable integrity.</summary>
 public sealed class LgpoSourceAvailability
 {
     public Uri Source { get; }

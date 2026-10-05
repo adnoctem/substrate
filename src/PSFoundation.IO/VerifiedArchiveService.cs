@@ -12,6 +12,7 @@ namespace PSFoundation.IO;
 /// <summary>Publishes one exact ZIP entry after independently verifying the archive and extracted file. Never executes content.</summary>
 public sealed class VerifiedArchiveService
 {
+    /// <summary>Extracts one exact entry after enforcing archive and file digests, path rules, and size limits.</summary>
     /// <remarks>Both digests must be independently trusted. No archive paths become filesystem paths. The destination's parent must exist.
     /// Verification uses the same open archive handle as extraction. Failure leaves an existing destination unchanged.</remarks>
     public void ExtractFile(FileSystemPath archive, FileSystemPath destination, string entryPath, string trustedArchiveSha256,
@@ -72,6 +73,7 @@ public sealed class VerifiedArchiveService
         finally { if (ownsTemporary && File.Exists(temporary)) File.Delete(temporary); }
     }
 
+    /// <summary>Performs verified extraction on a worker thread.</summary>
     /// <remarks>Offloads synchronous filesystem and ZIP operations. Cancellation is checked between reads and before atomic publication.</remarks>
     public Task ExtractFileAsync(FileSystemPath archive, FileSystemPath destination, string entryPath, string trustedArchiveSha256,
         string trustedFileSha256, long maximumArchiveBytes, long maximumFileBytes, bool overwrite = false, CancellationToken cancellationToken = default)

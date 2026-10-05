@@ -50,6 +50,8 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'environment.ps1')
+Import-DevelopmentModule PSScriptAnalyzer
 
 if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
   Write-Error 'PSScriptAnalyzer is not installed. Install it with: Install-Module PSScriptAnalyzer'
@@ -63,7 +65,7 @@ if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
 }
 
 $extensions = @('.ps1', '.psm1', '.psd1')
-$excludedDirectories = @('.git', '.idea', 'dist', 'build', 'secrets')
+$excludedDirectories = @('.git', '.idea', '.codex', '.agents', 'node_modules', 'dist', 'build', 'secrets')
 $rootFullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Split-Path -Path $PSScriptRoot -Parent))
 
 function Test-LintExcludedPath {

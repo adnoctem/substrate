@@ -10,6 +10,7 @@ namespace PSFoundation.Packages;
 
 public enum WinGetAction { Install, Update, Uninstall }
 public enum WinGetSelection { Id, Name, All }
+/// <summary>A constrained WinGet operation with explicit selection, source, version, and agreement options.</summary>
 public sealed class WinGetRequest
 {
     public WinGetAction Action { get; }
@@ -56,14 +57,17 @@ public sealed class WinGetTool
 {
     public FileSystemPath Executable { get; }
     public WinGetTool(FileSystemPath executable) => Executable = executable ?? throw new ArgumentNullException(nameof(executable));
+    /// <summary>Locates the current user's WinGet executable alias without installing or downloading it.</summary>
     public static FileSystemPath? FindInstalled()
     {
         var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "WindowsApps", "winget.exe");
         return File.Exists(path) ? FileSystemPath.Parse(path) : null;
     }
+    /// <summary>Executes a constrained WinGet request with explicit package selection and agreement policy.</summary>
     /// <remarks>Once launched, wait for the installer to settle even after cancellation. Exit codes and cancellation remain evidence for the caller.</remarks>
     public ProcessResult Run(WinGetRequest request, CancellationToken cancellationToken = default)
         => new ProcessManager().Run(Create(request), cancellationToken);
+    /// <summary>Executes WinGet asynchronously and returns native exit, output, and interruption evidence.</summary>
     public Task<ProcessResult> RunAsync(WinGetRequest request, CancellationToken cancellationToken = default)
         => new ProcessManager().RunAsync(Create(request), cancellationToken);
     private ProcessRequest Create(WinGetRequest request)

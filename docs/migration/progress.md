@@ -46,13 +46,13 @@ is no pending choice on this topic.
 ## Build and execution proof
 
 The .NET 10.0.401 SDK is pinned. Build, restore, binaries, NuGet packages, staged modules and test reports use `build/`; release archives
-continue using `dist/`. Run all commands through `PSFoundation.ps1`:
+continue using `dist/`. Run all commands through `tools/tasks.proj`:
 
 ```powershell
-.\PSFoundation.ps1 baseline -WriteFixtures
-.\PSFoundation.ps1 build -Format Zip
-.\PSFoundation.ps1 test -Managed
-.\PSFoundation.ps1 test -Path tests/PowerShell
+dotnet msbuild tools/tasks.proj -t:Baseline
+dotnet msbuild tools/tasks.proj -t:Pack
+dotnet msbuild tools/tasks.proj -t:TestManaged
+dotnet msbuild tools/tasks.proj -t:TestPowerShell
 ```
 
 Verified on 2026-10-03:
@@ -418,16 +418,23 @@ and workflow/compatibility checks; expand fine-grained coverage after the migrat
 
 ## Local automation
 
-The ignored `.codex/config.toml` retains workspace-write and on-request approvals. `.codex/rules/repository-build.rules` authorizes the
-absolute launcher in this checkout for build, test, format, lint and baseline commands, plus Git staging and local commits anchored to this
-checkout with `git -C`. The CLI rule checker confirmed these match and push, release and another checkout's commit do not. Use these exact
-command forms for the scoped rules to match. Project rules require a trusted project and load at Codex startup. After the maintainer
-restarted Codex, the absolute launcher ran the registry builds, formatting, lint and test commands successfully.
+Development now uses `dotnet msbuild tools/tasks.proj`. The previous launcher has been retired. Local automation permissions remain
+machine-specific; build approval does not grant permission to push or publish.
+
+## Documentation and tooling
+
+The public C# API has XML summaries and behavioral notes for ownership, cancellation, trust and destructive operations. DocFX generates the
+.NET reference from staged assemblies and their XML files. PlatyPS maintains Markdown for all 188 commands and generates packaged MAML help
+for Windows PowerShell 5.1 and PowerShell 7. `docs/API.md` is a checked catalog of both surfaces; generated output stays under `build/`.
+
+`tools/tasks.proj` now owns restore, build, staging, formatting, tests, documentation and packaging. Development tools are pinned. Local
+hooks and Windows CI share those targets. Release preparation verifies the staged v2 package and records its hashes before a separate
+publish step. Scheduled dependency proposals include independently verified Microsoft vendor candidates and require human review.
 
 ## Next work
 
-Implementation ownership is complete. Start the tooling pass next, then perform live validation against the built package. Keep the frozen
-v1 sources only as the comparison baseline until the repository/tooling cleanup deliberately removes that dependency.
+Implementation ownership and the tooling pass are complete. Perform live validation against the built package. Keep the frozen v1 sources
+only as the comparison baseline until the repository/tooling cleanup deliberately removes that dependency.
 
 Live validation priorities:
 
@@ -441,7 +448,7 @@ Live validation priorities:
   too.
 - Directory and certificates: remote authenticated discovery, loaded-user store selection and failure diagnostics; sign disposable scripts
   with a test certificate and timestamp service. Never use a production signing key in automated tests.
-- Finish the XML comment/help generation pass and the supported OS/runtime packaging matrix before declaring a v2 release.
+- Confirm the supported OS/runtime packaging matrix on the intended deployment machines before declaring a v2 release.
 
 Deferred test coverage after the implementation pass:
 
@@ -454,16 +461,9 @@ Deferred test coverage after the implementation pass:
 - Locale-specific SFC diagnostics and bounded CBS-tail reading; broader task, firewall and group-policy failure cases after live smoke
   tests.
 
-After the C# migration, upgrade developer tooling and the `PSFoundation.ps1` interface, including scheduled vendor-tool update PRs alongside
-the existing dependency workflow. This is deferred work, not an active CI automation:
-
-- Check official LGPO/ODT download locations for availability and release changes; distinguish URL reachability from content trust.
-- Validate HTTPS source/redirect policy, archive paths and size limits, and Microsoft Authenticode publisher/chain/timestamp before
-  proposing new archive and executable pins. Inspect candidates without running them or applying policies.
-- Open an automated PR containing old/new URLs, hashes, versions, signature evidence and the test results. Reuse or update an existing PR
-  for the same candidate. Changed hashes must never be silently accepted or auto-merged; failed verification must fail the check.
-- Test download integrity failures, package layout, source metadata and supported PowerShell/runtime packaging in CI. Keep scheduled
-  upstream checks separate from deterministic offline tests; never fetch real vendor tools during ordinary unit tests.
+The scheduled vendor and dependency workflows have been implemented locally. Confirm their first GitHub execution and proposal delivery
+after the maintainer pushes the branch. Vendor checks remain separate from ordinary tests; downloaded candidates are inspected without
+execution, and changed pins are never automatically merged.
 
 Keep winkit unchanged. Publishing remains disabled and requires a separate v2 release decision. Local commits are authorized; pushing is
 not.

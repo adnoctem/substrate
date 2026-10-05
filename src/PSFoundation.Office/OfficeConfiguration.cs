@@ -11,6 +11,7 @@ public enum OfficeApplication { Access, Excel, Groove, Lync, OneDrive, OneNote, 
 public enum OfficeLocaleSource { Default, Explicit, InstalledOffice, OperatingSystem, Recovery }
 public enum OfficeFailureReason { InvalidConfiguration, InvalidAuthority, Unsupported, InvalidContract, LocaleDiscoveryFailed, MachineIdentityUnavailable, InvalidMachineIdentity, UnknownInventory, UnsafePath, UntrustedMedia, UntrustedTool, Conflict, ToolExtractionFailed, ReprepareMedia, InvalidMedia, UnsafeManifest, MediaMismatch, MediaIntegrityFailed, MissingMedia, MissingLanguageMedia, InvalidProductKey, ConfigurationCleanupFailed, DownloadFailed, InvalidRecoveryRecord, UnsupportedPilotRecovery, StaleMedia, DeploymentBusy, ElevationRequired, RebootRequired, PreflightFailed, StalePlan, ApplicationsRunning, InsufficientSpace, VerificationFailed, NativeFailure, OperationFailed, Cancelled }
 
+/// <summary>An Office operation failure with a stable reason classification and optional underlying exception.</summary>
 public sealed class OfficeException : InvalidOperationException
 {
     public OfficeFailureReason Reason { get; }
@@ -76,6 +77,7 @@ public sealed class OfficeConfiguration
         }
     }
 }
+/// <summary>An explicit language-selection policy; installed-language preservation must be resolved from inventory.</summary>
 public static class OfficeLanguages
 {
     private static readonly HashSet<string> Supported = new HashSet<string>(new[]

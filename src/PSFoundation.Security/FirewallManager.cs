@@ -10,6 +10,7 @@ namespace PSFoundation.Security;
 [Flags] public enum FirewallProfile { Domain = 1, Private = 2, Public = 4, All = int.MaxValue }
 public enum FirewallDirection { Inbound = 1, Outbound = 2 }
 public enum FirewallAction { Block = 0, Allow = 1 }
+/// <summary>A detached observation of a Windows firewall rule and its selected profiles.</summary>
 public sealed class FirewallRuleInfo
 {
     public string Name { get; }

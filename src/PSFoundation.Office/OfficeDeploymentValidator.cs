@@ -27,6 +27,7 @@ public sealed class OfficeObservedConfiguration
         ExcludedApplications = excludedApplications == null ? null : Array.AsReadOnly(excludedApplications.ToArray());
     }
 }
+/// <summary>Differences and unknown observations relative to a requested configuration; unknowns prevent a compliant verdict.</summary>
 public sealed class OfficeDeploymentAssessment
 {
     public bool Compliant => Discrepancies.Count == 0 && Unknowns.Count == 0;

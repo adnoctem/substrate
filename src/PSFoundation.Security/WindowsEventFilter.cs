@@ -61,6 +61,7 @@ public sealed class WindowsEventFieldFilter
         ? int.TryParse(value.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number)
         : int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number);
 }
+/// <summary>Combines event identity and named-field predicates against detached event data.</summary>
 public sealed class WindowsEventFilter
 {
     public IReadOnlyList<int> EventIds { get; }

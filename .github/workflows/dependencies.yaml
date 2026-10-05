@@ -1,30 +1,86 @@
-name: "PSGallery Dependencies"
+name: Dependency proposals
 
 on:
   schedule:
     - cron: "0 4 * * 1"
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-proposals
+  cancel-in-progress: false
 
 defaults:
   run:
     shell: pwsh
 
 jobs:
-  dependencies:
-    runs-on: windows-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN }}
-      PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
+  propose:
+    strategy:
+      fail-fast: false
+      matrix:
+        kind: [powershell, vendor]
+    runs-on: windows-2022
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          global-json-file: global.json
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - name: Check PowerShell tool versions
+        if: matrix.kind == 'powershell'
+        run: dotnet msbuild tools/tasks.proj -t:UpdateDependencies
+      - name: Inspect vendor candidates without executing them
+        if: matrix.kind == 'vendor'
+        run: dotnet msbuild tools/tasks.proj -t:ProposeVendorUpdates
+      - name: Restore candidate dependencies
+        run: dotnet msbuild tools/tasks.proj -t:Restore
+      - name: Validate candidates
+        run: dotnet msbuild tools/tasks.proj -t:Verify
+      - name: Propose PowerShell tool updates
+        if: matrix.kind == 'powershell'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/powershell-tools
+          commit-message: |
+            build(tools): update PowerShell development tools
 
-      - name: Open dependency update pull request
-        run: .\PSFoundation.ps1 deps
+            Restore exact candidate versions and verify the repository before proposing updates.
+          title: "build(tools): update PowerShell development tools"
+          body: "Updates exact PowerShell tool pins after restoring and running Verify. Review before merging."
+          add-paths: tools/dev-dependencies.json
+      - name: Propose verified vendor pins
+        if: matrix.kind == 'vendor'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/vendor-tools
+          commit-message: |
+            build(tools): refresh verified Microsoft tool sources
+
+            Inspect Microsoft-signed candidates without execution and retain evidence for human review.
+          title: "build(tools): refresh verified Microsoft tool sources"
+          body-path: build/vendor-tools/report.md
+          add-paths: |
+            src/PSFoundation.Policies/LgpoSource.cs
+            src/PSFoundation.Office/OdtTool.cs
+      - name: Upload vendor evidence
+        if: always() && matrix.kind == 'vendor'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vendor-evidence
+          path: |
+            build/vendor-tools/evidence.json
+            build/vendor-tools/report.md
+          if-no-files-found: warn

@@ -1,0 +1,77 @@
+<Project DefaultTargets="Help">
+  <PropertyGroup>
+    <RepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepositoryRoot>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Version Condition="'$(Version)' == ''">2.0.0</Version>
+    <TaskEnvironment>DOTNET_CLI_HOME=$(RepositoryRoot)/build/dotnet;DOTNET_CLI_TELEMETRY_OPTOUT=1;Configuration=$(Configuration);PSF_CONFIGURATION=$(Configuration);PSF_VERSION=$(Version)</TaskEnvironment>
+  </PropertyGroup>
+  <Target Name="Help">
+    <Message Importance="high" Text="dotnet msbuild tools/tasks.proj -t:Restore|Build|Stage|Test|Docs|UpdateHelp|Format|Check|Pack|Verify|Clean" />
+    <Message Importance="high" Text="Optional properties: Configuration=Release|Debug, Version=2.0.0. Publishing is a separate, explicit operation." />
+  </Target>
+  <Target Name="Validate">
+    <Error Condition="'$(Configuration)' != 'Release' and '$(Configuration)' != 'Debug'" Text="Configuration must be Release or Debug." />
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(Version)', '^\d+\.\d+\.\d+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$'))" Text="Version must be a three-part semantic version with an optional prerelease suffix." />
+  </Target>
+  <Target Name="Restore" DependsOnTargets="Validate">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)restore.ps1&quot;" />
+  </Target>
+  <Target Name="Build" DependsOnTargets="Validate">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet build PSFoundation.slnx --no-restore --configuration $(Configuration) -p:Version=$(Version) --nologo" />
+  </Target>
+  <Target Name="Stage" DependsOnTargets="Build">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)stage.ps1&quot;" />
+  </Target>
+  <Target Name="Baseline">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)baseline.ps1&quot;" />
+  </Target>
+  <Target Name="TestManaged" DependsOnTargets="Build">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet test PSFoundation.slnx --no-build --no-restore --configuration $(Configuration) --logger trx --results-directory build/test-results/managed" />
+  </Target>
+  <Target Name="HelpFiles" DependsOnTargets="Stage">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)documentation.ps1&quot; -Mode Help" />
+  </Target>
+  <Target Name="TestPowerShell" DependsOnTargets="HelpFiles;Baseline">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)test.ps1&quot;" />
+  </Target>
+  <Target Name="Test" DependsOnTargets="TestManaged;TestPowerShell" />
+  <Target Name="Docs" DependsOnTargets="HelpFiles">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)documentation.ps1&quot; -Mode Site" />
+  </Target>
+  <Target Name="UpdateHelp" DependsOnTargets="Stage">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)documentation.ps1&quot; -Mode Update" />
+  </Target>
+  <Target Name="FormatPowerShell">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)format.ps1&quot;" />
+  </Target>
+  <Target Name="CheckPowerShell">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)format.ps1&quot; -Check" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)lint.ps1&quot;" />
+  </Target>
+  <Target Name="CheckManaged">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace PSFoundation.slnx --no-restore --verify-no-changes" />
+  </Target>
+  <Target Name="Format" DependsOnTargets="FormatPowerShell">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace PSFoundation.slnx --no-restore" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun run format" />
+  </Target>
+  <Target Name="Check" DependsOnTargets="CheckPowerShell;CheckManaged">
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun run check" />
+  </Target>
+  <Target Name="Pack" DependsOnTargets="HelpFiles">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)pack.ps1&quot;" />
+  </Target>
+  <Target Name="Verify" DependsOnTargets="Check;Test;Docs;Pack" />
+  <Target Name="CheckVendors">
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)vendor-updates.ps1&quot;" />
+  </Target>
+  <Target Name="ProposeVendorUpdates">
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)vendor-updates.ps1&quot; -Propose" />
+  </Target>
+  <Target Name="UpdateDependencies">
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)dependencies.ps1&quot;" />
+  </Target>
+  <Target Name="Clean">
+    <Exec WorkingDirectory="$(RepositoryRoot)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)clean.ps1&quot;" />
+  </Target>
+</Project>

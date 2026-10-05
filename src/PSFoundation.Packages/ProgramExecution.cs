@@ -9,6 +9,7 @@ using PSFoundation.IO;
 
 namespace PSFoundation.Packages;
 
+/// <summary>A native process request plus caller-selected success and reboot exit-code sets.</summary>
 public sealed class ProgramExecutionRequest
 {
     public ProcessRequest Process { get; }
@@ -22,6 +23,7 @@ public sealed class ProgramExecutionRequest
     }
 }
 
+/// <summary>Native process evidence interpreted using the request's success and reboot policy.</summary>
 public sealed class ProgramExecutionResult
 {
     public ProcessResult Process { get; }
@@ -37,6 +39,7 @@ public sealed class ProgramExecutionResult
 }
 
 public enum UninstallCommandStatus { Ready, MissingCommand, InteractiveApprovalRequired }
+/// <summary>A selected registered uninstall command or the reason no permitted command could be selected.</summary>
 public sealed class UninstallCommandSelection
 {
     public string? Command { get; }
@@ -67,6 +70,7 @@ public sealed partial class Win32ProgramManager
             stopBehavior: stopBehavior), successExitCodes, rebootExitCodes);
     }
 
+    /// <summary>Chooses a registered uninstall command using explicit quiet and interactive-fallback preferences.</summary>
     public UninstallCommandSelection SelectUninstallCommand(Win32Program program, bool preferQuiet = false, bool allowInteractive = false)
     {
         if (program == null)
@@ -105,8 +109,10 @@ public sealed partial class Win32ProgramManager
         }
         return new ProgramExecutionRequest(new ProcessRequest(file, args, timeout: timeout, stopBehavior: stopBehavior));
     }
+    /// <summary>Runs a prepared installer or uninstaller and classifies its exit and reboot evidence.</summary>
     public ProgramExecutionResult Execute(ProgramExecutionRequest request, CancellationToken cancellationToken = default)
         => ExecuteAsync(request, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Runs a prepared native operation asynchronously using its timeout and interruption policy.</summary>
     /// <remarks>WaitForExit does not interrupt a running installer. Other stop policies can leave partial installation state.
     /// Exit codes report the launched process; bootstrapper descendants may require product-specific completion checks.</remarks>
     public async Task<ProgramExecutionResult> ExecuteAsync(ProgramExecutionRequest request, CancellationToken cancellationToken = default)

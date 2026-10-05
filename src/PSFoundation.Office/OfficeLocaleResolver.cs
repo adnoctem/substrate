@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace PSFoundation.Office;
 
+/// <summary>Resolved installed-language evidence and any issues that prevent reliable language preservation.</summary>
 public sealed class OfficeLocaleSelection
 {
     public IReadOnlyList<string> Languages { get; }
@@ -13,8 +14,10 @@ public sealed class OfficeLocaleSelection
     internal OfficeLocaleSelection(IEnumerable<string> languages, OfficeLocaleSource source, IEnumerable<string> evidence)
     { Languages = OfficeLanguages.Normalize(languages); Source = source; Evidence = Array.AsReadOnly(evidence.ToArray()); }
 }
+/// <summary>Resolves language preservation from Office observations without silently selecting a replacement locale.</summary>
 public sealed class OfficeLocaleResolver
 {
+    /// <summary>Resolves preservable installed Office languages from inventory, retaining ambiguity rather than inventing a language choice.</summary>
     public OfficeLocaleSelection FromInstalledOffice(OfficeInventory inventory)
     {
         if (inventory == null)

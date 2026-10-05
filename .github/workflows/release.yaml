@@ -1,65 +1,54 @@
-name: "Release"
+name: Release
 
 on:
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 defaults:
   run:
     shell: pwsh
 
 concurrency:
-  group: "${{ github.workflow }}@${{ github.ref }}"
+  group: "release-${{ github.ref }}"
 
 jobs:
   release:
-    # v1 is frozen. Publishing requires deliberate repository opt-in and a release branch.
     if: ${{ vars.PSFOUNDATION_RELEASE_ENABLED == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next') }}
-    runs-on: windows-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN }}
-      PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
+    runs-on: windows-2022
     permissions:
       contents: write
+      issues: write
       pull-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           fetch-depth: 0
-
-      - name: Initialize dependencies
-        run: .\PSFoundation.ps1 init
-
-      - name: Validate the selected release revision
-        run: |
-          .\PSFoundation.ps1 format -Check
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          .\PSFoundation.ps1 lint
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          .\PSFoundation.ps1 test
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          global-json-file: global.json
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - name: Restore
+        run: dotnet msbuild tools/tasks.proj -t:Restore
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN }}
         with:
           semantic_version: 25
-          branches: |
-            [
-              'main',
-              'next'
-            ]
           extra_plugins: |
             @semantic-release/changelog@6.0.3
             @semantic-release/exec@7.0.3
             @semantic-release/git@10.0.1
             conventional-changelog-conventionalcommits@8.0.0
-
-      - name: Publish PSGallery Release
+      - name: Publish validated package
         if: steps.semantic.outputs.new_release_published == 'true'
-        run: |
-          Write-Host "Publishing new release: ${{ steps.semantic.outputs.new_release_version }} to PSGallery"
-          .\PSFoundation.ps1 release -SkipBuild -Version ${{ steps.semantic.outputs.new_release_version }} -NuGetApiKey ${{ env.PSGALLERY_API_KEY }}
+        env:
+          PSF_RELEASE_VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          NUGET_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
+        run: ./tools/release.ps1 -Publish -Version $env:PSF_RELEASE_VERSION

@@ -10,6 +10,7 @@ using PSFoundation.Registry;
 
 namespace PSFoundation.Office;
 
+/// <summary>Detached typed values and child-key names observed at one registry path and view.</summary>
 public sealed class OfficeRegistryRecord
 {
     public RegistryView View { get; }
@@ -34,12 +35,14 @@ public sealed class OfficeRegistryRecord
     public object? GetValue(string name) => Values.TryGetValue(name, out var value) ? value.Data : null;
     public string? GetString(string name) => GetValue(name) as string;
 }
+/// <summary>A failed Office registry observation with its location and original exception.</summary>
 public sealed class OfficeRegistryReadError
 {
     public RegistryView View { get; }
     public Exception Error { get; }
     internal OfficeRegistryReadError(RegistryView view, Exception error) { View = view; Error = error; }
 }
+/// <summary>Office registry observations and retained failures across the probed views.</summary>
 public sealed class OfficeRegistrySnapshot
 {
     public string MachineId { get; }
@@ -63,6 +66,7 @@ public sealed class OfficeRegistryReader
         "InstallLanguage", "SKULanguage", "Language", "ActiveConfiguration", "DisplayName", "DisplayVersion", "Publisher", "WindowsInstaller", "UninstallString",
         "SystemComponent", "ParentKeyName", "ParentDisplayName"
     }, StringComparer.OrdinalIgnoreCase);
+    /// <summary>Reads Office registration evidence from both registry views, optionally retaining per-location errors.</summary>
     public OfficeRegistrySnapshot Read(bool continueOnError = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -77,9 +81,11 @@ public sealed class OfficeRegistryReader
         }
         return new OfficeRegistrySnapshot(machineId, records, errors);
     }
+    /// <summary>Reads Office registry evidence on a worker thread, checking cancellation between operations.</summary>
     /// <remarks>Offloads synchronous registry reads and checks cancellation between them; it cannot interrupt an active registry call.</remarks>
     public Task<OfficeRegistrySnapshot> ReadAsync(bool continueOnError = false, CancellationToken cancellationToken = default)
         => Task.Run(() => Read(continueOnError, cancellationToken), cancellationToken);
+    /// <summary>Reads the Windows machine identifier used to bind deployment and recovery evidence to one machine.</summary>
     public string ReadMachineId()
     {
         try
@@ -96,6 +102,7 @@ public sealed class OfficeRegistryReader
         catch (OfficeException) { throw; }
         catch (Exception error) { throw new OfficeException(OfficeFailureReason.MachineIdentityUnavailable, "Cannot read the machine identity.", error); }
     }
+    /// <summary>Reads the operating-system language used when deployment explicitly requests that language source.</summary>
     public string ReadOperatingSystemLanguage()
     {
         var value = new RegistryManager().GetValue(RegistryPath.Parse(@"HKLM\SYSTEM\CurrentControlSet\Control\Nls\Language"), "InstallLanguage");

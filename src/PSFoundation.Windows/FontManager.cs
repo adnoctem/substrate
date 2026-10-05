@@ -11,10 +11,13 @@ using PSFoundation.Registry;
 
 namespace PSFoundation.Windows;
 
+/// <summary>Inspects font files and explicitly installs fonts into the Windows system font registration.</summary>
 public sealed class FontManager
 {
+    /// <summary>Lists supported font files directly within the specified directory; does not recurse.</summary>
     public IReadOnlyList<FileSystemPath> FindFiles(FileSystemPath directory) => Array.AsReadOnly(Directory.EnumerateFiles(directory.Value)
         .Where(path => new[] { ".ttf", ".ttc", ".otf" }.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase)).Select(path => FileSystemPath.Parse(path)).ToArray());
+    /// <summary>Reads a font's display name without permanently registering it; returns null when no usable name is found.</summary>
     public string? GetDisplayName(FileSystemPath file)
     {
         string? name = null;
@@ -35,6 +38,7 @@ public sealed class FontManager
             name = GetFallbackName(Path.GetFileName(file.Value));
         return string.IsNullOrWhiteSpace(name) ? null : name + " " + kind;
     }
+    /// <summary>Derives a registration label from a supported font filename when font metadata is unavailable.</summary>
     public string? GetFallbackName(string fileName)
     {
         var name = Regex.Replace(fileName, @"\.(ttf|ttc|otf)$", "", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
@@ -59,6 +63,7 @@ public sealed class FontManager
         { cancellationToken.ThrowIfCancellationRequested(); File.Delete(source.Value); }
         return name;
     }
+    /// <summary>Offloads font installation. Earlier filesystem and registry changes are not rolled back on failure.</summary>
     public Task<string> InstallAsync(FileSystemPath source, bool removeSource = false, CancellationToken cancellationToken = default)
         => Task.Run(() => Install(source, removeSource, cancellationToken), cancellationToken);
 }

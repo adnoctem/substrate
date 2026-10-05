@@ -35,6 +35,7 @@ public sealed class RegistryValue : IEquatable<RegistryValue>
     public static RegistryValue QWord(ulong value) => QWord(unchecked((long)value));
     public static RegistryValue Binary(byte[] value) => new RegistryValue(RegistryValueKind.Binary, value);
     public static RegistryValue MultiString(params string[] value) => new RegistryValue(RegistryValueKind.MultiString, value);
+    /// <summary>Returns data as the requested CLR type, cloning arrays. Throws when the requested type does not match the native value.</summary>
     public T GetData<T>() => Data is T typed ? typed : throw new InvalidCastException("The requested CLR type does not match the registry data.");
     /// <summary>Expands using the calling process environment, including for values read from another machine.</summary>
     public string GetString(bool expandEnvironmentVariables = false)

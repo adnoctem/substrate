@@ -17,6 +17,8 @@ public sealed class StoredCredential : IDisposable
     private SecureString? password;
     public string UserName { get; }
     internal StoredCredential(string userName, SecureString password) { UserName = userName; this.password = password; }
+    /// <summary>Returns an independent secure-string copy that the caller must dispose.</summary>
+    /// <summary>Returns a caller-owned copy of the password; dispose it independently of this credential.</summary>
     public SecureString GetPassword() => (password ?? throw new ObjectDisposedException(nameof(StoredCredential))).Copy();
     public void Dispose() { password?.Dispose(); password = null; }
 }
@@ -26,6 +28,7 @@ public sealed class StoredCredential : IDisposable
 public sealed class CredentialFileManager
 {
     private const string Header = "76492d1116743f0423413b16050a5345";
+    /// <summary>Writes a protected credential and key pair in the legacy format; replacing the pair is not atomic.</summary>
     public void Write(FileSystemPath credentialPath, FileSystemPath keyPath, string userName, SecureString password, bool overwrite = false)
     {
         ValidatePaths(credentialPath, keyPath);
@@ -65,6 +68,7 @@ public sealed class CredentialFileManager
                 File.Delete(credentialTemporary.Value);
         }
     }
+    /// <summary>Reads the credential pair and returns a caller-owned credential that must be disposed.</summary>
     public StoredCredential Read(FileSystemPath credentialPath, FileSystemPath keyPath)
     {
         ValidatePaths(credentialPath, keyPath);
@@ -76,6 +80,7 @@ public sealed class CredentialFileManager
         { return new StoredCredential(lines[0], Decrypt(string.Concat(lines.Skip(1)), key)); }
         finally { Array.Clear(key, 0, key.Length); }
     }
+    /// <summary>Encodes a password using the supplied AES key and a fresh IV in the legacy unauthenticated envelope.</summary>
     public string Encrypt(SecureString password, byte[] key)
     {
         if (password == null)

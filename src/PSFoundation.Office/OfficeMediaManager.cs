@@ -9,6 +9,7 @@ using PSFoundation.IO;
 
 namespace PSFoundation.Office;
 
+/// <summary>Integrity and target-compatibility evidence for prepared installation media.</summary>
 public sealed class OfficeMediaAssessment
 {
     public FileSystemPath Path { get; }
@@ -26,6 +27,7 @@ public sealed class OfficeMediaAssessment
 /// <summary>Pure validation of a manifest against independently collected file evidence. Does not grant execution authority.</summary>
 public sealed class OfficeMediaValidator
 {
+    /// <summary>Checks that a media manifest describes the requested product, architecture, languages, channel, and version constraints.</summary>
     public void ValidateTarget(OfficeMediaManifest manifest, OfficeConfiguration? target, string? exactVersionText = null)
     {
         if (manifest == null)
@@ -37,6 +39,7 @@ public sealed class OfficeMediaValidator
             || target.Version != null && (target.Version != declared.Version || exactVersionText != null && !string.Equals(exactVersionText, manifest.VersionText, StringComparison.Ordinal)))
             throw new OfficeException(OfficeFailureReason.MediaMismatch, "Package product, architecture, channel, or build differs from target.");
     }
+    /// <summary>Compares observed media file lengths and hashes with the manifest and requested target.</summary>
     /// <remarks>ExactVersionText optionally retains an external contract's textual pin. Normal C# callers compare typed versions.</remarks>
     public void Validate(OfficeMediaManifest manifest, IEnumerable<OfficeMediaFile> observedFiles, OfficeConfiguration? target = null, string? exactVersionText = null)
     {
@@ -78,6 +81,7 @@ public sealed class OfficeMediaValidator
 /// <summary>Reads protected Office packages without downloads, writes or executable invocation.</summary>
 public sealed partial class OfficeMediaManager
 {
+    /// <summary>Hashes media contents asynchronously while retaining relative file identities.</summary>
     public async Task<IReadOnlyList<OfficeMediaFile>> ReadFilesAsync(FileSystemPath root, CancellationToken cancellationToken = default)
     {
         if (root == null)
@@ -126,8 +130,10 @@ public sealed partial class OfficeMediaManager
         }
         return Array.AsReadOnly(files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase).ToArray());
     }
+    /// <summary>Inventories media files and computes digests; cancellation can interrupt the observation.</summary>
     public IReadOnlyList<OfficeMediaFile> ReadFiles(FileSystemPath root, CancellationToken cancellationToken = default)
         => ReadFilesAsync(root, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Validates prepared media and returns structured readiness evidence without starting setup.exe.</summary>
     /// <remarks>Inspection is a point-in-time observation. Execution must inspect again while owning its deployment lock and staging.</remarks>
     public async Task<OfficeMediaAssessment> InspectAsync(FileSystemPath root, OfficeConfiguration? target = null, CancellationToken cancellationToken = default, string? exactVersionText = null)
     {
@@ -172,6 +178,7 @@ public sealed partial class OfficeMediaManager
             return new OfficeMediaAssessment(root, stage, null, null, null, error);
         }
     }
+    /// <summary>Assesses prepared media against its manifest and an optional target configuration.</summary>
     public OfficeMediaAssessment Inspect(FileSystemPath root, OfficeConfiguration? target = null, CancellationToken cancellationToken = default, string? exactVersionText = null)
         => InspectAsync(root, target, cancellationToken, exactVersionText).GetAwaiter().GetResult();
 }

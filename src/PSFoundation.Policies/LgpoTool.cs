@@ -51,10 +51,12 @@ public sealed class LgpoTool
         }
     }
 
+    /// <summary>Downloads and installs a digest-verified LGPO executable without applying policy.</summary>
     public FileSystemPath Install(FileSystemPath directory, TimeSpan timeout, bool overwrite = false,
         LgpoSource? source = null, CancellationToken cancellationToken = default)
         => InstallAsync(directory, timeout, overwrite, source, cancellationToken).GetAwaiter().GetResult();
 
+    /// <summary>Checks source reachability; success does not authenticate downloaded content.</summary>
     public LgpoSourceAvailability CheckSource(TimeSpan timeout, LgpoSource? source = null, CancellationToken cancellationToken = default)
         => CheckSourceAsync(timeout, source, cancellationToken).GetAwaiter().GetResult();
 
@@ -86,9 +88,11 @@ public sealed class LgpoTool
         }
     }
 
+    /// <summary>Checks file existence only. The caller must establish executable trust before execution.</summary>
     public bool IsInstalled(FileSystemPath executable)
         => File.Exists((executable ?? throw new ArgumentNullException(nameof(executable))).Value);
 
+    /// <summary>Selects GPO backup mode for a directory and text mode for a file.</summary>
     public LgpoApplyMode GetApplyMode(FileSystemPath policyPath)
     {
         if (policyPath == null)
@@ -97,6 +101,7 @@ public sealed class LgpoTool
         return (attributes & FileAttributes.Directory) != 0 ? LgpoApplyMode.GpoBackup : LgpoApplyMode.TextSource;
     }
 
+    /// <summary>Prepares the executable, arguments, timeout, and stop policy for an explicit policy application.</summary>
     /// <remarks>Preparing a request validates paths but makes no policy changes. Paths can change before execution; preparation is not authorization.
     /// The executable must already be trusted by the caller. Timeout and interruption policy must be chosen explicitly: stopping LGPO may leave partial policy changes.</remarks>
     public ProcessRequest CreateApplyRequest(FileSystemPath executable, FileSystemPath policyPath, TimeSpan timeout, ProcessStopBehavior stopBehavior)
@@ -108,6 +113,7 @@ public sealed class LgpoTool
             workingDirectory: Path.GetDirectoryName(executable.Value), timeout: timeout, stopBehavior: stopBehavior, maximumCapturedCharacters: int.MaxValue);
     }
 
+    /// <summary>Runs the prepared LGPO operation and returns native execution evidence without interpreting a nonzero exit as success.</summary>
     /// <remarks>Only an explicit apply call changes policy. Nonzero exit codes, cancellation and timeouts are returned as process evidence.
     /// With WaitForExit, cancellation after launch does not terminate the policy operation; it may wait indefinitely.</remarks>
     public Task<ProcessResult> ApplyAsync(FileSystemPath executable, FileSystemPath policyPath, TimeSpan timeout, ProcessStopBehavior stopBehavior,
@@ -117,6 +123,7 @@ public sealed class LgpoTool
         return new ProcessManager().RunAsync(CreateApplyRequest(executable, policyPath, timeout, stopBehavior), cancellationToken);
     }
 
+    /// <summary>Synchronously applies local policy with the caller-selected interruption policy.</summary>
     public ProcessResult Apply(FileSystemPath executable, FileSystemPath policyPath, TimeSpan timeout, ProcessStopBehavior stopBehavior,
         CancellationToken cancellationToken = default)
         => ApplyAsync(executable, policyPath, timeout, stopBehavior, cancellationToken).GetAwaiter().GetResult();

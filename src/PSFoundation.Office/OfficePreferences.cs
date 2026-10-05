@@ -36,6 +36,7 @@ public sealed class OfficeApplicationPreference
     internal string ApplicationId => Application == OfficePreferenceApplication.PowerPoint ? "ppt16" : Application.ToString().ToLowerInvariant() + "16";
 }
 
+/// <summary>Explicit optional Office update settings; absent fields leave that setting unspecified.</summary>
 public sealed class OfficeUpdateConfiguration
 {
     public bool? Enabled { get; }

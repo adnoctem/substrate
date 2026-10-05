@@ -15,7 +15,9 @@ public sealed class RegistryHiveService
     internal RegistryHiveService(RegistryManager manager, IRegistryCommandRunner runner, Func<RegistryPath, bool> exists)
     { this.manager = manager; this.runner = runner; this.exists = exists; }
 
+    /// <summary>Saves a local subtree to a binary hive file using reg.exe and the caller's existing authority.</summary>
     public void Save(RegistryPath path, string destination, bool overwrite = false, CancellationToken cancellationToken = default) => SaveAsync(path, destination, overwrite, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Saves a binary hive without mounting it. Existing files require explicit overwrite.</summary>
     public Task SaveAsync(RegistryPath path, string destination, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         RegistryManager.RequireNonRoot(path);
@@ -24,6 +26,7 @@ public sealed class RegistryHiveService
 
     /// <summary>Overwrites a key from a binary hive. Failure/cancellation does not roll back native writes.</summary>
     public void Restore(RegistryPath path, string source, CancellationToken cancellationToken = default) => RestoreAsync(path, source, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Restores a binary hive using reg.exe; interruption does not guarantee that prior changes were undone.</summary>
     public async Task RestoreAsync(RegistryPath path, string source, CancellationToken cancellationToken = default)
     {
         new RegistryFileService(manager, runner).RequireLocal();
@@ -34,6 +37,7 @@ public sealed class RegistryHiveService
 
     /// <summary>Loads a new HKLM/HKU child and returns its owner. Once started, load finishes before returning ownership.</summary>
     public RegistryHiveLease Mount(RegistryPath mountPoint, string source, CancellationToken cancellationToken = default) => MountAsync(mountPoint, source, cancellationToken).GetAwaiter().GetResult();
+    /// <summary>Loads a hive and transfers responsibility for unloading it to the returned lease.</summary>
     public async Task<RegistryHiveLease> MountAsync(RegistryPath mountPoint, string source, CancellationToken cancellationToken = default)
     {
         ValidateMount(mountPoint);

@@ -10,6 +10,7 @@ using Microsoft.Management.Infrastructure.Options;
 namespace PSFoundation.Windows;
 
 public enum ScheduledTaskState { Unknown = 0, Disabled = 1, Queued = 2, Ready = 3, Running = 4 }
+/// <summary>Detached task action properties; arguments are data and must not be evaluated as shell code.</summary>
 public sealed class ScheduledTaskAction
 {
     public CimRecord Data { get; }
@@ -20,6 +21,7 @@ public sealed class ScheduledTaskAction
     public string? ComClassId => Data.GetValue("ClassId") as string;
     internal ScheduledTaskAction(CimRecord data) => Data = data;
 }
+/// <summary>Detached task identity, state, principal, and action observations.</summary>
 public sealed class ScheduledTaskInfo
 {
     public string Name { get; }
@@ -46,6 +48,7 @@ public sealed class ScheduledTaskInfo
 public sealed class ScheduledTaskManager
 {
     private const string Namespace = @"root\Microsoft\Windows\TaskScheduler";
+    /// <summary>Reads scheduled tasks and detached action data through the Windows task CIM provider.</summary>
     public IReadOnlyList<ScheduledTaskInfo> GetTasks(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         ServiceManager.ValidateTimeout(timeout);
@@ -58,8 +61,10 @@ public sealed class ScheduledTaskManager
                 { cancellationToken.ThrowIfCancellationRequested(); tasks.Add(new ScheduledTaskInfo(item)); }
         return tasks.AsReadOnly();
     }
+    /// <summary>Offloads scheduled-task inventory with provider timeout and cancellation.</summary>
     public Task<IReadOnlyList<ScheduledTaskInfo>> GetTasksAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => GetTasks(timeout, cancellationToken), cancellationToken);
+    /// <summary>Finds one task by exact folder and name, or returns null when absent.</summary>
     public ScheduledTaskInfo? GetTask(string folderPath, string name, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         ValidateIdentity(folderPath, name);
@@ -94,6 +99,7 @@ public sealed class ScheduledTaskManager
             }
         }
     }
+    /// <summary>Changes task enablement on a worker thread without launching the task.</summary>
     /// <remarks>Cancellation is forwarded to CIM. A request already accepted by the provider may still finish changing the task.</remarks>
     public Task<uint> SetEnabledAsync(string folderPath, string name, bool enabled, TimeSpan timeout, CancellationToken cancellationToken = default)
         => Task.Run(() => SetEnabled(folderPath, name, enabled, timeout, cancellationToken), cancellationToken);

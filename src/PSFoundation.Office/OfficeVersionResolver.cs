@@ -7,6 +7,7 @@ using Microsoft.Win32;
 namespace PSFoundation.Office;
 
 public enum OfficeVersionSource { ClickToRunInventory, ActiveProductResources }
+/// <summary>Resolved version and source authority, retaining ambiguity when evidence cannot identify one version.</summary>
 public sealed class OfficeVersionEvidence
 {
     public Version? Version { get; }

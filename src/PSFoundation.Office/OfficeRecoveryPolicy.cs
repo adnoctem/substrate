@@ -37,6 +37,7 @@ public sealed class OfficeRecoveryCheckpoint
         return Array.AsReadOnly(copy);
     }
 }
+/// <summary>Whether recorded evidence permits a specific continuation, together with reasons for blocking or accepting it.</summary>
 public sealed class OfficeRecoveryDecision
 {
     public OfficeRecoveryDisposition Disposition { get; }

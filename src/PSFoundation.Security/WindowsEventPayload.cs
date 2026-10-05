@@ -7,12 +7,14 @@ using System.Xml.Linq;
 
 namespace PSFoundation.Security;
 
+/// <summary>One named value observed in an event payload; duplicate field names can be retained.</summary>
 public sealed class WindowsEventField
 {
     public string? Name { get; }
     public string Value { get; }
     internal WindowsEventField(string? name, string value) { Name = name; Value = value; }
 }
+/// <summary>Parsed EventData and UserData fields with their names and values preserved.</summary>
 public sealed class WindowsEventPayload
 {
     public IReadOnlyList<WindowsEventField> Fields { get; }
@@ -38,6 +40,7 @@ public sealed class WindowsEventPayload
             return new WindowsEventPayload(fields, root.Element(ns + "UserData")?.ToString(SaveOptions.DisableFormatting));
         }
     }
+    /// <summary>Returns the first matching named event value using the specified string comparison.</summary>
     public string? GetValue(string name, StringComparison comparison = StringComparison.Ordinal)
     {
         if (name == null)

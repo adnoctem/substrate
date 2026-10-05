@@ -24,6 +24,7 @@ public sealed class PrerequisiteRequirement
         Guidance = guidance ?? throw new ArgumentNullException(nameof(guidance));
     }
 }
+/// <summary>The observed result of one prerequisite, including unmet or unavailable evidence.</summary>
 public sealed class PrerequisiteCheck
 {
     public string Check { get; }
@@ -43,6 +44,7 @@ public sealed class PrerequisiteCheck
         catch (Exception error) when (!(error is OperationCanceledException)) { Reason = "DiscoveryFailed"; Guidance = error.Message; }
     }
 }
+/// <summary>Combined prerequisite observations without implicit installation or elevation.</summary>
 public sealed class PrerequisiteReport
 {
     public IReadOnlyList<PrerequisiteCheck> Checks { get; }

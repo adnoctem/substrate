@@ -66,6 +66,7 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'environment.ps1')
 
 if ($Managed) {
   $root = Split-Path $PSScriptRoot -Parent
@@ -84,7 +85,7 @@ if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
   exit 1
 }
 
-Import-Module PSScriptAnalyzer -ErrorAction Stop
+Import-DevelopmentModule PSScriptAnalyzer
 
 $settingsPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Settings)
 if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
@@ -93,7 +94,7 @@ if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
 }
 
 $extensions = @('.ps1', '.psm1', '.psd1')
-$excludedDirectories = @('.git', '.idea', 'dist', 'build')
+$excludedDirectories = @('.git', '.idea', '.codex', '.agents', 'node_modules', 'dist', 'build')
 if (-not $IncludeSecrets) {
   $excludedDirectories += 'secrets'
 }

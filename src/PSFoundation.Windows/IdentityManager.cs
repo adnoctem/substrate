@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace PSFoundation.Windows;
 
+/// <summary>Detached Windows identity information without retaining a token handle.</summary>
 public sealed class IdentitySnapshot
 {
     public string Name { get; }

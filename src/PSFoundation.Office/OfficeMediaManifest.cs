@@ -10,6 +10,7 @@ using System.Xml;
 
 namespace PSFoundation.Office;
 
+/// <summary>A manifest entry containing a relative media path, byte length, and SHA256 digest.</summary>
 public sealed class OfficeMediaFile
 {
     public string Path { get; }

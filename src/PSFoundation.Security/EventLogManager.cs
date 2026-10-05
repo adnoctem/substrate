@@ -9,6 +9,7 @@ using PSFoundation.IO;
 
 namespace PSFoundation.Security;
 
+/// <summary>Detached event data and optional formatted message; message-formatting failures do not discard the raw event XML.</summary>
 public sealed class WindowsEventSnapshot
 {
     public int Id { get; }

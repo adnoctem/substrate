@@ -34,6 +34,7 @@ public sealed class OfficeProductState
 }
 public enum OfficeMsiResourceKind { ProductOrComponent, Proofing, LanguageInterfacePack, LanguageResource }
 public enum OfficeRelatedRole { ClickToRunInfrastructure, AddIn, PatchRegistration }
+/// <summary>An observed MSI Office registration. Reading it does not trigger Windows Installer consistency checks.</summary>
 public sealed class OfficeMsiRegistration
 {
     public string ProductCode { get; }
@@ -45,6 +46,7 @@ public sealed class OfficeMsiRegistration
     internal OfficeMsiRegistration(string code, OfficeRegistryRecord record, string? language, OfficeMsiResourceKind kind)
     { ProductCode = code; Name = record.GetString("DisplayName"); Version = record.GetString("DisplayVersion"); RegistryView = record.View; LanguageId = language; ResourceKind = kind; }
 }
+/// <summary>A related Office component classified separately from the main suite.</summary>
 public sealed class OfficeRelatedComponent
 {
     public string ProductCode { get; }
@@ -57,6 +59,7 @@ public sealed class OfficeRelatedComponent
     internal OfficeRelatedComponent(string code, OfficeRegistryRecord record, OfficeRelatedRole role, string? parent = null, bool? system = null)
     { ProductCode = code; Name = record.GetString("DisplayName"); Version = record.GetString("DisplayVersion"); RegistryView = record.View; Role = role; ParentProductCode = parent; SystemComponent = system; }
 }
+/// <summary>Office installation observations across registration sources, preserving ambiguities and inventory diagnostics.</summary>
 public sealed class OfficeInventory
 {
     public string MachineId { get; }
