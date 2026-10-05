@@ -8,8 +8,8 @@ Describe 'C# event configuration and native event log compatibility' {
     $reports = Join-Path $root 'build/test-results/security'
     $null = [IO.Directory]::CreateDirectory($reports)
     foreach ($implementation in @('v1', 'v2')) {
-      $module = if ($implementation -eq 'v1') { Join-Path $root 'build/baseline/d2d1498275806684b44169504146302d54b7a084/src/PSFoundation.psd1' } else { Join-Path $root 'build/module/PSFoundation/PSFoundation.psd1' }
-      $result = Invoke-PSFHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Security-Probe.ps1'), '-ModulePath', $module, '-ReportPath', (Join-Path $reports "$Engine-$implementation.json"))
+      $module = if ($implementation -eq 'v1') { Join-Path $root 'build/baseline/d2d1498275806684b44169504146302d54b7a084/src/PSFoundation.psd1' } else { Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1' }
+      $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Security-Probe.ps1'), '-ModulePath', $module, '-ReportPath', (Join-Path $reports "$Engine-$implementation.json"))
       $result.ExitCode | Should -Be 0 -Because $result.Output
     }
     $before = Get-Content (Join-Path $reports "$Engine-v1.json") -Raw | ConvertFrom-Json

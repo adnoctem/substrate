@@ -1,7 +1,7 @@
 # Contributing
 
-PSFoundation v2 uses C# domain libraries with a PowerShell adapter. The frozen v1 scripts remain available for compatibility comparisons;
-they are not the production module build input.
+Substrate uses C# domain libraries with a PowerShell adapter. The frozen v1 scripts remain available for compatibility comparisons; they are
+not the production module build input.
 
 ## Prerequisites
 
@@ -35,10 +35,10 @@ Restore uses NuGet lock files, the local .NET tool manifest, exact PowerShell to
 
 The default configuration is Release. Use `-p:Configuration=Debug` when needed. Restore explicitly before running these tasks on a clean
 checkout. Build compiles only; Stage assembles the module; HelpFiles adds runtime help. Pack includes staging and help through target
-dependencies. Direct `dotnet build PSFoundation.slnx` remains supported for ordinary compilation.
+dependencies. Direct `dotnet build Substrate.slnx` remains supported for ordinary compilation.
 
 For a focused Pester investigation, the supporting runner accepts `./tools/test.ps1 -Path ./tests/PowerShell/Registry.Tests.ps1`. It
-defaults to the v2 suite; archived root-level tests exercise v1. PowerShell source coverage measures compatibility scripts only and is
+defaults to the current suite; archived root-level tests exercise v1. PowerShell source coverage measures compatibility scripts only and is
 informational, not C# coverage.
 
 ## Formatting and hooks
@@ -66,7 +66,7 @@ focused functional tests to repetitive property documentation and implementation
 Import the staged module in a fresh process:
 
 ```powershell
-Import-Module ./build/module/PSFoundation/PSFoundation.psd1
+Import-Module ./build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1
 Get-Help Get-OfficeInventory -Full
 ```
 
@@ -74,12 +74,12 @@ A rebuild cannot unload assemblies already imported by an existing PowerShell pr
 executable, configuration, data, and help together when copying the package.
 
 Semantic-release passes its selected version to `tools/release.ps1 -Prepare`, which verifies and packages that version. The v1 manifest
-remains frozen. Versions below 2.0.0 are rejected: the first v2 release needs an intentional major-release decision. The release workflow
-remains manual and requires `PSFOUNDATION_RELEASE_ENABLED=true` on a supported release branch.
+remains frozen. Substrate starts an independent release sequence at 1.0.0; PSFoundation release tags are not imported. The release workflow
+remains manual and requires `SUBSTRATE_RELEASE_ENABLED=true` on a supported release branch.
 
 ```powershell
-./tools/release.ps1 -Prepare -Version 2.0.0 -DryRun
-./tools/release.ps1 -Publish -Version 2.0.0 -DryRun
+./tools/release.ps1 -Prepare -Version 1.0.0 -DryRun
+./tools/release.ps1 -Publish -Version 1.0.0 -DryRun
 ```
 
 Actual publication uses the already verified staged files and rejects changed contents. Set `NUGET_API_KEY` only in the publishing

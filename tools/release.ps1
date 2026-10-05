@@ -1,9 +1,9 @@
 ﻿#Requires -Version 7.0
 <#
 .SYNOPSIS
-  Prepares or explicitly publishes a verified v2 package.
+  Prepares or explicitly publishes a verified substrate package.
 .PARAMETER Version
-  Semantic-release version. Releases before 2.0.0 are rejected.
+  Semantic-release version. Releases before 1.0.0 are rejected.
 .PARAMETER Prepare
   Builds and verifies the selected version without publishing.
 .PARAMETER Publish
@@ -11,9 +11,9 @@
 .PARAMETER DryRun
   Reports the intended operation without building or publishing.
 .EXAMPLE
-  ./tools/release.ps1 -Prepare -Version 2.0.0
+  ./tools/release.ps1 -Prepare -Version 1.0.0
 .EXAMPLE
-  ./tools/release.ps1 -Publish -Version 2.0.0 -DryRun
+  ./tools/release.ps1 -Publish -Version 1.0.0 -DryRun
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param (
@@ -25,10 +25,10 @@ param (
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 if ($Prepare -eq $Publish) { throw 'Select exactly one of Prepare or Publish.' }
-if ([version]($Version -split '-', 2)[0] -lt [version]'2.0.0') { throw 'v1 is frozen. Select a v2 release deliberately.' }
+if ([version]($Version -split '-', 2)[0] -lt [version]'1.0.0') { throw 'Substrate releases start at 1.0.0.' }
 $action = if ($Prepare) { 'Prepare and verify' } else { 'Publish' }
-if ($DryRun -or -not $PSCmdlet.ShouldProcess("PSFoundation $Version", $action)) {
-  Write-Output "DRY RUN: $action PSFoundation $Version."
+if ($DryRun -or -not $PSCmdlet.ShouldProcess("AdNoctem.Substrate.PowerShell $Version", $action)) {
+  Write-Output "DRY RUN: $action AdNoctem.Substrate.PowerShell $Version."
   return
 }
 Push-Location $root
@@ -38,7 +38,7 @@ try {
     if ($LASTEXITCODE) { throw 'Changelog formatting failed.' }
     & dotnet msbuild tools/tasks.proj -t:Verify "-p:Version=$Version" -nologo
     if ($LASTEXITCODE) { throw 'Release verification failed.' }
-    $stage = Join-Path $root 'build/module/PSFoundation'
+    $stage = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell'
     $files = @(Get-ChildItem -LiteralPath $stage -File -Recurse | Sort-Object FullName | ForEach-Object {
         [ordered]@{ Path = [IO.Path]::GetRelativePath($stage, $_.FullName); Sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
       })
@@ -46,7 +46,7 @@ try {
       Set-Content -LiteralPath (Join-Path $root 'build/release.json') -Encoding utf8
     return
   }
-  $stage = Join-Path $root 'build/module/PSFoundation'
+  $stage = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell'
   $evidence = Get-Content (Join-Path $root 'build/release.json') -Raw | ConvertFrom-Json
   if ($evidence.Version -cne $Version) { throw 'Prepared package version does not match the release.' }
   $actual = @(Get-ChildItem -LiteralPath $stage -File -Recurse | Sort-Object FullName)

@@ -2,12 +2,12 @@
   <PropertyGroup>
     <RepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepositoryRoot>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-    <Version Condition="'$(Version)' == ''">2.0.0</Version>
-    <TaskEnvironment>DOTNET_CLI_HOME=$(RepositoryRoot)/build/dotnet;DOTNET_CLI_TELEMETRY_OPTOUT=1;Configuration=$(Configuration);PSF_CONFIGURATION=$(Configuration);PSF_VERSION=$(Version)</TaskEnvironment>
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <TaskEnvironment>DOTNET_CLI_HOME=$(RepositoryRoot)/build/dotnet;DOTNET_CLI_TELEMETRY_OPTOUT=1;Configuration=$(Configuration);SUBSTRATE_CONFIGURATION=$(Configuration);SUBSTRATE_VERSION=$(Version)</TaskEnvironment>
   </PropertyGroup>
   <Target Name="Help">
     <Message Importance="high" Text="dotnet msbuild tools/tasks.proj -t:Restore|Build|Stage|Test|Docs|UpdateHelp|Format|Check|Pack|Verify|Clean" />
-    <Message Importance="high" Text="Optional properties: Configuration=Release|Debug, Version=2.0.0. Publishing is a separate, explicit operation." />
+    <Message Importance="high" Text="Optional properties: Configuration=Release|Debug, Version=1.0.0. Publishing is a separate, explicit operation." />
   </Target>
   <Target Name="Validate">
     <Error Condition="'$(Configuration)' != 'Release' and '$(Configuration)' != 'Debug'" Text="Configuration must be Release or Debug." />
@@ -17,7 +17,7 @@
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)restore.ps1&quot;" />
   </Target>
   <Target Name="Build" DependsOnTargets="Validate">
-    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet build PSFoundation.slnx --no-restore --configuration $(Configuration) -p:Version=$(Version) --nologo" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet build Substrate.slnx --no-restore --configuration $(Configuration) -p:Version=$(Version) --nologo" />
   </Target>
   <Target Name="Stage" DependsOnTargets="Build">
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)stage.ps1&quot;" />
@@ -26,7 +26,7 @@
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)baseline.ps1&quot;" />
   </Target>
   <Target Name="TestManaged" DependsOnTargets="Build">
-    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet test PSFoundation.slnx --no-build --no-restore --configuration $(Configuration) --logger trx --results-directory build/test-results/managed" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet test Substrate.slnx --no-build --no-restore --configuration $(Configuration) --logger trx --results-directory build/test-results/managed" />
   </Target>
   <Target Name="HelpFiles" DependsOnTargets="Stage">
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)documentation.ps1&quot; -Mode Help" />
@@ -49,10 +49,10 @@
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)lint.ps1&quot;" />
   </Target>
   <Target Name="CheckManaged">
-    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace PSFoundation.slnx --no-restore --verify-no-changes" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace Substrate.slnx --no-restore --verify-no-changes" />
   </Target>
   <Target Name="Format" DependsOnTargets="FormatPowerShell">
-    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace PSFoundation.slnx --no-restore" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace Substrate.slnx --no-restore" />
     <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun run format" />
   </Target>
   <Target Name="Check" DependsOnTargets="CheckPowerShell;CheckManaged">

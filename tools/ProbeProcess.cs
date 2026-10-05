@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
-namespace PSFoundation.DevTools
+namespace AdNoctem.Substrate.DevTools
 {
     // C# 5 syntax is intentional: Windows PowerShell 5.1 compiles this test-only helper with Add-Type.
     public static class ProbeProcess

@@ -44,7 +44,7 @@ public static class NativeProcess
                 return 0;
             case "environment":
                 Console.WriteLine(Environment.CurrentDirectory);
-                Console.WriteLine(Environment.GetEnvironmentVariable("PSF_SYNTHETIC_VALUE"));
+                Console.WriteLine(Environment.GetEnvironmentVariable("SUBSTRATE_SYNTHETIC_VALUE"));
                 return 0;
             case "arguments":
                 for (int i = 1; i < args.Length; i++)

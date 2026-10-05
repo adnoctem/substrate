@@ -44,7 +44,7 @@
   Formats only the library and test directories.
 
 .LINK
-  https://github.com/adnoctem/PSFoundation
+  https://github.com/adnoctem/substrate
 
 .NOTES
   Author: MVProwess <info@mvprowess.com>
@@ -73,7 +73,7 @@ if ($Managed) {
   $env:DOTNET_CLI_HOME = Join-Path $root 'build/dotnet'
   $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
   $env:Configuration = 'Release'
-  $arguments = @('format', 'whitespace', (Join-Path $root 'PSFoundation.slnx'), '--no-restore')
+  $arguments = @('format', 'whitespace', (Join-Path $root 'Substrate.slnx'), '--no-restore')
   if ($Check) { $arguments += '--verify-no-changes' }
   if ($VerbosePreference -eq 'Continue') { $arguments += @('--verbosity', 'diagnostic') }
   & dotnet @arguments

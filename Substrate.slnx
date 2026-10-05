@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AdNoctem.Substrate.WinRtHost/AdNoctem.Substrate.WinRtHost.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Office/AdNoctem.Substrate.Office.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Security/AdNoctem.Substrate.Security.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Core/AdNoctem.Substrate.Core.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Packages/AdNoctem.Substrate.Packages.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Windows/AdNoctem.Substrate.Windows.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Interop/AdNoctem.Substrate.Interop.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Diagnostics/AdNoctem.Substrate.Diagnostics.csproj" />
+    <Project Path="src/AdNoctem.Substrate.IO/AdNoctem.Substrate.IO.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Policies/AdNoctem.Substrate.Policies.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Networking/AdNoctem.Substrate.Networking.csproj" />
+    <Project Path="src/AdNoctem.Substrate.Registry/AdNoctem.Substrate.Registry.csproj" />
+    <Project Path="src/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AdNoctem.Substrate.Office.Tests/AdNoctem.Substrate.Office.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Security.Tests/AdNoctem.Substrate.Security.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Core.Tests/AdNoctem.Substrate.Core.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Packages.Tests/AdNoctem.Substrate.Packages.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Windows.Tests/AdNoctem.Substrate.Windows.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Diagnostics.Tests/AdNoctem.Substrate.Diagnostics.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.IO.Tests/AdNoctem.Substrate.IO.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Policies.Tests/AdNoctem.Substrate.Policies.Tests.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Networking.Tests/AdNoctem.Substrate.Networking.Tests.csproj" />
+    <Project Path="tests/fixtures/process/ProcessHost.csproj" />
+    <Project Path="tests/AdNoctem.Substrate.Registry.Tests/AdNoctem.Substrate.Registry.Tests.csproj" />
+  </Folder>
+</Solution>

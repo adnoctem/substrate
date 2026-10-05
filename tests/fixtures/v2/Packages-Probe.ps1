@@ -3,7 +3,7 @@ param ([string]$ModulePath, [string]$ReportPath, [string]$FixtureId)
 
 $ErrorActionPreference = 'Stop'
 $null = Import-Module $ModulePath -Force
-$root = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PSFoundation.Tests.$FixtureId"
+$root = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\AdNoctem.Substrate.Tests.$FixtureId"
 $paths = @($root, "$root-hidden", "$root-blank", "$root-stringflag")
 $observations = [ordered]@{}
 $createdPaths = @()
@@ -16,12 +16,12 @@ try {
     $key = [Microsoft.Win32.Registry]::CurrentUser.CreateSubKey($paths[$index])
     $createdPaths += $paths[$index]
     try {
-      $displayName = if ($index -eq 2) { ' ' } else { "PSFoundation Synthetic $FixtureId $index" }
+      $displayName = if ($index -eq 2) { ' ' } else { "AdNoctem.Substrate.PowerShell Synthetic $FixtureId $index" }
       $key.SetValue('DisplayName', $displayName)
       $key.SetValue('Publisher', 'Synthetic Publisher')
       $key.SetValue('DisplayVersion', '1.2.3')
       $key.SetValue('InstallDate', '20260228')
-      $key.SetValue('InstallLocation', '%TEMP%\PSFoundation Synthetic', [Microsoft.Win32.RegistryValueKind]::ExpandString)
+      $key.SetValue('InstallLocation', '%TEMP%\AdNoctem.Substrate.PowerShell Synthetic', [Microsoft.Win32.RegistryValueKind]::ExpandString)
       $key.SetValue('UninstallString', '"C:\Synthetic Only\NeverRun.exe" /uninstall')
       $key.SetValue('QuietUninstallString', '"C:\Synthetic Only\NeverRun.exe" /quiet')
       $key.SetValue('EstimatedSize', -1, [Microsoft.Win32.RegistryValueKind]::DWord)

@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   release:
-    if: ${{ vars.PSFOUNDATION_RELEASE_ENABLED == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next') }}
+    if: ${{ vars.SUBSTRATE_RELEASE_ENABLED == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next') }}
     runs-on: windows-2022
     permissions:
       contents: write
@@ -49,6 +49,6 @@ jobs:
       - name: Publish validated package
         if: steps.semantic.outputs.new_release_published == 'true'
         env:
-          PSF_RELEASE_VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          SUBSTRATE_RELEASE_VERSION: ${{ steps.semantic.outputs.new_release_version }}
           NUGET_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
-        run: ./tools/release.ps1 -Publish -Version $env:PSF_RELEASE_VERSION
+        run: ./tools/release.ps1 -Publish -Version $env:SUBSTRATE_RELEASE_VERSION

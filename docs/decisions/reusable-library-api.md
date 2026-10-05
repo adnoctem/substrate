@@ -3,22 +3,23 @@
 Accepted for the registry iteration on 2026-10-04 and subsequently adopted for the remaining module migration, now authorized by the
 maintainer. All domains follow the same reusable-library and PowerShell-compatibility boundaries.
 
-PSFoundation's C# libraries are usable directly from other applications. PowerShell is one consumer. Host independence does not imply
-operating-system independence: the registry implementation is a Windows capability.
+AdNoctem.Substrate.PowerShell's C# libraries are usable directly from other applications. PowerShell is one consumer. Host independence does
+not imply operating-system independence: the registry implementation is a Windows capability.
 
 ## Two contracts
 
 - Preserve the pinned PowerShell command names, binding, outputs, errors, confirmation and stream behavior.
 - Design the public C# API around typed, coherent operations rather than the PowerShell command inventory. C# names can change during the
   unreleased v2 design. Once adopted by consumers, those public CLR contracts also require compatibility management.
-- Keep implementation details internal. Legacy semantics remain in the internal `PSFoundation.Registry.Compatibility` namespace, with friend
-  access for adapters and tests. They are not exported C# types. The public registry API does not expose provider paths, console colors,
-  script comparison quirks, string statuses or PowerShell types.
-- Use `Manager` for capabilities PSFoundation owns, such as `RegistryManager`, `NetworkManager` and a future `PolicyManager` for policy
-  compilation, decompilation, snapshots and files. Use `Tool` for integration with separately maintained vendor applications: `LgpoTool` and
-  the future `OdtTool`. PSFoundation owns the integration, not those executables. Use `Service` for a focused responsibility and specific
-  names such as `Parser`, `Resolver`, `Watcher` or `CommandRunner` where they describe the work. Do not add suffixes mechanically or move
-  all code into one manager. This distinction supersedes the earlier blanket rename of LGPO to Manager.
+- Keep implementation details internal. Legacy semantics remain in the internal `AdNoctem.Substrate.Registry.Compatibility` namespace, with
+  friend access for adapters and tests. They are not exported C# types. The public registry API does not expose provider paths, console
+  colors, script comparison quirks, string statuses or PowerShell types.
+- Use `Manager` for capabilities AdNoctem.Substrate.PowerShell owns, such as `RegistryManager`, `NetworkManager` and a future
+  `PolicyManager` for policy compilation, decompilation, snapshots and files. Use `Tool` for integration with separately maintained vendor
+  applications: `LgpoTool` and the future `OdtTool`. AdNoctem.Substrate.PowerShell owns the integration, not those executables. Use
+  `Service` for a focused responsibility and specific names such as `Parser`, `Resolver`, `Watcher` or `CommandRunner` where they describe
+  the work. Do not add suffixes mechanically or move all code into one manager. This distinction supersedes the earlier blanket rename of
+  LGPO to Manager.
 
 ## Host independence
 
@@ -43,10 +44,10 @@ PowerShell parameters and explicit capture of unused arguments for completion. S
 [the compatibility notes](../migration/compatibility-exceptions.md).
 
 Logging accepts structured events with explicitly supplied destinations. Filesystem and registry paths remain distinct types; PowerShell
-provider interpretation belongs at the compatibility boundary. `PSFoundation.Core` contains only demonstrably shared primitives.
-`PSFoundation.Diagnostics`, `PSFoundation.IO` and `PSFoundation.Networking` provide focused reusable foundations. The old ordered operation
-result field bag is internal compatibility code, not a public C# result model. No application host or separate NuGet publishing workflow is
-introduced.
+provider interpretation belongs at the compatibility boundary. `AdNoctem.Substrate.Core` contains only demonstrably shared primitives.
+`AdNoctem.Substrate.Diagnostics`, `AdNoctem.Substrate.IO` and `AdNoctem.Substrate.Networking` provide focused reusable foundations. The old
+ordered operation result field bag is internal compatibility code, not a public C# result model. No application host or separate NuGet
+publishing workflow is introduced.
 
 The expanded C# library surface is an approved addition to the original compatibility-only scope in `v2.md`. Preserve essential contract
 comments during implementation: ownership, cancellation, partial writes, destructive effects, concurrency, platform limits and compatibility

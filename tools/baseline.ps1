@@ -32,7 +32,7 @@ foreach ($file in $baselineFiles) {
   if ($LASTEXITCODE -ne 0 -or $actual -ne $expected) { throw "Pinned baseline differs at '$file'." }
 }
 . (Join-Path $PSScriptRoot 'compatibility.ps1')
-$contract = Get-PSFApiContract -ModulePath (Join-Path $destination 'src/PSFoundation.psd1')
+$contract = Get-SubstrateApiContract -ModulePath (Join-Path $destination 'src/PSFoundation.psd1')
 if ($contract.Commands.Count -ne 192) { throw 'The v1 baseline must contain 188 functions and four aliases.' }
 $outputRoot = Join-Path $root 'build/baseline'
 if ($WriteFixtures) { $outputRoot = Join-Path $root 'tests/Fixtures/Api' }

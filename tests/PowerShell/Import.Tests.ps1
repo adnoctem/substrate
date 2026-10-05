@@ -7,10 +7,10 @@ Describe 'Incremental binary module imports' {
     @{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }
   ) {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-    $module = Join-Path $root 'build/module/PSFoundation/PSFoundation.psd1'
+    $module = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
     Test-Path -LiteralPath $module | Should -BeTrue -Because 'run the launcher build before package tests'
     $probe = Join-Path $root 'tests/fixtures/v2/Import-Probe.ps1'
-    $result = Invoke-PSFHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module)
+    $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module)
     $result.ExitCode | Should -Be 0 -Because $result.Output
     $result.Output | Should -Match 'smoke tests passed'
   }

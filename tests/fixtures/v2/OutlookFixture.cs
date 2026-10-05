@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace PSFoundation.Tests.Fixtures
+namespace AdNoctem.Substrate.Tests.Fixtures
 {
     public class OutlookFixture
     {

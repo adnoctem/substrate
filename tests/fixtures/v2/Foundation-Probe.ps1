@@ -86,7 +86,7 @@ Add-Observation 'path-literal' {
 }
 Add-Observation 'path-missing' { Resolve-LongPath -LiteralPath (Join-Path $scratch 'missing') }
 Add-Observation 'path-provider' { Resolve-LongPath -LiteralPath 'HKCU:\Software' }
-Add-Observation 'path-missing-provider' { Resolve-LongPath -LiteralPath 'HKCU:\PSFoundation-Synthetic-Missing' }
+Add-Observation 'path-missing-provider' { Resolve-LongPath -LiteralPath 'HKCU:\AdNoctem.Substrate.PowerShell-Synthetic-Missing' }
 Add-Observation 'process-arguments' { Invoke-SafeProcess $executable -ArgumentList @('arguments', '', 'space value', 'a"b', 'C:\space end\', 'a&b|c') -PassThru }
 Add-Observation 'process-result' {
   $result = Invoke-SafeProcess $executable -ArgumentList @('arguments', 'value') -AsResult
@@ -102,8 +102,8 @@ Add-Observation 'process-file' {
   }
   finally { Pop-Location }
 }
-Add-Observation 'process-error-result' { Invoke-SafeProcess -FilePath 'PSFoundation.synthetic.missing.exe' -AsResult }
-Add-Observation 'process-error-text' { Invoke-SafeProcess -FilePath 'PSFoundation.synthetic.missing.exe' -PassThru }
+Add-Observation 'process-error-result' { Invoke-SafeProcess -FilePath 'AdNoctem.Substrate.synthetic.missing.exe' -AsResult }
+Add-Observation 'process-error-text' { Invoke-SafeProcess -FilePath 'AdNoctem.Substrate.synthetic.missing.exe' -PassThru }
 Add-Observation 'process-precancelled' { Invoke-SafeProcess $executable -AsResult -CancellationToken ([Threading.CancellationToken]::new($true)) }
 foreach ($address in @('192.0.2.1', '127.1', '0.0.0.0', '255.255.255.255', '256.2.3.4', '+1.2.3.4', ' 1.2.3.4', '01.2.3.4', '-0.2.3.4', '::', '::1', '2001:db8::1', '2001:::1', '::ffff:192.0.2.1', '1:2:3:4:5:6:192.0.2.1', '1:2:3:4:5:6:7:8', 'fe80::1%3', '1::2::3', '[::1]')) {
   Add-Observation "address:$address" { Test-IPv4Address $address; Test-IPv6Address $address }

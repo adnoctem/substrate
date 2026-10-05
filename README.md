@@ -1,28 +1,23 @@
-<p align="center">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/PowerShell/PowerShell/master/assets/Powershell_256.png">
-      <img src="https://raw.githubusercontent.com/PowerShell/PowerShell/master/assets/Powershell_256.png" alt="PowerShell L" width="225">
-    </picture>
-    <h1 align="center">PSFoundation</h1>
-</p>
+# substrate
 
-[![License](https://img.shields.io/github/license/adnoctem/PSFoundation?label=License)][license]
-[![Language](https://img.shields.io/github/languages/top/adnoctem/PSFoundation?label=PowerShell)][powershell]
-[![PSGallery Version](https://img.shields.io/powershellgallery/v/PSFoundation)][psgallery_package]
-[![CI Status](https://github.com/adnoctem/PSFoundation/actions/workflows/testing.yaml/badge.svg)][testing_workflow]
-[![GitHub Release](https://img.shields.io/github/v/release/adnoctem/PSFoundation?label=Release)][github_releases]
-[![GitHub Activity](https://img.shields.io/github/commit-activity/m/adnoctem/PSFoundation?label=Commits)][github_commits]
-[![Semantic Release](https://img.shields.io/badge/Semantic_Release-enabled-brightgreen?logo=semanticrelease&logoColor=E5E4E7)][semantic_release]
+[![License](https://img.shields.io/github/license/adnoctem/substrate?label=License)][license]
+[![Language](https://img.shields.io/github/languages/top/adnoctem/substrate?label=C%23)][dotnet]
+[![PSGallery Version](https://img.shields.io/powershellgallery/v/AdNoctem.Substrate.PowerShell)][psgallery_package]
+[![CI Status](https://github.com/adnoctem/substrate/actions/workflows/testing.yaml/badge.svg)][testing_workflow]
+[![GitHub Release](https://img.shields.io/github/v/release/adnoctem/substrate?label=Release)][github_releases]
+[![GitHub Activity](https://img.shields.io/github/commit-activity/m/adnoctem/substrate?label=Commits)][github_commits]
+[![Semantic Release](https://img.shields.io/badge/Semantic_Release-gated-yellow?logo=semanticrelease&logoColor=E5E4E7)][semantic_release]
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovate&logoColor=1A1F6C)][renovate]
 [![PreCommit](https://img.shields.io/badge/PreCommit-enabled-brightgreen?logo=precommit&logoColor=FAB040)][precommit]
 
-`PSFoundation` is an open-source [MIT][license]-licensed [PowerShell][powershell] module library written and maintained by the [Ad Noctem
-Collective][org] for Windows system administration, configuration management, and automation. The module targets both desktop Windows
-installations and Windows Server environments and supports [PowerShell][powershell] 5.1 and above, including Windows PowerShell 5.1 as well
-as newer PowerShell 7+ releases. It is published to the [PowerShell Gallery][psgallery_package] for easy discovery and installation.
+`substrate` is an open-source [MIT][license]-licensed library of reusable C# APIs, maintained by the [Ad Noctem Collective][org], for
+Windows administration, configuration management, and automation. Applications can use the domain libraries without loading PowerShell.
 
-The v2 implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter preserves 188 commands and four
-aliases, using compiled cmdlets and a small compatibility script. Frozen v1 scripts remain in the repository for comparison tests.
+The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Its first release
+is planned as 1.0.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
+
+The implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter preserves 188 commands and four aliases,
+using compiled cmdlets and a small compatibility script. Frozen PSFoundation v1 scripts remain in the repository for comparison tests.
 
 See the [API catalog](docs/API.md), [architecture](docs/architecture.md), and [contributor guide](docs/CONTRIBUTING.md). The generated
 reference describes Registry, Networking, IO, Diagnostics, Policies, Packages, Security, Windows, Interop, and Office APIs.
@@ -38,7 +33,7 @@ dotnet msbuild tools/tasks.proj -t:Format
 dotnet msbuild tools/tasks.proj -t:Verify
 
 # Import the staged v2 package in a fresh PowerShell process.
-Import-Module ./build/module/PSFoundation/PSFoundation.psd1
+Import-Module ./build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1
 
 # Check the same hooks used in CI.
 pre-commit run --all-files
@@ -487,16 +482,16 @@ _Assets provided by:_ **[Microsoft Corporation][microsoft]**
 
 [org]: https://github.com/adnoctem
 [microsoft]: https://www.microsoft.com/
-[powershell]: https://github.com/PowerShell/PowerShell
 [gh_pr_fork_docs]:
   https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork
-[github_releases]: https://github.com/adnoctem/PSFoundation/releases
-[github_commits]: https://github.com/adnoctem/PSFoundation/commits/main/
-[psgallery_package]: https://www.powershellgallery.com/packages/PSFoundation
-[testing_workflow]: https://github.com/adnoctem/PSFoundation/actions/workflows/testing.yaml
+[github_releases]: https://github.com/adnoctem/substrate/releases
+[github_commits]: https://github.com/adnoctem/substrate/commits/main/
+[psgallery_package]: https://www.powershellgallery.com/packages/AdNoctem.Substrate.PowerShell
+[testing_workflow]: https://github.com/adnoctem/substrate/actions/workflows/testing.yaml
 
 <!-- Third-party -->
 
 [semantic_release]: https://semantic-release.org/
 [renovate]: https://renovatebot.com/
 [precommit]: https://pre-commit.com/
+[dotnet]: https://learn.microsoft.com/dotnet/

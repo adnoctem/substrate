@@ -2,14 +2,14 @@
 
 This guide illustrates common workflows. The generated [API catalog](API.md) links to the complete member reference.
 
-Reference `PSFoundation.Registry` directly; no PowerShell host or dependency-injection container is required. The library targets net48 and
-netstandard2.0 and performs Windows registry operations. The repository builds with the pinned SDK through `tools/tasks.proj`.
+Reference `AdNoctem.Substrate.Registry` directly; no PowerShell host or dependency-injection container is required. The library targets
+net48 and netstandard2.0 and performs Windows registry operations. The repository builds with the pinned SDK through `tools/tasks.proj`.
 
 ## Ordinary operations
 
 ```csharp
 using Microsoft.Win32;
-using PSFoundation.Registry;
+using AdNoctem.Substrate.Registry;
 
 var registry = new RegistryManager(RegistryView.Registry64);
 var settings = RegistryPath.Parse(@"HKCU\Software\ExampleApplication");

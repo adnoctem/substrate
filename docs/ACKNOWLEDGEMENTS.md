@@ -1,4 +1,4 @@
-# PSFoundation source acknowledgements
+# AdNoctem.Substrate.PowerShell source acknowledgements
 
 This records attributions present in the source and distinguishes adapted code from technical references.
 
@@ -6,8 +6,8 @@ This records attributions present in the source and distinguishes adapted code f
 
 - `Install-Font` in [system.ps1](../src/system.ps1) credits
   [LeDragoX/Win-Debloat-Tools, Install-Font.psm1](https://github.com/LeDragoX/Win-Debloat-Tools/blob/main/src/lib/Install-Font.psm1). Its
-  recorded attribution also credits [anthonyeden](https://github.com/anthonyeden) for the earlier font-installation gist. PSFoundation's
-  implementation adds its own validation, structured outcomes and explicit source-removal consent.
+  recorded attribution also credits [anthonyeden](https://github.com/anthonyeden) for the earlier font-installation gist.
+  AdNoctem.Substrate.PowerShell's implementation adds its own validation, structured outcomes and explicit source-removal consent.
 - Domain helpers retain links to [adnoctem/winkit](https://github.com/adnoctem/winkit), the related project from which this shared module
   evolved. Those links record project provenance rather than an additional third-party dependency.
 

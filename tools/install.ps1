@@ -2,20 +2,20 @@
 
 <#
 .SYNOPSIS
-  Installs the PSFoundation module to the local PowerShell module path.
+  Installs the AdNoctem.Substrate.PowerShell module to the local PowerShell module path.
 
 .DESCRIPTION
-  Copies or symlinks the staged build/module/PSFoundation/ directory into the user's PowerShell Modules path
-  so that the module can be imported with Import-Module PSFoundation from any
+  Copies or symlinks the staged build/module/AdNoctem.Substrate.PowerShell/ directory into the user's PowerShell Modules path
+  so that the module can be imported with Import-Module AdNoctem.Substrate.PowerShell from any
   session. By default, files are copied. Use -SymbolicLink to create a directory
   junction instead (instant updates, suitable for active development).
 
-  The module version is read from build/module/PSFoundation/PSFoundation.psd1 and used to create the
+  The module version is read from build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1 and used to create the
   versioned module folder. Use -Undo to remove a previously installed copy.
 
 .PARAMETER SymbolicLink
   Create a directory junction instead of copying files. The junction points back
-  to the staged build/module/PSFoundation/ directory so changes take effect immediately without reinstalling.
+  to the staged build/module/AdNoctem.Substrate.PowerShell/ directory so changes take effect immediately without reinstalling.
 
 .PARAMETER Undo
   Remove the installed module from the local module path. Works for both copy
@@ -29,7 +29,7 @@
 
 .EXAMPLE
   PS> ./install.ps1
-  Copies src/ into $env:USERPROFILE\Documents\PowerShell\Modules\PSFoundation\<version>\.
+  Copies src/ into $env:USERPROFILE\Documents\PowerShell\Modules\AdNoctem.Substrate.PowerShell\<version>\.
 
 .EXAMPLE
   PS> ./install.ps1 -SymbolicLink
@@ -37,10 +37,10 @@
 
 .EXAMPLE
   PS> ./install.ps1 -Undo
-  Removes the locally installed PSFoundation module.
+  Removes the locally installed AdNoctem.Substrate.PowerShell module.
 
 .LINK
-  https://github.com/adnoctem/PSFoundation
+  https://github.com/adnoctem/substrate
 
 .NOTES
   Author: MVProwess <info@mvprowess.com>
@@ -62,8 +62,8 @@ param (
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Split-Path -Path $PSScriptRoot -Parent))
-$srcPath = Join-Path -Path $repositoryRoot -ChildPath 'build/module/PSFoundation'
-$manifestPath = Join-Path -Path $srcPath -ChildPath 'PSFoundation.psd1'
+$srcPath = Join-Path -Path $repositoryRoot -ChildPath 'build/module/AdNoctem.Substrate.PowerShell'
+$manifestPath = Join-Path -Path $srcPath -ChildPath 'AdNoctem.Substrate.PowerShell.psd1'
 
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
   throw "Module manifest not found: $manifestPath"
@@ -128,7 +128,7 @@ if ($Undo) {
 
 # ---- Install mode -----------------------------------------------------------
 if (Test-Path -LiteralPath $installPath) {
-  if (-not $Force -and -not $PSCmdlet.ShouldContinue("$installPath exists. Overwrite?", 'Install PSFoundation')) {
+  if (-not $Force -and -not $PSCmdlet.ShouldContinue("$installPath exists. Overwrite?", 'Install AdNoctem.Substrate.PowerShell')) {
     Write-Warning 'Installation cancelled.'
     exit 0
   }

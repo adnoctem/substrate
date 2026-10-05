@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-  Runs Pester tests for the PSFoundation module.
+  Runs Pester tests for the AdNoctem.Substrate.PowerShell module.
 
 .DESCRIPTION
   Invokes Pester against the packaged-module tests in tests/PowerShell. By
@@ -28,7 +28,7 @@
   Runs only the current registry host tests.
 
 .LINK
-  https://github.com/adnoctem/PSFoundation
+  https://github.com/adnoctem/substrate
 
 .NOTES
   Author: MVProwess <info@mvprowess.com>
@@ -50,7 +50,7 @@ if ($Managed) {
   $root = Split-Path $PSScriptRoot -Parent
   $env:DOTNET_CLI_HOME = Join-Path $root 'build/dotnet'
   $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-  & dotnet test (Join-Path $root 'PSFoundation.slnx') --no-build --no-restore --configuration Release --logger 'trx' --results-directory (Join-Path $root 'build/test-results/managed')
+  & dotnet test (Join-Path $root 'Substrate.slnx') --no-build --no-restore --configuration Release --logger 'trx' --results-directory (Join-Path $root 'build/test-results/managed')
   exit $LASTEXITCODE
 }
 
@@ -83,7 +83,7 @@ if ($Coverage) {
   # information while Normal keeps the CI log useful.
   $config.Output.Verbosity = 'Normal'
   $config.CodeCoverage.Enabled = $true
-  $config.CodeCoverage.Path = @(Join-Path (Split-Path $PSScriptRoot -Parent) 'src/PSFoundation.PowerShell/compat.ps1')
+  $config.CodeCoverage.Path = @(Join-Path (Split-Path $PSScriptRoot -Parent) 'src/AdNoctem.Substrate.PowerShell/compat.ps1')
   $config.CodeCoverage.OutputFormat = 'JaCoCo'
   $config.CodeCoverage.OutputPath = Join-Path $OutputDirectory 'coverage.xml'
   $config.CodeCoverage.CoveragePercentTarget = 0

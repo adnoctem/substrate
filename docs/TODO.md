@@ -1,4 +1,4 @@
-# ✅ TODOs - `PSFoundation`
+# ✅ TODOs - `AdNoctem.Substrate.PowerShell`
 
 ## ➕ Additions
 

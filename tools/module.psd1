@@ -1,7 +1,7 @@
 ﻿@{
-  RootModule            = 'PSFoundation.psm1'
-  ModuleVersion         = '2.0.0'
-  GUID                  = '73aa2e6a-815c-4bcc-b8f8-053e1c07ae7b'
+  RootModule            = 'AdNoctem.Substrate.PowerShell.psm1'
+  ModuleVersion         = '1.0.0'
+  GUID                  = '81c6e99d-6a1d-4fc0-b688-2b36c361df05'
   Author                = 'MVProwess'
   CompanyName           = 'Ad Noctem Collective'
   Copyright             = '(c) MVProwess. All rights reserved.'
@@ -16,10 +16,10 @@
   AliasesToExport       = @('Get-Network', 'Get-Prefix', 'Get-NetworkCIDR', 'Get-PrefixCIDR')
   PrivateData           = @{
     PSData = @{
-      Tags                     = @('PowerShell', 'Windows', 'administration', 'PSFoundation')
+      Tags                     = @('PowerShell', 'Windows', 'administration', 'Substrate')
       LicenseUri               = 'https://opensource.org/license/mit'
-      ProjectUri               = 'https://github.com/adnoctem/PSFoundation'
-      ReleaseNotes             = 'https://github.com/adnoctem/PSFoundation/releases'
+      ProjectUri               = 'https://github.com/adnoctem/substrate'
+      ReleaseNotes             = 'https://github.com/adnoctem/substrate/releases'
       Prerelease               = ''
       RequireLicenseAcceptance = $false
     }

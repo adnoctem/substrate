@@ -35,7 +35,7 @@
   Runs analyzer checks over selected paths.
 
 .LINK
-  https://github.com/adnoctem/PSFoundation
+  https://github.com/adnoctem/substrate
 
 .NOTES
   Author: MVProwess <info@mvprowess.com>

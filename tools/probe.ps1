@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-function Invoke-PSFHostProbe {
+function Invoke-SubstrateHostProbe {
   <#
   .SYNOPSIS
     Runs a fresh-host test probe with bounded memory, output and lifetime.
@@ -13,7 +13,7 @@ function Invoke-PSFHostProbe {
   .PARAMETER MemoryLimitMiB
     Windows job commit limit for the probe and its descendants together.
   .EXAMPLE
-    Invoke-PSFHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', '.\probe.ps1')
+    Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', '.\probe.ps1')
   #>
   [CmdletBinding()]
   param (
@@ -22,9 +22,9 @@ function Invoke-PSFHostProbe {
     [ValidateRange(1, 600)][int]$TimeoutSeconds = 120,
     [ValidateRange(32, 1024)][int]$MemoryLimitMiB = 512
   )
-  if ($null -eq ('PSFoundation.DevTools.ProbeProcess' -as [type])) {
+  if ($null -eq ('AdNoctem.Substrate.DevTools.ProbeProcess' -as [type])) {
     Add-Type -Path (Join-Path $PSScriptRoot 'ProbeProcess.cs') -ErrorAction Stop
   }
   $executable = (Get-Command -Name $Engine -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
-  [PSFoundation.DevTools.ProbeProcess]::Run($executable, $ArgumentList, ($TimeoutSeconds * 1000), $MemoryLimitMiB)
+  [AdNoctem.Substrate.DevTools.ProbeProcess]::Run($executable, $ArgumentList, ($TimeoutSeconds * 1000), $MemoryLimitMiB)
 }

@@ -16,7 +16,7 @@ foreach ($command in @('Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEditi
 $observations['named-paths'] = Get-SystemPaths 'synthetic-product'
 $observations['dotnet'] = Get-DotNetVersion
 $user = Get-UserInfo
-$nativeElevation = if ('PSFoundation.Windows.IdentityManager' -as [type]) { [PSFoundation.Windows.IdentityManager]::new().IsElevated() } else { & (Get-Module PSFoundation) { Read-ProcessElevation } }
+$nativeElevation = if ('AdNoctem.Substrate.Windows.IdentityManager' -as [type]) { [AdNoctem.Substrate.Windows.IdentityManager]::new().IsElevated() } else { & (Get-Module ([IO.Path]::GetFileNameWithoutExtension($ModulePath))) { Read-ProcessElevation } }
 $observations['identity'] = @($user.GetType().FullName, $user.UserName, $user.IsAdministrator, $user.SID, (Get-UserSID $user.UserName), (Test-Elevation), $nativeElevation)
 $observations['identity-extra-arguments'] = (Get-UserInfo -Unused extra).SID
 $observations['applicability'] = @(Test-HostApplicability; Test-HostApplicability -MinBuild 0; Test-HostApplicability -MaxBuild 0; Test-HostApplicability -Edition @(Get-OSEdition); Test-HostApplicability -Edition 'synthetic-edition'; Test-HostApplicability -Bitness x64; Test-HostApplicability -Bitness x86; Test-HostApplicability -Edition @())
@@ -53,14 +53,14 @@ foreach ($printer in $observations['printers']) {
 }
 $observations['reboot-shape'] = Get-Shape (Test-PendingReboot)
 $observations['service-preview'] = @(Set-ServiceStartupState -Name 'RpcSs' -StartupType Manual -WhatIf)
-$observations['service-missing'] = @(Set-ServiceStartupState -Name 'PSFoundation.Synthetic.Nonexistent' -StartupType Disabled -WhatIf)
+$observations['service-missing'] = @(Set-ServiceStartupState -Name 'AdNoctem.Substrate.Synthetic.Nonexistent' -StartupType Disabled -WhatIf)
 $observations['service-filtered'] = @(Set-ServiceStartupState -Name 'RpcSs' -StartupType Disabled -Filter 'RpcSs' -WhatIf)
 $observations['service-protected'] = @(Set-ServiceStartupState -Name 'RemoteRegistry' -StartupType Manual -WhatIf)
-$observations['task-missing'] = @(Set-ScheduledTaskState -TaskName 'PSFoundation.Synthetic.Nonexistent' -State Disabled -WhatIf)
+$observations['task-missing'] = @(Set-ScheduledTaskState -TaskName 'AdNoctem.Substrate.Synthetic.Nonexistent' -State Disabled -WhatIf)
 $observations['task-preview'] = @(Set-ScheduledTaskState -TaskName '*' -State Disabled -WhatIf)
 $syntheticComputer = 'SYNTHETIC'
 $observations['provision-preview'] = New-OfflineDomainJoinBlob -ComputerName $syntheticComputer -Domain example.invalid -WhatIf
-$joinDirectory = Join-Path ([IO.Path]::GetTempPath()) ('PSFoundation-probe-join-' + [Guid]::NewGuid().ToString('N'))
+$joinDirectory = Join-Path ([IO.Path]::GetTempPath()) ('AdNoctem.Substrate.PowerShell-probe-join-' + [Guid]::NewGuid().ToString('N'))
 $null = [IO.Directory]::CreateDirectory($joinDirectory)
 try {
   $joinPath = Join-Path $joinDirectory 'synthetic.djoin'
@@ -72,14 +72,14 @@ try {
   $observations['join-file-bytes'] = [Convert]::ToBase64String([IO.File]::ReadAllBytes($joinPath))
   if ((Get-Command New-DjoinFile).CommandType -eq 'Cmdlet') {
     $null = New-DjoinFile -Blob 'new' -DestinationFile $joinPath -Confirm:$false
-    if ([PSFoundation.Windows.DomainJoinPackageCodec]::Decode([IO.File]::ReadAllBytes($joinPath)) -ne 'new') { throw 'Package replacement retained old trailing bytes.' }
+    if ([AdNoctem.Substrate.Windows.DomainJoinPackageCodec]::Decode([IO.File]::ReadAllBytes($joinPath)) -ne 'new') { throw 'Package replacement retained old trailing bytes.' }
   }
 }
 finally { [IO.Directory]::Delete($joinDirectory, $true) }
 if ((Get-Command Set-ScheduledTaskState).CommandType -eq 'Cmdlet') {
   $guarded = @(Set-ServiceStartupState -Name 'RemoteReg*' -StartupType Automatic -WhatIf)
   if ($guarded.Count -ne 1 -or $guarded[0].Status -ne 'Refused') { throw 'Wildcard expansion bypassed service protection.' }
-  & (Get-Module PSFoundation) {
+  & (Get-Module ([IO.Path]::GetFileNameWithoutExtension($ModulePath))) {
     $previous = $script:ProtectedServiceNames
     try {
       $script:ProtectedServiceNames = @('RpcSs')
@@ -88,7 +88,7 @@ if ((Get-Command Set-ScheduledTaskState).CommandType -eq 'Cmdlet') {
     finally { $script:ProtectedServiceNames = $previous }
   }
 }
-$lockPath = Join-Path ([IO.Path]::GetTempPath()) ('PSFoundation-probe-lock-' + [Guid]::NewGuid().ToString('N'))
+$lockPath = Join-Path ([IO.Path]::GetTempPath()) ('AdNoctem.Substrate.PowerShell-probe-lock-' + [Guid]::NewGuid().ToString('N'))
 try {
   $handle = [IO.File]::Open($lockPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
   try {

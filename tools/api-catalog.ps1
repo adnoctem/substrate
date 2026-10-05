@@ -19,8 +19,8 @@ $lines.Add('The .NET catalog links below use DocFX cross-references, resolved in
 $lines.Add('')
 $lines.Add('## .NET libraries')
 $lines.Add('')
-foreach ($file in Get-ChildItem (Join-Path $root 'build/docs/api') -Filter 'PSFoundation.*.yml' | Sort-Object Name) {
-  if ($file.BaseName -match '^PSFoundation\.[^.]+$') { continue }
+foreach ($file in Get-ChildItem (Join-Path $root 'build/docs/api') -Filter 'AdNoctem.Substrate.*.yml' | Sort-Object Name) {
+  if ($file.BaseName -match '^AdNoctem\.Substrate\.[^.]+$') { continue }
   $text = [IO.File]::ReadAllText($file.FullName)
   if ($text -notmatch '(?m)^  type: (Class|Interface|Enum|Struct|Delegate)\s*$') { continue }
   $uid = $file.BaseName
@@ -29,8 +29,8 @@ foreach ($file in Get-ChildItem (Join-Path $root 'build/docs/api') -Filter 'PSFo
 $lines.Add('')
 $lines.Add('## PowerShell commands')
 $lines.Add('')
-foreach ($file in Get-ChildItem (Join-Path $root 'docs/commands/PSFoundation') -Filter '*.md' | Sort-Object Name) {
-  $lines.Add("- [$($file.BaseName)](commands/PSFoundation/$($file.Name))")
+foreach ($file in Get-ChildItem (Join-Path $root 'docs/commands/AdNoctem.Substrate.PowerShell') -Filter '*.md' | Sort-Object Name) {
+  $lines.Add("- [$($file.BaseName)](commands/AdNoctem.Substrate.PowerShell/$($file.Name))")
 }
 $lines.Add('')
 $lines.Add('Aliases: `Get-Network`, `Get-Prefix`, `Get-NetworkCIDR`, `Get-PrefixCIDR`. Their help resolves to the corresponding command.')

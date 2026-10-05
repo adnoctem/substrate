@@ -12,17 +12,17 @@ param ([ValidateSet('Help', 'Site', 'Update')][string]$Mode = 'Help')
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'environment.ps1')
 Import-DevelopmentModule Microsoft.PowerShell.PlatyPS
-$stage = Join-Path $repositoryRoot 'build/module/PSFoundation'
-$commandRoot = Join-Path $repositoryRoot 'docs/commands/PSFoundation'
+$stage = Join-Path $repositoryRoot 'build/module/AdNoctem.Substrate.PowerShell'
+$commandRoot = Join-Path $repositoryRoot 'docs/commands/AdNoctem.Substrate.PowerShell'
 $compiled = @((Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands.psd1')).Values | ForEach-Object { $_ })
 $compatibility = @((Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compatibility-commands.psd1')).Values | ForEach-Object { $_ })
 $expected = @($compiled + $compatibility | Sort-Object)
 $files = @(Get-ChildItem -LiteralPath $commandRoot -Filter '*.md' | Sort-Object BaseName)
 if ($Mode -eq 'Update') {
-  Import-Module (Join-Path $stage 'PSFoundation.psd1') -Force
+  Import-Module (Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1') -Force
   foreach ($name in $expected) {
     if ($name -notin $files.BaseName) {
-      $newHelp = New-CommandHelp -CommandInfo (Get-Command -Name ("PSFoundation\" + $name))
+      $newHelp = New-CommandHelp -CommandInfo (Get-Command -Name ("AdNoctem.Substrate.PowerShell\" + $name))
       $null = $newHelp | Export-MarkdownCommandHelp -OutputFolder (Split-Path $commandRoot -Parent) -Force
     }
   }
@@ -31,10 +31,10 @@ if ($Mode -eq 'Update') {
 if (@(Compare-Object $expected @($files.BaseName)).Count) { throw 'Command help pages must match the exported command catalogs.' }
 
 if ($Mode -eq 'Update') {
-  Import-Module (Join-Path $stage 'PSFoundation.psd1') -Force
+  Import-Module (Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1') -Force
   foreach ($file in $files) {
     $previous = Import-MarkdownCommandHelp -LiteralPath $file.FullName
-    $command = Get-Command -Name ("PSFoundation\" + $previous.Title)
+    $command = Get-Command -Name ("AdNoctem.Substrate.PowerShell\" + $previous.Title)
     $help = New-CommandHelp -CommandInfo $command
     foreach ($property in @('Synopsis', 'Description', 'Notes')) { $help.$property = $previous.$property }
     foreach ($property in @('Examples', 'Inputs', 'Outputs', 'RelatedLinks')) {
@@ -47,13 +47,13 @@ if ($Mode -eq 'Update') {
       # Dynamic ValidateSet values can contain private machine-specific stores. Document the binding, never snapshot those values.
       if ($command.Parameters[$parameter.Name].IsDynamic) { $parameter.AcceptedValues.Clear() }
     }
-    $help.ExternalHelpFile = 'PSFoundation-help.xml'
-    $help.Metadata['external help file'] = 'PSFoundation-help.xml'
+    $help.ExternalHelpFile = 'AdNoctem.Substrate.PowerShell-help.xml'
+    $help.Metadata['external help file'] = 'AdNoctem.Substrate.PowerShell-help.xml'
     $help.Metadata['Locale'] = 'en-US'
     $null = $help.Metadata.Remove('ms.date')
     $null = $help | Export-MarkdownCommandHelp -OutputFolder (Split-Path $commandRoot -Parent) -Force
     $text = [IO.File]::ReadAllText($file.FullName) -replace '\{\{ Fill in [^\r\n]*\}\}|\{\{Insert list of aliases\}\}', ''
-    $aliases = @(Get-Alias | Where-Object { $_.ModuleName -eq 'PSFoundation' -and $_.ResolvedCommand.Name -eq $command.Name } | Select-Object -ExpandProperty Name)
+    $aliases = @(Get-Alias | Where-Object { $_.ModuleName -eq 'AdNoctem.Substrate.PowerShell' -and $_.ResolvedCommand.Name -eq $command.Name } | Select-Object -ExpandProperty Name)
     $aliasText = if ($aliases.Count) { $aliases -join ', ' } else { 'None.' }
     $text = [regex]::Replace($text, '(?s)(## ALIASES\r?\n).*?(?=\r?\n## DESCRIPTION)', ('$1' + "`r`n$aliasText`r`n"))
     $text = $text -replace '(?m)[ \t]+\r?$', ''
@@ -62,14 +62,14 @@ if ($Mode -eq 'Update') {
 }
 
 if ($Mode -in @('Help', 'Update')) {
-  Import-Module (Join-Path $stage 'PSFoundation.psd1') -Force
+  Import-Module (Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1') -Force
   $helpObjects = foreach ($file in $files) {
     if ([IO.File]::ReadAllText($file.FullName) -match '\{\{[^\r\n]*\}\}') { throw "Unfinished help placeholder: $($file.Name)" }
     $help = Import-MarkdownCommandHelp -LiteralPath $file.FullName
     if ([string]::IsNullOrWhiteSpace($help.Synopsis) -or $help.Synopsis -match '\{\{.*\}\}') { throw "Missing synopsis: $($file.Name)" }
     if ([string]::IsNullOrWhiteSpace($help.Description)) { throw "Missing description: $($file.Name)" }
     if ($help.Examples.Count -eq 0) { throw "Missing examples: $($file.Name)" }
-    $actual = New-CommandHelp -CommandInfo (Get-Command -Name ("PSFoundation\" + $help.Title))
+    $actual = New-CommandHelp -CommandInfo (Get-Command -Name ("AdNoctem.Substrate.PowerShell\" + $help.Title))
     $expectedSyntax = @($help.Syntax | ForEach-Object { $_.ToString() }) -join "`n"
     $actualSyntax = @($actual.Syntax | ForEach-Object { $_.ToString() }) -join "`n"
     if ($expectedSyntax -cne $actualSyntax) { throw "Command syntax changed: $($help.Title). Expected: $expectedSyntax. Actual: $actualSyntax. Run UpdateHelp and review the result." }
@@ -81,7 +81,7 @@ if ($Mode -in @('Help', 'Update')) {
   }
   $helpRoot = Join-Path $stage 'en-US'
   $generated = Join-Path $repositoryRoot 'build/docs/help'
-  $generatedMaml = Join-Path $generated 'PSFoundation/PSFoundation-help.xml'
+  $generatedMaml = Join-Path $generated 'AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell-help.xml'
   # The pinned exporter does not truncate an existing longer file, even with Force.
   if (Test-Path -LiteralPath $generatedMaml) { Remove-Item -LiteralPath $generatedMaml -Force }
   $null = $helpObjects | Export-MamlCommandHelp -OutputFolder $generated -Encoding ([Text.UTF8Encoding]::new($true)) -Force
@@ -108,12 +108,12 @@ if ($Mode -in @('Help', 'Update')) {
   $xml.Save($generatedMaml)
   $null = [IO.Directory]::CreateDirectory($helpRoot)
   Copy-Item -LiteralPath $generatedMaml -Destination $helpRoot -Force
-  $maml = Join-Path $helpRoot 'PSFoundation-help.xml'
+  $maml = Join-Path $helpRoot 'AdNoctem.Substrate.PowerShell-help.xml'
   if (-not (Test-Path -LiteralPath $maml)) { throw 'PlatyPS did not generate the expected help file.' }
   foreach ($edition in @('Desktop', 'Core')) {
     $destination = Join-Path $stage "lib/$edition/en-US"
     $null = [IO.Directory]::CreateDirectory($destination)
-    Copy-Item -LiteralPath $maml -Destination (Join-Path $destination 'PSFoundation.PowerShell.dll-Help.xml') -Force
+    Copy-Item -LiteralPath $maml -Destination (Join-Path $destination 'AdNoctem.Substrate.PowerShell.dll-Help.xml') -Force
   }
   Write-Output "Generated help for $($helpObjects.Count) commands."
 }

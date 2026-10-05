@@ -2,11 +2,11 @@
 param ([Parameter(Mandatory = $true)][string]$ModulePath)
 $ErrorActionPreference = 'Stop'
 Import-Module $ModulePath -Force
-$commands = @(Get-Command -Module PSFoundation -CommandType Function, Cmdlet)
+$commands = @(Get-Command -Module AdNoctem.Substrate.PowerShell -CommandType Function, Cmdlet)
 if ($commands.Count -ne 188) { throw "Unexpected command count: $($commands.Count)" }
 foreach ($command in $commands) {
-  $command = Get-Command ("PSFoundation\" + $command.Name)
-  $help = Get-Help ("PSFoundation\" + $command.Name) -Full
+  $command = Get-Command ("AdNoctem.Substrate.PowerShell\" + $command.Name)
+  $help = Get-Help ("AdNoctem.Substrate.PowerShell\" + $command.Name) -Full
   if (-not $help.Synopsis -or $help.Synopsis -match '^' + [regex]::Escape($command.Name) + '\s*\[') { throw "Missing help: $($command.Name)" }
   if (-not $help.Description) { throw "Missing description: $($command.Name)" }
   if (-not @($help.Examples.Example | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Code) }).Count) { throw "Missing executable example text: $($command.Name)" }

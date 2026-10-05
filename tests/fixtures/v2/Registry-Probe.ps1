@@ -7,7 +7,7 @@ param (
 
 $ErrorActionPreference = 'Stop'
 $null = Import-Module $ModulePath -Force
-$subkey = 'Software\PSFoundation.Tests\' + $FixtureName
+$subkey = 'Software\AdNoctem.Substrate.Tests\' + $FixtureName
 $path = 'HKCU:\' + $subkey
 $native = 'HKCU\' + $subkey
 $scratch = Join-Path (Split-Path $ReportPath -Parent) $FixtureName

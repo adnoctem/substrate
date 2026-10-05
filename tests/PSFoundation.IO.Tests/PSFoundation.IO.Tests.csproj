@@ -1,5 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="../../src/PSFoundation.IO/PSFoundation.IO.csproj" />
-  </ItemGroup>
-</Project>

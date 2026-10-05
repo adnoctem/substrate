@@ -9,8 +9,8 @@ Describe 'Compiled command contracts and registry compatibility' {
     $reportRoot = Join-Path $root 'build/test-results/registry'
     $null = [IO.Directory]::CreateDirectory($reportRoot)
     foreach ($implementation in @('v1', 'v2')) {
-      $module = if ($implementation -eq 'v1') { Join-Path $root 'build/baseline/d2d1498275806684b44169504146302d54b7a084/src/PSFoundation.psd1' } else { Join-Path $root 'build/module/PSFoundation/PSFoundation.psd1' }
-      $result = Invoke-PSFHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module, '-ReportPath', (Join-Path $reportRoot "$Engine-contract-$implementation.json"))
+      $module = if ($implementation -eq 'v1') { Join-Path $root 'build/baseline/d2d1498275806684b44169504146302d54b7a084/src/PSFoundation.psd1' } else { Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1' }
+      $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module, '-ReportPath', (Join-Path $reportRoot "$Engine-contract-$implementation.json"))
       $result.ExitCode | Should -Be 0 -Because $result.Output
     }
     $before = Get-Content (Join-Path $reportRoot "$Engine-contract-v1.json") -Raw | ConvertFrom-Json
@@ -25,7 +25,7 @@ Describe 'Compiled command contracts and registry compatibility' {
   It 'matches the pinned v1 behavior in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     $baseline = Join-Path $root 'build/baseline/d2d1498275806684b44169504146302d54b7a084/src/PSFoundation.psd1'
-    $stage = Join-Path $root 'build/module/PSFoundation/PSFoundation.psd1'
+    $stage = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
     $probe = Join-Path $root 'tests/fixtures/v2/Registry-Probe.ps1'
     $reportRoot = Join-Path $root 'build/test-results/registry'
     $null = [IO.Directory]::CreateDirectory($reportRoot)
@@ -33,7 +33,7 @@ Describe 'Compiled command contracts and registry compatibility' {
     foreach ($implementation in @('v1', 'v2')) {
       $module = if ($implementation -eq 'v1') { $baseline } else { $stage }
       $report = Join-Path $reportRoot "$Engine-$implementation.json"
-      $result = Invoke-PSFHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module, '-ReportPath', $report, '-FixtureName', $fixture)
+      $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $probe, '-ModulePath', $module, '-ReportPath', $report, '-FixtureName', $fixture)
       $result.ExitCode | Should -Be 0 -Because $result.Output
     }
     $before = Get-Content (Join-Path $reportRoot "$Engine-v1.json") -Raw | ConvertFrom-Json

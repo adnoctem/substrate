@@ -5,7 +5,7 @@
   Prunes (removes) installed PowerShell module versions.
 
 .DESCRIPTION
-  Thin wrapper around Remove-PSModule from the PSFoundation module source.
+  Thin wrapper around Remove-PSModule from the substrate PowerShell module.
   Imports the staged v2 module; build it before invoking this optional helper.
 
   By default, keeps only the newest version of each module and removes older
@@ -28,7 +28,7 @@
   Keeps the two newest Pester versions, removes older ones.
 
 .LINK
-  https://github.com/adnoctem/PSFoundation
+  https://github.com/adnoctem/substrate
 
 .NOTES
   Author: MVProwess <info@mvprowess.com>
@@ -53,7 +53,7 @@ param(
 )
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
-$maintenancePath = Join-Path -Path $repoRoot -ChildPath 'build/module/PSFoundation/PSFoundation.psd1'
+$maintenancePath = Join-Path -Path $repoRoot -ChildPath 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
 
 if (-not (Test-Path -LiteralPath $maintenancePath -PathType Leaf)) {
   Write-Error "Module source not found: $maintenancePath"

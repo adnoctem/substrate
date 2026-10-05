@@ -120,7 +120,7 @@ foreach ($bytes in @([byte[]]@(65), [byte[]]@(65, 0), [byte[]]@(0, 216, 0, 0))) 
 }
 Add-Observation 'malformed-short-multi' {
   $raw = [PSCustomObject]@{ Key = 'K'; ValueName = 'V'; Type = 7; Data = [byte[]]@(65, 0) }
-  $raw.PSObject.TypeNames.Insert(0, 'psfoundation.registrypolicy.rawentry')
+  $raw.PSObject.TypeNames.Insert(0, 'adnoctem.substrate.registrypolicy.rawentry')
   ConvertTo-RegistryPolicy $raw $path -Force
   ConvertFrom-RegistryPolicy $path
 }

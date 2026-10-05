@@ -18,7 +18,7 @@ foreach ($dependency in (Get-Content (Join-Path $PSScriptRoot 'dev-dependencies.
 }
 Push-Location $repositoryRoot
 try {
-  & dotnet restore PSFoundation.slnx --locked-mode --nologo
+  & dotnet restore Substrate.slnx --locked-mode --nologo
   if ($LASTEXITCODE) { throw 'NuGet restore failed.' }
   & dotnet tool restore
   if ($LASTEXITCODE) { throw 'Documentation tool restore failed.' }

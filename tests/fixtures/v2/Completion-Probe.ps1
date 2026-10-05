@@ -5,20 +5,20 @@ Import-Module $ModulePath -Force
 $root = Join-Path ([IO.Path]::GetTempPath()) ('psf-completion-' + [guid]::NewGuid().ToString('N'))
 $null = [IO.Directory]::CreateDirectory($root)
 try {
-  $exports = @(Get-Command -Module PSFoundation)
+  $exports = @(Get-Command -Module AdNoctem.Substrate.PowerShell)
   if ($exports.Count -ne 192) { throw 'Incomplete module exports.' }
   if (@(Get-ChildItem (Split-Path $ModulePath -Parent) -Filter *.ps1).Count -ne 1) { throw 'Legacy scripts remain staged.' }
   $report = Get-HostPrerequisiteReport -RequiredCommands 'Get-Item', 'PSF-SyntheticMissingCommand' -RequiredModules @{ 'Microsoft.PowerShell.Utility' = '1.0' }
   if ($report.Applicable -or $report.Checks.Count -ne 3 -or @($report.Checks | Where-Object Satisfied).Count -ne 2) { throw 'Prerequisite aggregation failed.' }
   $certificates = @(Get-CertificateInventory -StorePath 'Cert:\LocalMachine\Root')
   foreach ($certificate in $certificates) { $certificate.Dispose() }
-  $apps = [PSFoundation.Packages.AppxPackageManager]::new().GetInstalled()
+  $apps = [AdNoctem.Substrate.Packages.AppxPackageManager]::new().GetInstalled()
   if ($null -eq $apps) { throw 'Native AppX inventory returned null.' }
   $password = [Security.SecureString]::new()
   foreach ($character in 'synthetic-ä-password'.ToCharArray()) { $password.AppendChar($character) }
   $password.MakeReadOnly()
   $key = [byte[]](1..32)
-  $manager = [PSFoundation.Security.CredentialFileManager]::new()
+  $manager = [AdNoctem.Substrate.Security.CredentialFileManager]::new()
   $native = $manager.Encrypt($password, $key)
   $hostDecoded = ConvertTo-SecureString $native -Key $key
   $nativeDecoded = $manager.Decrypt((ConvertFrom-SecureString $password -Key $key), $key)

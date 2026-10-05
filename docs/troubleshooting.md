@@ -9,7 +9,8 @@ the pinned Markdown formatter. Windows PowerShell 5.1 is also required for compa
 ## Changes do not appear after rebuilding
 
 Use a fresh PowerShell process when testing changed assemblies. Removing and reimporting a module does not reliably unload its .NET
-assemblies. Import `build/module/PSFoundation/PSFoundation.psd1`, not the frozen manifest directly under `src`.
+assemblies. Import `build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1`, not the frozen manifest directly under
+`src`.
 
 ## Missing command help
 

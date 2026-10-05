@@ -3,25 +3,26 @@ param ([string]$ModulePath, [string]$ReportPath)
 
 $ErrorActionPreference = 'Stop'
 $null = Import-Module $ModulePath -Force
-$module = Get-Module PSFoundation
+$module = Get-Module ([IO.Path]::GetFileNameWithoutExtension($ModulePath))
 $managed = (Get-Command Get-OfficeInventory).CommandType -eq 'Cmdlet'
+$privatePrefix = if ($managed) { 'Substrate' } else { 'PSF' }
 $observations = [ordered]@{}
 $observations['live-read-only-inventory'] = Get-OfficeInventory
 if ($managed) {
-  $nativeInventory = [PSFoundation.Office.OfficeInventoryManager]::new().Read([Threading.CancellationToken]::None)
-  $wireInventory = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($nativeInventory)
-  $wireHash = & $module { param($Value) Get-PSFOfficeFingerprint $Value } $wireInventory
-  if ($wireHash -cne [PSFoundation.Office.OfficeInventorySerializer]::GetFingerprint($nativeInventory)) { throw 'Native inventory serialization changed its fingerprint.' }
-  $edgeInventory = [PSFoundation.Office.OfficeInventoryManager]::new().Analyze("Synthetic '\`"<>&`n" + [char]0x2028, [PSFoundation.Office.OfficeRegistryRecord[]]@(), $null, $null)
-  $edgeHash = & $module { param($Value) Get-PSFOfficeFingerprint $Value } ([PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($edgeInventory))
-  if ($edgeHash -cne [PSFoundation.Office.OfficeInventorySerializer]::GetFingerprint($edgeInventory, ($PSVersionTable.PSVersion.Major -le 5))) {
-    $expectedJson = [PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($edgeInventory) | ConvertTo-Json -Depth 30 -Compress
-    $actualJson = [PSFoundation.Office.OfficeInventorySerializer]::ToJson($edgeInventory, ($PSVersionTable.PSVersion.Major -le 5))
+  $nativeInventory = [AdNoctem.Substrate.Office.OfficeInventoryManager]::new().Read([Threading.CancellationToken]::None)
+  $wireInventory = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::Inventory($nativeInventory)
+  $wireHash = & $module { param($Value) Get-SubstrateOfficeFingerprint $Value } $wireInventory
+  if ($wireHash -cne [AdNoctem.Substrate.Office.OfficeInventorySerializer]::GetFingerprint($nativeInventory)) { throw 'Native inventory serialization changed its fingerprint.' }
+  $edgeInventory = [AdNoctem.Substrate.Office.OfficeInventoryManager]::new().Analyze("Synthetic '\`"<>&`n" + [char]0x2028, [AdNoctem.Substrate.Office.OfficeRegistryRecord[]]@(), $null, $null)
+  $edgeHash = & $module { param($Value) Get-SubstrateOfficeFingerprint $Value } ([AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::Inventory($edgeInventory))
+  if ($edgeHash -cne [AdNoctem.Substrate.Office.OfficeInventorySerializer]::GetFingerprint($edgeInventory, ($PSVersionTable.PSVersion.Major -le 5))) {
+    $expectedJson = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::Inventory($edgeInventory) | ConvertTo-Json -Depth 30 -Compress
+    $actualJson = [AdNoctem.Substrate.Office.OfficeInventorySerializer]::ToJson($edgeInventory, ($PSVersionTable.PSVersion.Major -le 5))
     throw "Native synthetic inventory escaping differs: expected $expectedJson; actual $actualJson"
   }
 }
 $observations['tool-source'] = Resolve-OfficeDeploymentToolSource
-$observations['host-platform'] = & $module { Test-PSFOfficeHost }
+$observations['host-platform'] = & $module { param($Prefix) & ("Test-{0}OfficeHost" -f $Prefix) } $privatePrefix
 $repo = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
 $processHost = Join-Path $repo 'build/bin/ProcessHost/Release/net48/ProcessHost.exe'
 $observations['unsigned-tool'] = Test-OfficeDeploymentTool -OdtPath $processHost
@@ -33,16 +34,17 @@ $observations['tool-whatif'] = Install-OfficeDeploymentTool -Destination $previe
 $observations['tool-help-whatif'] = @(Get-OfficeDeploymentToolHelp -OdtPath $processHost -WhatIf)
 if (Test-Path -LiteralPath $previewPath) { throw 'Tool preview created its destination.' }
 $observations['unsigned-execution'] = & $module {
-  param ($Executable)
-  try { Invoke-PSFOfficeTool -OdtPath $Executable -Mode /help; throw 'Unsigned tool was executed.' }
+  param ($Executable, $Managed)
+  $toolCommand = if ($Managed) { 'Invoke-SubstrateOfficeTool' } else { 'Invoke-PSFOfficeTool' }
+  try { & $toolCommand -OdtPath $Executable -Mode /help; throw 'Unsigned tool was executed.' }
   catch { if (-not $_.Exception.Data.Contains('OfficeReason')) { throw }; [string]$_.Exception.Data['OfficeReason'] }
-} $processHost
+} $processHost $managed
 foreach ($pathCase in @(@{ Name = 'protected-path'; Path = (Join-Path $repo 'README.md') }, @{ Name = 'traversal'; Path = 'C:\Media\..\Windows' })) {
   $observations[$pathCase.Name] = & $module {
-    param ($Path)
-    try { Assert-PSFOfficeProtectedPath $Path; [PSCustomObject]@{ Valid = $true } }
+    param ($Path, $Prefix)
+    try { & ("Assert-{0}OfficeProtectedPath" -f $Prefix) $Path; [PSCustomObject]@{ Valid = $true } }
     catch { [PSCustomObject]@{ Valid = $false; Reason = $_.Exception.Data['OfficeReason']; Diagnostic = $_.Exception.Data['OfficeDiagnostic'] } }
-  } $pathCase.Path
+  } $pathCase.Path $privatePrefix
 }
 $target = New-OfficeDeploymentConfiguration -TargetProductId Standard2019Volume -Language de-DE, en-us, de-de -Version 16.0.10417.20095 -ExcludeApp Teams, Groove
 $observations['configuration'] = $target
@@ -98,17 +100,17 @@ $records = @(
 function Read-Fixture {
   param ([object[]]$Records)
   if ($managed) {
-    $rows = New-Object 'Collections.Generic.List[PSFoundation.Office.OfficeRegistryRecord]'
+    $rows = New-Object 'Collections.Generic.List[AdNoctem.Substrate.Office.OfficeRegistryRecord]'
     foreach ($record in $Records) {
-      $values = New-Object 'Collections.Generic.Dictionary[string,PSFoundation.Registry.RegistryValue]'
+      $values = New-Object 'Collections.Generic.Dictionary[string,AdNoctem.Substrate.Registry.RegistryValue]'
       foreach ($property in $record.Values.PSObject.Properties) {
         $name = if ($property.Name -eq '(default)') { '' } else { $property.Name }
-        $values.Add($name, [PSFoundation.Registry.RegistryValue]::String([string]$property.Value))
+        $values.Add($name, [AdNoctem.Substrate.Registry.RegistryValue]::String([string]$property.Value))
       }
-      $rows.Add([PSFoundation.Office.OfficeRegistryRecord]::new([Microsoft.Win32.RegistryView]::Registry64, [PSFoundation.Registry.RegistryPath]::Parse('HKLM\' + $record.Path), $values, [string[]]$record.SubKeys))
+      $rows.Add([AdNoctem.Substrate.Office.OfficeRegistryRecord]::new([Microsoft.Win32.RegistryView]::Registry64, [AdNoctem.Substrate.Registry.RegistryPath]::Parse('HKLM\' + $record.Path), $values, [string[]]$record.SubKeys))
     }
-    $result = [PSFoundation.Office.OfficeInventoryManager]::new().Analyze($active, $rows, $null, $null)
-    return [PSFoundation.PowerShell.Office.OfficeCompatibility]::Inventory($result)
+    $result = [AdNoctem.Substrate.Office.OfficeInventoryManager]::new().Analyze($active, $rows, $null, $null)
+    return [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::Inventory($result)
   }
   & $module {
     param ($Rows, $Machine)
@@ -151,24 +153,24 @@ foreach ($action in @('Install', 'Migrate', 'Update', 'Remove', 'AddLanguage', '
   }
   $observations["plan-$action"] = Get-OfficeDeploymentPlan @arguments
   if ($managed) {
-    $parsed = [PSFoundation.Office.OfficeDeploymentPlanDocument]::Parse(($observations["plan-$action"] | ConvertTo-Json -Depth 30 -Compress))
+    $parsed = [AdNoctem.Substrate.Office.OfficeDeploymentPlanDocument]::Parse(($observations["plan-$action"] | ConvertTo-Json -Depth 30 -Compress))
     if ([string]$parsed.Request.Action -ne $action) { throw "Plan round-trip changed $action." }
   }
-  $observations["xml-$action"] = (& $module { param($Values) (New-PSFOfficeXml @Values).OuterXml } $xmlArguments)
+  $observations["xml-$action"] = (& $module { param($Values, $Prefix) (& ("New-{0}OfficeXml" -f $Prefix) @Values).OuterXml } $xmlArguments $privatePrefix)
 }
 $observations['plan-clean'] = Get-OfficeDeploymentPlan -Action Install -Configuration $target -Inventory (Read-Fixture @())
-$observations['xml-download'] = & $module { param($Target) (New-PSFOfficeXml -Action Download -Configuration $Target -MediaPath 'C:\Media\Office').OuterXml } $target
+$observations['xml-download'] = & $module { param($Target, $Prefix) (& ("New-{0}OfficeXml" -f $Prefix) -Action Download -Configuration $Target -MediaPath 'C:\Media\Office').OuterXml } $target $privatePrefix
 $beforeRecovery = Read-Fixture $records
 $recoveryPlan = Get-OfficeDeploymentPlan -Action Migrate -Configuration $target -Inventory $beforeRecovery -RemoveProductId Standard2019Volume
 if ($managed) {
-  $document = [PSFoundation.Office.OfficeDeploymentPlanDocument]::Parse(($recoveryPlan | ConvertTo-Json -Depth 30 -Compress))
+  $document = [AdNoctem.Substrate.Office.OfficeDeploymentPlanDocument]::Parse(($recoveryPlan | ConvertTo-Json -Depth 30 -Compress))
   $record = [PSCustomObject][ordered]@{
     SchemaVersion = 1; RunId = ('a' * 32); MachineId = $recoveryPlan.MachineId; Action = 'Migrate'; Plan = $recoveryPlan
-    ConfigurationFingerprint = (& $module { param($Value) Get-PSFOfficeFingerprint $Value } $recoveryPlan.Configuration)
+    ConfigurationFingerprint = (& $module { param($Value) Get-SubstrateOfficeFingerprint $Value } $recoveryPlan.Configuration)
     MediaFingerprint = $recoveryPlan.MediaFingerprint; Phase = 'StageMedia'; PhaseCompleted = $false; NativeResults = @(); RebootRequired = $false
     CreatedAt = '2026-01-01T00:00:00Z'; UpdatedAt = '2026-01-01T00:00:00Z'; Result = $null
   }
-  $nativeRecord = [PSFoundation.Office.OfficeRecoveryRecord]::Parse(($record | ConvertTo-Json -Depth 30 -Compress), $record.RunId, $record.MachineId)
+  $nativeRecord = [AdNoctem.Substrate.Office.OfficeRecoveryRecord]::Parse(($record | ConvertTo-Json -Depth 30 -Compress), $record.RunId, $record.MachineId)
   if ($nativeRecord.Plan.InventoryFingerprint -cne $document.InventoryFingerprint) { throw 'Recovery parsing changed its recorded inventory.' }
 }
 & $module {
@@ -199,11 +201,11 @@ foreach ($case in @('BeforeLaunch', 'Removed', 'Partial', 'Conflict', 'Complete'
   $record = [PSCustomObject]@{ SchemaVersion = 1; Action = 'Migrate'; Plan = $recoveryPlan; Phase = $phase; PhaseCompleted = $completed; MediaFingerprint = 'synthetic' }
   $observations["recovery-$case"] = & $module {
     param ($Current, $Record)
-    if ('PSFoundation.Office.OfficeRecoveryPolicy' -as [type]) {
+    if ('AdNoctem.Substrate.Office.OfficeRecoveryPolicy' -as [type]) {
       # Compare the native decision policy with the frozen script coordinator.
       # End-to-end native execution/recovery is exercised separately with an offline runtime.
       $compliant = (Test-OfficeDeployment -Configuration $Record.Plan.Configuration -Inventory $Current).Compliant
-      $decision = [PSFoundation.PowerShell.Office.OfficeCompatibility]::RecoveryDecision($Record, $Current, 'Migrate', $compliant)
+      $decision = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::RecoveryDecision($Record, $Current, 'Migrate', $compliant)
       if ($decision.Disposition -eq 'Continue') {
         return [PSCustomObject]@{ Status = 'WouldExecute'; Action = 'Migrate'; ReasonCode = $null; Error = $null; RecoveryRequired = $null; WrapperExitCode = $null; AlreadyCompliant = $null; RemoveProductId = @($decision.RemainingRemovalIds); RemoveMsi = $Record.Plan.RemoveMsi }
       }

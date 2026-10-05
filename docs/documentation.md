@@ -2,11 +2,11 @@
 
 Restore tools once with `dotnet msbuild tools/tasks.proj -t:Restore`.
 
-| Source                                                 | Generated output                                       |
-| ------------------------------------------------------ | ------------------------------------------------------ |
-| C# XML comments                                        | Assembly XML documentation and DocFX .NET reference    |
-| Command metadata and `docs/commands/PSFoundation/*.md` | PowerShell reference pages and packaged `Get-Help` XML |
-| Handwritten Markdown                                   | Tutorials, architecture, and troubleshooting pages     |
+| Source                                                                  | Generated output                                       |
+| ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| C# XML comments                                                         | Assembly XML documentation and DocFX .NET reference    |
+| Command metadata and `docs/commands/AdNoctem.Substrate.PowerShell/*.md` | PowerShell reference pages and packaged `Get-Help` XML |
+| Handwritten Markdown                                                    | Tutorials, architecture, and troubleshooting pages     |
 
 Use `dotnet msbuild tools/tasks.proj -t:UpdateHelp` after changing public commands or types. Review the resulting Markdown changes, fill in
 new descriptions and examples, and commit those sources. This is the explicit source-writing operation. Use

@@ -1,6 +1,6 @@
 {
   "metadata": [{
-    "src": [{ "src": "../build/module/PSFoundation/lib/Core", "files": ["PSFoundation.*.dll"], "exclude": ["PSFoundation.PowerShell.dll"] }],
+    "src": [{ "src": "../build/module/AdNoctem.Substrate.PowerShell/lib/Core", "files": ["AdNoctem.Substrate.*.dll"], "exclude": ["AdNoctem.Substrate.PowerShell.dll"] }],
     "dest": "../build/docs/api",
     "disableGitFeatures": true,
     "memberLayout": "samePage"
@@ -12,7 +12,7 @@
     ],
     "output": "../build/docs/site",
     "template": ["default", "modern"],
-    "globalMetadata": { "_appTitle": "PSFoundation", "_enableSearch": true },
+    "globalMetadata": { "_appTitle": "substrate", "_enableSearch": true },
     "disableGitFeatures": true
   }
 }

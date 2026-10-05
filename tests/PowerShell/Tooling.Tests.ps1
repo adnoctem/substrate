@@ -18,16 +18,16 @@ Describe 'Repository tooling boundaries' {
     { Assert-VendorArchivePath 'LGPO_30/LGPO.exe' } | Should -Not -Throw
   }
   It 'previews release preparation without generating a release record or changing the staged manifest' {
-    $manifest = Join-Path $root 'build/module/PSFoundation/PSFoundation.psd1'
+    $manifest = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
     $before = (Get-FileHash -LiteralPath $manifest).Hash
-    $result = Invoke-PSFHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '2.0.0', '-DryRun')
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '1.0.0', '-DryRun')
     $result.ExitCode | Should -Be 0 -Because $result.Output
     $result.Output | Should -Match 'DRY RUN'
     (Get-FileHash -LiteralPath $manifest).Hash | Should -Be $before
   }
-  It 'rejects accidental v1 release preparation' {
-    $result = Invoke-PSFHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '1.9.0', '-DryRun')
+  It 'rejects versions before the initial substrate release' {
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '0.9.0', '-DryRun')
     $result.ExitCode | Should -Not -Be 0
-    $result.Output | Should -Match 'v1 is frozen'
+    $result.Output | Should -Match 'Substrate releases start'
   }
 }

@@ -1,6 +1,6 @@
-# AGENTS.md - PSFoundation
+# AGENTS.md - substrate
 
-PSFoundation provides reusable C# libraries and a PowerShell module for Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Read
+Substrate provides reusable C# libraries and a PowerShell module for Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Read
 [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
 
 ## Repository tasks
@@ -29,7 +29,7 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 - Define cancellation and partial-completion behavior for long operations. Release native resources deterministically.
 - Public PowerShell ownership is declared in `tools/compiled-commands.psd1` and `tools/compatibility-commands.psd1`.
 - Implement compiled commands in the PowerShell adapter; keep host compatibility functions in its `compat.ps1`.
-- C# comments feed DocFX. Reviewed `docs/commands/PSFoundation` Markdown feeds PlatyPS and packaged help.
+- C# comments feed DocFX. Reviewed `docs/commands/AdNoctem.Substrate.PowerShell` Markdown feeds PlatyPS and packaged help.
 - Document meaningful contracts without adding filler comments to obvious members. UpdateHelp refreshes metadata; review its output.
 - Frozen `src/*.ps1` files are v1 comparison material. Do not add new production behavior there.
 
@@ -55,8 +55,8 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 
 ## Layout
 
-- `src/PSFoundation.*`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
-- `tests/PSFoundation.*.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
+- `src/AdNoctem.Substrate.*`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
+- `tests/AdNoctem.Substrate.*.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
 - `tests/*.Tests.ps1`: retained v1 reference tests, excluded from the ordinary v2 run.
 - `tools/`: MSBuild orchestration and supporting scripts; `tools/module.psd1`: v2 manifest template.
 - `docs/`: documentation sources; `build/`, `dist/`: ignored output.

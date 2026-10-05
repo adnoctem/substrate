@@ -1,4 +1,7 @@
-# v2 implementation checkpoint
+# Historical PSFoundation rewrite progress
+
+This record describes the predecessor rewrite. Current repository identity and migration status are recorded in
+[substrate migration](substrate.md).
 
 ## Current status: implementation complete
 

@@ -2,7 +2,7 @@
 
 This guide illustrates common workflows. The generated [API catalog](API.md) links to the complete member reference.
 
-`PSFoundation.Networking` provides address validation, network calculations, local Windows adapter inventory and TCP probes for other
+`AdNoctem.Substrate.Networking` provides address validation, network calculations, local Windows adapter inventory and TCP probes for other
 applications. It does not load PowerShell, display prompts, choose a log destination or change network configuration.
 
 ## Entry points
@@ -22,7 +22,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using PSFoundation.Networking;
+using AdNoctem.Substrate.Networking;
 
 var manager = new NetworkManager();
 var adapter = await manager.GetDefaultNetworkAdapterAsync(

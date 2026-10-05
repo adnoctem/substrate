@@ -18,7 +18,7 @@ $evidence = [Collections.Generic.List[object]]::new()
 $proposals = [Collections.Generic.List[object]]::new()
 $changed = $false
 foreach ($tool in @('LGPO', 'ODT')) {
-  $sourcePath = if ($tool -eq 'LGPO') { 'src/PSFoundation.Policies/LgpoSource.cs' } else { 'src/PSFoundation.Office/OdtTool.cs' }
+  $sourcePath = if ($tool -eq 'LGPO') { 'src/AdNoctem.Substrate.Policies/LgpoSource.cs' } else { 'src/AdNoctem.Substrate.Office/OdtTool.cs' }
   $sourcePath = Join-Path $root $sourcePath
   $text = [IO.File]::ReadAllText($sourcePath)
   $reviewed = [regex]::Match($text, 'public static (?:LgpoSource|OdtSource) (?:Reviewed|Standalone) \{ get; \} = new (?:LgpoSource|OdtSource)\([\s\S]*?\);').Value

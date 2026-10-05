@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-function Get-PSFApiContract {
+function Get-SubstrateApiContract {
   [CmdletBinding()]
   param ([Parameter(Mandatory = $true)][string]$ModulePath)
 

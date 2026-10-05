@@ -14,11 +14,11 @@ $observations['mapping'] = (Resolve-WindowsEventMappedField -MapName LogonType -
 $observations['threat-url'] = Get-DefenderThreatDescriptionURL -ThreatName 'Trojan:Win32/Synthetic Name'
 $observations['exclusion-preview'] = Add-DefenderExclusion -Type Path -Value 'C:\NeverChanged' -WhatIf
 $observations['missing-mapping'] = Resolve-WindowsEventMappedField -MapName LogonType -Value 999
-$observations['channels'] = @(Test-WindowsEventLogChannel -LogName System; Test-WindowsEventLogChannel -LogName 'System*'; Test-WindowsEventLogChannel -LogName PSFoundation.Synthetic.Nonexistent)
+$observations['channels'] = @(Test-WindowsEventLogChannel -LogName System; Test-WindowsEventLogChannel -LogName 'System*'; Test-WindowsEventLogChannel -LogName AdNoctem.Substrate.Synthetic.Nonexistent)
 $sampleEvent = [PSCustomObject]@{ TimeCreated = [datetime]'2026-01-01'; Id = 4624; ProviderName = 'Synthetic'; LogName = 'Security'; MachineName = 'Synthetic'; RecordId = 12L; LevelDisplayName = 'Information' }
 $sampleEvent | Add-Member ScriptMethod ToXml { '<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><EventData><Data Name="TargetUserName">synthetic</Data><Data Name="LogonType">10</Data><Data Name="ImpersonationLevel">%%1833</Data><Data Name="IpAddress">192.0.2.1</Data></EventData></Event>' }
 $observations['converted'] = $sampleEvent | ConvertFrom-WinEvent | Select-Object * -ExcludeProperty EventRecord
-$directory = Join-Path ([IO.Path]::GetTempPath()) ('PSFoundation-event-probe-' + [Guid]::NewGuid().ToString('N'))
+$directory = Join-Path ([IO.Path]::GetTempPath()) ('AdNoctem.Substrate.PowerShell-event-probe-' + [Guid]::NewGuid().ToString('N'))
 $null = [IO.Directory]::CreateDirectory($directory)
 try {
   $scan = Join-Path $directory 'scan'
@@ -34,7 +34,7 @@ try {
   $fileResult = [IO.File]::ReadAllText($scanReport) | ConvertFrom-Json
   $observations['file-search'] = $fileResult | Select-Object LastWriteTime, LastWriteTimeUtc, Mode, IsReadOnly, Length, Extension
   $missing = Join-Path $directory 'missing.txt'
-  $observations['missing-export'] = Export-EventLog -LogName PSFoundation.Synthetic.Nonexistent -OutputPath (Join-Path $directory 'never.evtx') -MissingLogPath $missing
+  $observations['missing-export'] = Export-EventLog -LogName AdNoctem.Substrate.Synthetic.Nonexistent -OutputPath (Join-Path $directory 'never.evtx') -MissingLogPath $missing
   $observations['missing-text'] = [IO.File]::ReadAllText($missing)
   $observations['missing-bytes'] = [Convert]::ToBase64String([IO.File]::ReadAllBytes($missing))
   if ((Get-Command Export-EventLog).CommandType -eq 'Cmdlet') {
@@ -43,7 +43,7 @@ try {
     $persistence = Get-WMIPersistence
     if ($null -eq $persistence.EventFilters -or $null -eq $persistence.CommandLineConsumers -or $null -eq $persistence.Bindings) { throw 'Persistence inventory lost its collections.' }
     $expectedDefinitions = @(Get-SecurityEventDefinition | ForEach-Object { '{0}|{1}|{2}|{3}|{4}' -f $_.Id, $_.LogName, $_.ProviderName, $_.Name, $_.UtilityGroup } | Sort-Object)
-    $actualDefinitions = @([PSFoundation.Security.SecurityEventCatalog]::Default.Definitions | ForEach-Object { '{0}|{1}|{2}|{3}|{4}' -f $_.Id, $_.LogName, $_.ProviderName, $_.Name, $_.Group } | Sort-Object)
+    $actualDefinitions = @([AdNoctem.Substrate.Security.SecurityEventCatalog]::Default.Definitions | ForEach-Object { '{0}|{1}|{2}|{3}|{4}' -f $_.Id, $_.LogName, $_.ProviderName, $_.Name, $_.Group } | Sort-Object)
     if (Compare-Object $expectedDefinitions $actualDefinitions) { throw 'The C# event catalog differs from the PowerShell configuration.' }
     $latest = Get-WinEvent -LogName System -MaxEvents 1
     try {
