@@ -60,6 +60,7 @@ public static class NativeProcess
             case "wait":
                 Console.WriteLine(Process.GetCurrentProcess().Id);
                 Console.Out.Flush();
+                SignalReady(args);
                 Thread.Sleep(60000);
                 return 0;
             case "tree":
@@ -74,6 +75,7 @@ public static class NativeProcess
                     Console.WriteLine(Process.GetCurrentProcess().Id);
                     Console.WriteLine(child.Id);
                     Console.Out.Flush();
+                    SignalReady(args);
                     Thread.Sleep(60000);
                 }
                 return 0;
@@ -83,5 +85,12 @@ public static class NativeProcess
             default:
                 return 2;
         }
+    }
+
+    private static void SignalReady(string[] args)
+    {
+        if (args.Length > 1)
+            using (var ready = EventWaitHandle.OpenExisting(args[1]))
+                ready.Set();
     }
 }

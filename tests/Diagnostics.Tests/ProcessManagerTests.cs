@@ -63,32 +63,46 @@ public sealed class ProcessManagerTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new ProcessManager().RunAsync(new ProcessRequest("does-not-exist.exe"), new CancellationToken(true)));
     }
 
+    [Fact]
+    public async Task TimeoutTerminatesAProcessWithoutOutput()
+    {
+        var result = await new ProcessManager().RunAsync(new ProcessRequest(Executable, new[] { "sleep" }, timeout: TimeSpan.FromSeconds(1)));
+        Assert.True(result.TimedOut);
+        Assert.False(result.Cancelled);
+        Assert.Empty(result.StandardOutput);
+        AssertStopped(result.ProcessId);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task StopRequestsTerminateOwnedProcessesAndPreserveEvidence(bool cancel)
+    public async Task CancellationTerminatesReadyProcessesAndPreservesEvidence(bool tree)
     {
+        var eventName = @"Local\Substrate.ProcessTests." + Guid.NewGuid().ToString("N");
+        using (var ready = new EventWaitHandle(false, EventResetMode.ManualReset, eventName))
         using (var cancellation = new CancellationTokenSource())
         {
-            if (cancel)
-                cancellation.CancelAfter(1500);
-            var result = await new ProcessManager().RunAsync(new ProcessRequest(Executable, new[] { "wait" }, timeout: TimeSpan.FromSeconds(cancel ? 10 : 1)), cancellation.Token);
-            Assert.Equal(cancel, result.Cancelled);
-            Assert.Equal(!cancel, result.TimedOut);
-            Assert.Contains(result.ProcessId.ToString(), result.StandardOutput);
-            AssertStopped(result.ProcessId);
+            var running = new ProcessManager().RunAsync(new ProcessRequest(Executable, new[] { tree ? "tree" : "wait", eventName },
+                stopBehavior: tree ? ProcessStopBehavior.TerminateTree : ProcessStopBehavior.TerminateProcess), cancellation.Token);
+            ProcessResult result;
+            try
+            {
+                // Startup time on shared runners is unrelated to output capture or termination behavior.
+                Assert.True(await Task.Run(() => ready.WaitOne(TimeSpan.FromSeconds(30))), "Process fixture did not signal readiness.");
+            }
+            finally
+            {
+                cancellation.Cancel();
+                result = await running;
+            }
+            Assert.True(result.Cancelled);
+            Assert.False(result.TimedOut);
+            var identifiers = result.StandardOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
+            Assert.Equal(tree ? 2 : 1, identifiers.Length);
+            Assert.Equal(result.ProcessId, identifiers[0]);
+            foreach (var identifier in identifiers)
+                AssertStopped(identifier);
         }
-    }
-
-    [Fact]
-    public async Task TreeTerminationCleansUpDescendantsOnBothRuntimes()
-    {
-        var result = await new ProcessManager().RunAsync(new ProcessRequest(Executable, new[] { "tree" }, timeout: TimeSpan.FromSeconds(2), stopBehavior: ProcessStopBehavior.TerminateTree));
-        Assert.True(result.TimedOut);
-        var identifiers = result.StandardOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
-        Assert.Equal(2, identifiers.Length);
-        foreach (var identifier in identifiers)
-            AssertStopped(identifier);
     }
 
     [Fact]
