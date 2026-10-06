@@ -15,12 +15,22 @@ internal sealed class RegistryState
     public RegistryValueKind? Kind { get; }
     public object? Value { get; }
 
-    public RegistryState(LegacyRegistryPath path, string name, RegistryView view, bool exists,
-        RegistryValueKind? kind, object? value, bool? keyExists = null)
+    public RegistryState(
+        LegacyRegistryPath path,
+        string name,
+        RegistryView view,
+        bool exists,
+        RegistryValueKind? kind,
+        object? value,
+        bool? keyExists = null
+    )
     {
         Path = path;
         Name = name;
-        View = view == RegistryView.Default ? (Environment.Is64BitProcess ? RegistryView.Registry64 : RegistryView.Registry32) : view;
+        View =
+            view == RegistryView.Default
+                ? (Environment.Is64BitProcess ? RegistryView.Registry64 : RegistryView.Registry32)
+                : view;
         Exists = exists;
         Kind = exists ? kind : null;
         Value = exists ? value : null;
@@ -31,21 +41,28 @@ internal sealed class RegistryState
     {
         if (Exists != other.Exists)
             return false;
+
         if (!Exists)
             return true;
+
         if (Kind != other.Kind)
             return false;
+
         var left = Value is Array a ? a : new object?[] { Value };
         var right = other.Value is Array b ? b : new object?[] { other.Value };
+
         if (left.Length != right.Length)
             return false;
+
         for (var index = 0; index < left.Length; index++)
             if (!Equals(left.GetValue(index), right.GetValue(index)))
                 return false;
+
         return true;
     }
 
-    public string Identity => Path.ProviderPath.Length + ":" + Path.ProviderPath + Name.Length + ":" + Name + ":" + View;
+    public string Identity =>
+        Path.ProviderPath.Length + ":" + Path.ProviderPath + Name.Length + ":" + Name + ":" + View;
 }
 
 internal sealed class RegistryDifference
@@ -53,7 +70,11 @@ internal sealed class RegistryDifference
     public RegistryState Before { get; }
     public RegistryState After { get; }
     public bool Changed => !Before.SameValue(After);
-    public string Action => !Changed ? "None" : After.Exists ? "SetValue" : "RemoveValue";
+    public string Action =>
+        !Changed ? "None"
+        : After.Exists ? "SetValue"
+        : "RemoveValue";
+
     public RegistryDifference(RegistryState before, RegistryState after)
     {
         Before = before;
@@ -69,6 +90,7 @@ internal sealed class RegistryRestoreResult
     public bool Changed { get; internal set; }
     public bool AlreadyCompliant => !Difference.Changed;
     public string? Error { get; internal set; }
+
     public RegistryRestoreResult(RegistryDifference difference)
     {
         Difference = difference;
@@ -87,48 +109,81 @@ internal sealed class RegistryStateService
 {
     private readonly IRegistryStateStore store;
     private readonly Func<Exception, bool> handleFailure;
-    public RegistryStateService(IRegistryStateStore store, Func<Exception, bool>? handleFailure = null)
+
+    public RegistryStateService(
+        IRegistryStateStore store,
+        Func<Exception, bool>? handleFailure = null
+    )
     {
         this.store = store;
         this.handleFailure = handleFailure ?? (_ => true);
     }
-    public RegistryDifference Compare(RegistryState desired) => new RegistryDifference(store.Read(desired.Path, desired.Name, desired.View), desired);
 
-    public RegistryRestoreResult Restore(RegistryState desired, bool checkExpected, RegistryState? expected,
-        Func<string, string, bool> authorize)
+    public RegistryDifference Compare(RegistryState desired) =>
+        new RegistryDifference(store.Read(desired.Path, desired.Name, desired.View), desired);
+
+    public RegistryRestoreResult Restore(
+        RegistryState desired,
+        bool checkExpected,
+        RegistryState? expected,
+        Func<string, string, bool> authorize
+    )
     {
         var diff = Compare(desired);
         var result = new RegistryRestoreResult(diff);
+
         if (!diff.Changed)
             return result;
+
         if (checkExpected && (expected == null || !diff.Before.SameValue(expected)))
         {
             result.Status = "Conflict";
+
             return result;
         }
-        if (!authorize(desired.Path.ProviderPath + "\\" + desired.Name + " [" + desired.View + "]", diff.Action))
+
+        if (
+            !authorize(
+                desired.Path.ProviderPath + "\\" + desired.Name + " [" + desired.View + "]",
+                diff.Action
+            )
+        )
         {
             result.Status = "Skipped";
+
             return result;
         }
+
         try
         {
             var latest = store.Read(desired.Path, desired.Name, desired.View);
+
             if (!latest.SameValue(diff.Before))
             {
                 result.Status = "Conflict";
                 result.After = latest;
+
                 return result;
             }
+
             store.Apply(desired);
             result.After = store.Read(desired.Path, desired.Name, desired.View);
             result.Changed = !diff.Before.SameValue(result.After);
+
             if (!result.After.SameValue(desired))
-                throw new InvalidOperationException("Registry verification failed after restoration.");
+                throw new InvalidOperationException(
+                    "Registry verification failed after restoration."
+                );
+
             result.Status = "Restored";
         }
-        catch (Exception error) when (!(error is OperationCanceledException) && handleFailure(error))
-        { result.Status = "Failed"; result.Error = error.Message; }
+        catch (Exception error)
+            when (!(error is OperationCanceledException) && handleFailure(error))
+        {
+            result.Status = "Failed";
+            result.Error = error.Message;
+        }
+
         return result;
     }
 }

@@ -7,5 +7,6 @@ extend-ignore-identifiers-re = [".*FO*", ".*PnP.*"]
 extend-ignore-re = ['\b00BA\b']
 
 [default.extend-identifiers]
+ANC_GITHUB_TOKEN = "ANC_GITHUB_TOKEN"
 FO = "FO"
 PnP = "PnP"

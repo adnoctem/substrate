@@ -7,16 +7,20 @@ Describe 'Repository tooling boundaries' {
     . (Join-Path $root 'tools/vendor-support.ps1')
     . (Join-Path $root 'tools/probe.ps1')
   }
+
   It 'rejects unsafe vendor origins and archive paths before download or extraction' {
     foreach ($uri in @('http://download.microsoft.com/tool.exe', 'https://example.invalid/tool.exe', 'https://user@download.microsoft.com/tool.exe', 'https://download.microsoft.com:444/tool.exe')) {
       { Assert-MicrosoftDownloadUri ([uri]$uri) } | Should -Throw
     }
+
     foreach ($path in @('../LGPO.exe', '/LGPO.exe', 'C:/LGPO.exe', 'safe/../../LGPO.exe', 'safe\LGPO.exe')) {
       { Assert-VendorArchivePath $path } | Should -Throw
     }
+
     { Assert-MicrosoftDownloadUri ([uri]'https://download.microsoft.com/tools/LGPO.zip') } | Should -Not -Throw
     { Assert-VendorArchivePath 'LGPO_30/LGPO.exe' } | Should -Not -Throw
   }
+
   It 'previews release preparation without generating a release record or changing the staged manifest' {
     $manifest = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
     $before = (Get-FileHash -LiteralPath $manifest).Hash
@@ -25,9 +29,48 @@ Describe 'Repository tooling boundaries' {
     $result.Output | Should -Match 'DRY RUN'
     (Get-FileHash -LiteralPath $manifest).Hash | Should -Be $before
   }
+
   It 'rejects versions before the initial substrate release' {
     $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '0.9.0', '-DryRun')
     $result.ExitCode | Should -Not -Be 0
     $result.Output | Should -Match 'Substrate releases start'
+  }
+
+  It 'validates relocated release artifacts and rejects altered, added, missing or mismatched artifacts' {
+    $fixture = Join-Path $TestDrive 'relocated-release'
+    $null = New-Item -ItemType Directory -Path "$fixture/tools", "$fixture/build/module/AdNoctem.Substrate.PowerShell", "$fixture/dist/nuget" -Force
+    $script = Join-Path $fixture 'tools/release.ps1'
+    Copy-Item -LiteralPath (Join-Path $root 'tools/release.ps1') -Destination $script
+    $paths = @('build/module/AdNoctem.Substrate.PowerShell/module.txt', 'dist/nuget/library.nupkg')
+
+    foreach ($path in $paths) { Set-Content -LiteralPath (Join-Path $fixture $path) -Value 'synthetic artifact' }
+
+    $record = @{ Schema = 2; Version = '1.0.0'; Files = @($paths | ForEach-Object {
+          @{ Path = $_; Sha256 = (Get-FileHash -LiteralPath (Join-Path $fixture $_)).Hash }
+        })
+    }
+    $record | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath "$fixture/build/release.json"
+    $arguments = @('-NoProfile', '-File', $script, '-ValidateOnly', '-Version', '1.0.0')
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList $arguments
+    $result.ExitCode | Should -Be 0 -Because $result.Output
+    $result.Output | Should -Match 'Validated prepared'
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', $script, '-ValidateOnly', '-Version', '1.0.1')
+    $result.ExitCode | Should -Not -Be 0
+    $result.Output | Should -Match 'version does not match'
+    $package = Join-Path $fixture $paths[1]
+    Set-Content -LiteralPath $package -Value 'changed artifact'
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList $arguments
+    $result.ExitCode | Should -Not -Be 0
+    $result.Output | Should -Match 'Prepared package changed'
+    Set-Content -LiteralPath $package -Value 'synthetic artifact'
+    $extra = Join-Path $fixture 'dist/extra.txt'
+    Set-Content -LiteralPath $extra -Value 'extra artifact'
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList $arguments
+    $result.ExitCode | Should -Not -Be 0
+    $result.Output | Should -Match 'file set changed'
+    Remove-Item -LiteralPath $extra, $package
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList $arguments
+    $result.ExitCode | Should -Not -Be 0
+    $result.Output | Should -Match 'file set changed'
   }
 }

@@ -14,8 +14,18 @@ public sealed class ProcessResult
     public TimeSpan Duration { get; }
     public bool TimedOut { get; }
     public bool Cancelled { get; }
-    internal ProcessResult(int processId, int exitCode, string output, string error, bool outputTruncated, bool errorTruncated,
-        TimeSpan duration, bool timedOut, bool cancelled)
+
+    internal ProcessResult(
+        int processId,
+        int exitCode,
+        string output,
+        string error,
+        bool outputTruncated,
+        bool errorTruncated,
+        TimeSpan duration,
+        bool timedOut,
+        bool cancelled
+    )
     {
         ProcessId = processId;
         ExitCode = exitCode;

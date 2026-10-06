@@ -7,26 +7,44 @@ using System.Net.Sockets;
 
 namespace AdNoctem.Substrate.Networking;
 
-public enum NetworkAdapterKind { Unspecified, Ethernet, WiFi, Other }
+public enum NetworkAdapterKind
+{
+    Unspecified,
+    Ethernet,
+    WiFi,
+    Other,
+}
 
 /// <summary>An immutable interface address paired with its prefix, when known. Preserves IPv6 scope separately from its network.</summary>
 public sealed class NetworkInterfaceAddress
 {
     private readonly byte[] bytes;
     private readonly long scope;
-    public IPAddress Address => bytes.Length == 16 ? new IPAddress((byte[])bytes.Clone(), scope) : new IPAddress((byte[])bytes.Clone());
+    public IPAddress Address =>
+        bytes.Length == 16
+            ? new IPAddress((byte[])bytes.Clone(), scope)
+            : new IPAddress((byte[])bytes.Clone());
     public int? PrefixLength { get; }
-    public IPNetwork? Network => PrefixLength.HasValue ? new IPNetwork(new IPAddress(bytes), PrefixLength.Value) : null;
+    public IPNetwork? Network =>
+        PrefixLength.HasValue ? new IPNetwork(new IPAddress(bytes), PrefixLength.Value) : null;
+
     public NetworkInterfaceAddress(IPAddress address, int? prefixLength = null)
     {
         if (address == null)
             throw new ArgumentNullException(nameof(address));
-        if (address.AddressFamily != AddressFamily.InterNetwork && address.AddressFamily != AddressFamily.InterNetworkV6)
+
+        if (
+            address.AddressFamily != AddressFamily.InterNetwork
+            && address.AddressFamily != AddressFamily.InterNetworkV6
+        )
             throw new ArgumentException("An IP address is required.", nameof(address));
+
         bytes = address.GetAddressBytes();
         scope = bytes.Length == 16 ? address.ScopeId : 0;
+
         if (prefixLength.HasValue && (prefixLength < 0 || prefixLength > bytes.Length * 8))
             throw new ArgumentOutOfRangeException(nameof(prefixLength));
+
         PrefixLength = prefixLength;
     }
 }
@@ -42,19 +60,32 @@ public sealed class NetworkAdapterSnapshot
     public uint InterfaceIndex { get; }
     public NetworkAdapterKind Kind { get; }
     public IReadOnlyList<NetworkInterfaceAddress> Addresses { get; }
-    public IReadOnlyList<IPAddress> Gateways => Array.AsReadOnly(gateways.Select(IPAddressParser.Parse).ToArray());
-    public IReadOnlyList<IPAddress> DnsServers => Array.AsReadOnly(dnsServers.Select(IPAddressParser.Parse).ToArray());
+    public IReadOnlyList<IPAddress> Gateways =>
+        Array.AsReadOnly(gateways.Select(IPAddressParser.Parse).ToArray());
+    public IReadOnlyList<IPAddress> DnsServers =>
+        Array.AsReadOnly(dnsServers.Select(IPAddressParser.Parse).ToArray());
     public string? MACAddress { get; }
 
-    public NetworkAdapterSnapshot(string name, uint interfaceIndex, NetworkAdapterKind kind, IEnumerable<NetworkInterfaceAddress> addresses,
-        IEnumerable<IPAddress>? gateways = null, IEnumerable<IPAddress>? dnsServers = null, string? macAddress = null)
+    public NetworkAdapterSnapshot(
+        string name,
+        uint interfaceIndex,
+        NetworkAdapterKind kind,
+        IEnumerable<NetworkInterfaceAddress> addresses,
+        IEnumerable<IPAddress>? gateways = null,
+        IEnumerable<IPAddress>? dnsServers = null,
+        string? macAddress = null
+    )
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
+
         if (!Enum.IsDefined(typeof(NetworkAdapterKind), kind))
             throw new ArgumentOutOfRangeException(nameof(kind));
+
         var copied = (addresses ?? throw new ArgumentNullException(nameof(addresses))).ToArray();
+
         if (copied.Any(value => value == null))
             throw new ArgumentException("Addresses cannot contain null.", nameof(addresses));
+
         InterfaceIndex = interfaceIndex;
         Kind = kind;
         Addresses = Array.AsReadOnly(copied);
@@ -63,6 +94,12 @@ public sealed class NetworkAdapterSnapshot
         MACAddress = macAddress;
     }
 
-    private static string[] Copy(IEnumerable<IPAddress>? values) => (values ?? Array.Empty<IPAddress>()).Select(value =>
-        value == null ? throw new ArgumentException("Address collections cannot contain null.") : IPAddressParser.Parse(value.ToString()).ToString()).ToArray();
+    private static string[] Copy(IEnumerable<IPAddress>? values) =>
+        (values ?? Array.Empty<IPAddress>())
+            .Select(value =>
+                value == null
+                    ? throw new ArgumentException("Address collections cannot contain null.")
+                    : IPAddressParser.Parse(value.ToString()).ToString()
+            )
+            .ToArray();
 }

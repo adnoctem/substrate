@@ -6,7 +6,13 @@ using Microsoft.Win32;
 namespace AdNoctem.Substrate.Registry;
 
 [Flags]
-public enum RegistryChangeKinds { Names = 1, Attributes = 2, Values = 4, Security = 8 }
+public enum RegistryChangeKinds
+{
+    Names = 1,
+    Attributes = 2,
+    Values = 4,
+    Security = 8,
+}
 
 /// <summary>Local Windows 8+ change signals. Notifications can coalesce and do not identify individual writes.</summary>
 /// <remarks>Arms immediately and rearms after a signal. A cancelled wait leaves the watcher usable; disposal closes the
@@ -34,20 +40,52 @@ public sealed class RegistryChangeWatcher : IDisposable
     private CancellationTokenRegistration cancellation;
     private TaskCompletionSource<bool>? completion;
 
-    internal RegistryChangeWatcher(RegistryManager manager, RegistryPath path, bool subtree, RegistryChangeKinds kinds)
+    internal RegistryChangeWatcher(
+        RegistryManager manager,
+        RegistryPath path,
+        bool subtree,
+        RegistryChangeKinds kinds
+    )
     {
         if (manager.MachineName != null)
-        { signal.Dispose(); throw new NotSupportedException("Registry notifications require a local key."); }
+        {
+            signal.Dispose();
+
+            throw new NotSupportedException("Registry notifications require a local key.");
+        }
+
         if (kinds == 0 || ((uint)kinds & ~15u) != 0)
-        { signal.Dispose(); throw new ArgumentOutOfRangeException(nameof(kinds)); }
+        {
+            signal.Dispose();
+
+            throw new ArgumentOutOfRangeException(nameof(kinds));
+        }
+
         this.subtree = subtree;
         this.kinds = kinds;
+
         try
-        { key = manager.RequireKey(path); }
-        catch { signal.Dispose(); throw; }
+        {
+            key = manager.RequireKey(path);
+        }
+        catch
+        {
+            signal.Dispose();
+
+            throw;
+        }
+
         try
-        { Arm(); }
-        catch { key.Dispose(); signal.Dispose(); throw; }
+        {
+            Arm();
+        }
+        catch
+        {
+            key.Dispose();
+            signal.Dispose();
+
+            throw;
+        }
     }
 
     /// <summary>One waiter at a time. Cancellation cancels the wait; Dispose releases the native registration.</summary>
@@ -57,30 +95,53 @@ public sealed class RegistryChangeWatcher : IDisposable
         {
             if (disposed)
                 throw new ObjectDisposedException(nameof(RegistryChangeWatcher));
+
             if (waiting)
-                throw new InvalidOperationException("Only one concurrent notification wait is supported.");
+                throw new InvalidOperationException(
+                    "Only one concurrent notification wait is supported."
+                );
+
             cancellationToken.ThrowIfCancellationRequested();
             waiting = true;
-            var pending = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var pending = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously
+            );
             completion = pending;
+
             try
             {
-                registration = ThreadPool.RegisterWaitForSingleObject(signal, (_, _) => pending.TrySetResult(true), null, Timeout.Infinite, true);
+                registration = ThreadPool.RegisterWaitForSingleObject(
+                    signal,
+                    (_, _) => pending.TrySetResult(true),
+                    null,
+                    Timeout.Infinite,
+                    true
+                );
                 cancellation = cancellationToken.Register(() => pending.TrySetCanceled());
+
                 return WaitCore(pending.Task);
             }
-            catch { StopWait(); waiting = false; throw; }
+            catch
+            {
+                StopWait();
+                waiting = false;
+
+                throw;
+            }
         }
     }
+
     private async Task WaitCore(Task pending)
     {
         try
         {
             await pending.ConfigureAwait(false);
+
             lock (gate)
             {
                 if (disposed)
                     throw new ObjectDisposedException(nameof(RegistryChangeWatcher));
+
                 signal.Reset();
                 Arm();
             }
@@ -88,16 +149,31 @@ public sealed class RegistryChangeWatcher : IDisposable
         finally
         {
             lock (gate)
-            { StopWait(); waiting = false; }
+            {
+                StopWait();
+                waiting = false;
+            }
         }
     }
-    private void Arm() => NativeRegistry.ThrowIfError(NativeRegistry.RegNotifyChangeKeyValue(key.Handle, subtree, (uint)kinds | 0x10000000u, signal.SafeWaitHandle, true));
+
+    private void Arm() =>
+        NativeRegistry.ThrowIfError(
+            NativeRegistry.RegNotifyChangeKeyValue(
+                key.Handle,
+                subtree,
+                (uint)kinds | 0x10000000u,
+                signal.SafeWaitHandle,
+                true
+            )
+        );
+
     public void Dispose()
     {
         lock (gate)
         {
             if (disposed)
                 return;
+
             disposed = true;
             completion?.TrySetCanceled();
             StopWait();
@@ -106,6 +182,7 @@ public sealed class RegistryChangeWatcher : IDisposable
             signal.Dispose();
         }
     }
+
     private void StopWait()
     {
         registration?.Unregister(null);

@@ -17,9 +17,15 @@ public sealed class OfflineDomainJoinManagerTests
         var encoded = DomainJoinPackageCodec.Encode(synthetic);
         Assert.Equal(new byte[] { 0xff, 0xfe }, encoded.Take(2));
         Assert.Equal(synthetic, DomainJoinPackageCodec.Decode(encoded));
-        Assert.Throws<InvalidDataException>(() => DomainJoinPackageCodec.Decode(encoded.Take(encoded.Length - 1).ToArray()));
-        var directory = Path.Combine(Path.GetTempPath(), "psf-provision-" + Guid.NewGuid().ToString("N"));
+        Assert.Throws<InvalidDataException>(() =>
+            DomainJoinPackageCodec.Decode(encoded.Take(encoded.Length - 1).ToArray())
+        );
+        var directory = Path.Combine(
+            Path.GetTempPath(),
+            "psf-provision-" + Guid.NewGuid().ToString("N")
+        );
         Directory.CreateDirectory(directory);
+
         try
         {
             var path = FileSystemPath.Parse(Path.Combine(directory, "synthetic.djoin"));
@@ -31,8 +37,13 @@ public sealed class OfflineDomainJoinManagerTests
             Assert.Single(Directory.GetFiles(directory));
             var request = new OfflineDomainJoinRequest("example.invalid", "SYNTHETIC");
             Assert.Equal(DomainJoinProvisionOptions.None, request.Options);
-            Assert.Throws<OperationCanceledException>(() => manager.CreatePackage(request, cancellationToken: new CancellationToken(true)));
+            Assert.Throws<OperationCanceledException>(() =>
+                manager.CreatePackage(request, cancellationToken: new CancellationToken(true))
+            );
         }
-        finally { Directory.Delete(directory, true); }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
     }
 }

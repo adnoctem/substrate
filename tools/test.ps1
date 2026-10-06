@@ -51,6 +51,7 @@ if ($Managed) {
   $env:DOTNET_CLI_HOME = Join-Path $root 'build/dotnet'
   $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
   & dotnet test (Join-Path $root 'Substrate.slnx') --no-build --no-restore --configuration Release --logger 'trx' --results-directory (Join-Path $root 'build/test-results/managed')
+
   exit $LASTEXITCODE
 }
 
@@ -68,9 +69,11 @@ $config = [PesterConfiguration]@{
 }
 
 if (-not $IncludeIntegration) { $config.Filter.ExcludeTag = @('Integration') }
+
 if ($Coverage -and -not $OutputDirectory) {
   $OutputDirectory = Join-Path (Split-Path $PSScriptRoot -Parent) 'build/test-results'
 }
+
 if ($OutputDirectory) {
   $OutputDirectory = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
   $null = [IO.Directory]::CreateDirectory($OutputDirectory)
@@ -78,6 +81,7 @@ if ($OutputDirectory) {
   $config.TestResult.OutputFormat = 'NUnitXml'
   $config.TestResult.OutputPath = Join-Path $OutputDirectory 'tests.xml'
 }
+
 if ($Coverage) {
   # Detailed verbosity dumps every uncovered command; the XML retains that
   # information while Normal keeps the CI log useful.
@@ -92,4 +96,5 @@ if ($Coverage) {
 $result = Invoke-Pester -Configuration $config
 
 if ($result.FailedCount -gt 0 -or $result.FailedContainersCount -gt 0 -or $result.TotalCount -eq 0) { exit 1 }
+
 exit 0

@@ -7,9 +7,28 @@
     <ProjectReference Include="../Registry/Registry.csproj" />
     <ProjectReference Include="../Diagnostics/Diagnostics.csproj" />
     <ProjectReference Include="../IO/IO.csproj" />
+    <None
+      Include="../../build/bin/WinRtHost/$(Configuration)/net48/AdNoctem.Substrate.WinRtHost.exe"
+      Pack="true"
+      PackagePath="tools/win-x64/"
+    />
+    <None
+      Include="../../build/bin/WinRtHost/$(Configuration)/net48/AdNoctem.Substrate.WinRtHost.exe.config"
+      Pack="true"
+      PackagePath="tools/win-x64/"
+    />
+    <None
+      Include="AdNoctem.Substrate.Packages.targets"
+      Pack="true"
+      PackagePath="buildTransitive/"
+    />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <Reference Include="System.Runtime.Serialization" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference
+      Include="Microsoft.NETFramework.ReferenceAssemblies"
+      Version="1.0.3"
+      PrivateAssets="all"
+    />
   </ItemGroup>
 </Project>

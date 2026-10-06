@@ -6,6 +6,8 @@
   href: ../../build/docs/commands/toc.yml
 - name: Guides
   items:
+    - name: .NET libraries
+      href: guides/libraries.md
     - name: PowerShell workflows
       href: guides/powershell.md
     - name: Office deployment

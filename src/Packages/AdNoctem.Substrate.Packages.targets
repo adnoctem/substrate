@@ -1,0 +1,18 @@
+<Project>
+  <ItemGroup>
+    <None
+      Include="$(MSBuildThisFileDirectory)../tools/win-x64/AdNoctem.Substrate.WinRtHost.exe"
+      Link="AdNoctem.Substrate.WinRtHost.exe"
+      CopyToOutputDirectory="PreserveNewest"
+      CopyToPublishDirectory="PreserveNewest"
+      Visible="false"
+    />
+    <None
+      Include="$(MSBuildThisFileDirectory)../tools/win-x64/AdNoctem.Substrate.WinRtHost.exe.config"
+      Link="AdNoctem.Substrate.WinRtHost.exe.config"
+      CopyToOutputDirectory="PreserveNewest"
+      CopyToPublishDirectory="PreserveNewest"
+      Visible="false"
+    />
+  </ItemGroup>
+</Project>

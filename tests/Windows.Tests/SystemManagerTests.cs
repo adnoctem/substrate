@@ -19,8 +19,11 @@ public sealed class SystemManagerTests
     [InlineData("windows 10 Enterprise", 21999, "windows 10 Enterprise")]
     [InlineData("Windows Server 2025", 26100, "Windows Server 2025")]
     [InlineData(null, 26100, null)]
-    public void ProductNameUsesBuildWithoutRelabelingServers(string? input, int build, string? expected)
-        => Assert.Equal(expected, WindowsVersionInfo.NormalizeProductName(input, build));
+    public void ProductNameUsesBuildWithoutRelabelingServers(
+        string? input,
+        int build,
+        string? expected
+    ) => Assert.Equal(expected, WindowsVersionInfo.NormalizeProductName(input, build));
 
     [Fact]
     public void OptionalMetadataAndInstallDateRemainExplicit()
@@ -29,11 +32,19 @@ public sealed class SystemManagerTests
         Assert.Null(empty.DisplayVersion);
         Assert.Null(empty.InstalledAt);
         Assert.Equal(0, empty.BuildNumber);
-        var snapshot = new WindowsVersionInfo(new[] { new RegistryValueEntry("currentbuild", RegistryValue.String("26100")),
-            new RegistryValueEntry("ProductName", RegistryValue.String("Windows 10 Pro")), new RegistryValueEntry("InstallDate", RegistryValue.DWord(1)) });
+        var snapshot = new WindowsVersionInfo(
+            new[]
+            {
+                new RegistryValueEntry("currentbuild", RegistryValue.String("26100")),
+                new RegistryValueEntry("ProductName", RegistryValue.String("Windows 10 Pro")),
+                new RegistryValueEntry("InstallDate", RegistryValue.DWord(1)),
+            }
+        );
         Assert.Equal("Windows 11 Pro", snapshot.ProductName);
         Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1), snapshot.InstalledAt);
-        var bad = new WindowsVersionInfo(new[] { new RegistryValueEntry("InstallDate", RegistryValue.String("bad date")) });
+        var bad = new WindowsVersionInfo(
+            new[] { new RegistryValueEntry("InstallDate", RegistryValue.String("bad date")) }
+        );
         Assert.True(bad.InvalidInstallDate);
         Assert.Null(bad.InstalledAt);
     }
@@ -41,11 +52,28 @@ public sealed class SystemManagerTests
     [Fact]
     public void ApplicabilityHonorsExplicitZeroAndCaseInsensitiveEditions()
     {
-        Assert.True(HostValidator.IsApplicable(26100, "Professional", true, 26100, 26100, new[] { "professional" }, true));
+        Assert.True(
+            HostValidator.IsApplicable(
+                26100,
+                "Professional",
+                true,
+                26100,
+                26100,
+                new[] { "professional" },
+                true
+            )
+        );
         Assert.False(HostValidator.IsApplicable(26100, "Professional", true, maximumBuild: 0));
         Assert.False(HostValidator.IsApplicable(26100, "Professional", true, require64Bit: false));
         Assert.True(HostValidator.IsApplicable(26100, null, true, editions: Array.Empty<string>()));
-        Assert.False(HostValidator.IsApplicable(26100, "Professional", true, editions: new[] { "Enterprise" }));
+        Assert.False(
+            HostValidator.IsApplicable(
+                26100,
+                "Professional",
+                true,
+                editions: new[] { "Enterprise" }
+            )
+        );
     }
 
     [Fact]
@@ -60,7 +88,9 @@ public sealed class SystemManagerTests
         Assert.True(memory.TotalBytes > 0);
         Assert.Equal(memory.TotalBytes, memory.UsedBytes + memory.AvailableBytes);
         Assert.True(manager.GetUptime() > TimeSpan.Zero);
-        Assert.Throws<ArgumentException>(() => new SystemManager(new RegistryManager(machineName: "synthetic-host")));
+        Assert.Throws<ArgumentException>(() =>
+            new SystemManager(new RegistryManager(machineName: "synthetic-host"))
+        );
     }
 
     [Fact]
@@ -68,12 +98,27 @@ public sealed class SystemManagerTests
     {
         var manager = new SystemManager();
         var token = new CancellationToken(true);
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => manager.GetDisksAsync(TimeSpan.FromSeconds(30), cancellationToken: token));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => manager.GetHostnameAsync(TimeSpan.FromSeconds(30), token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            manager.GetDisksAsync(TimeSpan.FromSeconds(30), cancellationToken: token)
+        );
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            manager.GetHostnameAsync(TimeSpan.FromSeconds(30), token)
+        );
         Assert.Throws<ArgumentOutOfRangeException>(() => manager.GetDisks(TimeSpan.Zero));
         var disks = await manager.GetDisksAsync(TimeSpan.FromSeconds(30));
-        Assert.Equal(disks.Disks.Count, disks.Disks.Select(disk => disk.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
-        Assert.All(disks.Disks, disk => { Assert.Equal(DriveType.Fixed, disk.DriveType); Assert.True(disk.TotalBytes > 0); Assert.InRange(disk.PercentFree, 0, 100); });
+        Assert.Equal(
+            disks.Disks.Count,
+            disks.Disks.Select(disk => disk.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count()
+        );
+        Assert.All(
+            disks.Disks,
+            disk =>
+            {
+                Assert.Equal(DriveType.Fixed, disk.DriveType);
+                Assert.True(disk.TotalBytes > 0);
+                Assert.InRange(disk.PercentFree, 0, 100);
+            }
+        );
         var hostname = await manager.GetHostnameAsync(TimeSpan.FromSeconds(30));
         Assert.False(string.IsNullOrWhiteSpace(hostname.Hostname));
     }
@@ -84,7 +129,11 @@ public sealed class SystemManagerTests
         var manager = new IdentityManager();
         var identity = manager.GetCurrentIdentity();
         Assert.Equal(identity.SecurityIdentifier, manager.GetSecurityIdentifier(identity.Name));
-        Assert.Equal(identity.Name, manager.GetAccountName(identity.SecurityIdentifier!), StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(
+            identity.Name,
+            manager.GetAccountName(identity.SecurityIdentifier!),
+            StringComparer.OrdinalIgnoreCase
+        );
         Assert.Equal(identity.IsAdministrator, manager.IsElevated());
         Assert.Throws<ArgumentException>(() => manager.GetSecurityIdentifier(" "));
     }
@@ -118,8 +167,16 @@ public sealed class SystemManagerTests
     [InlineData(16, false, "***FATAL ERROR***")]
     [InlineData(-1, false, "Unknown")]
     [InlineData(32, false, "Unknown")]
-    public void RobocopyFailuresAreNotTreatedAsOrdinaryExitCodes(int code, bool success, string description)
-    { var result = new RobocopyExitResult(code); Assert.Equal(success, result.IsSuccess); Assert.Equal(description, result.Description); }
+    public void RobocopyFailuresAreNotTreatedAsOrdinaryExitCodes(
+        int code,
+        bool success,
+        string description
+    )
+    {
+        var result = new RobocopyExitResult(code);
+        Assert.Equal(success, result.IsSuccess);
+        Assert.Equal(description, result.Description);
+    }
 
     [Fact]
     public void ComCleanupDoesNotDisposeOrdinaryManagedObjects()

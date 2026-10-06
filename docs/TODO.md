@@ -37,7 +37,8 @@ Use explicitly scoped disposable or recoverable environments. Ordinary verificat
 
 - Validate hosted vendor and PowerShell dependency proposal workflows independently of ordinary green CI. Inspect downloaded candidates
   without executing them; review changes before merging.
-- Decide and validate separate NuGet distribution. Resolved package IDs do not establish a published library package.
+- Configure NuGet ownership and trusted publishing, then validate the first authorized PSGallery/NuGet release and hosted Super-Linter run.
+  Local packaging and verification do not establish successful publication.
 - Coordinate winkit's module-identity migration with its maintainer and agent; keep that work separate from this repository.
 - Make the release decision after reviewing the remaining evidence. Publishing remains an explicit, gated operation.
 

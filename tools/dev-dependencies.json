@@ -1,5 +1,9 @@
 [
   {
+    "Name": "Microsoft.PowerShell.PSResourceGet",
+    "RequiredVersion": "1.2.0"
+  },
+  {
     "Name": "Pester",
     "RequiredVersion": "5.7.1"
   },

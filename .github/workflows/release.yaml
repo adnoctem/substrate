@@ -2,6 +2,11 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      sha:
+        description: Optional tested commit; must still be the selected branch head
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -11,7 +16,8 @@ defaults:
     shell: pwsh
 
 concurrency:
-  group: "release-${{ github.ref }}"
+  group: substrate-release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -21,24 +27,52 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+      id-token: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+
+      - name: Check release inputs
+        env:
+          TESTED_SHA: ${{ inputs.sha }}
+          NUGET_USER: ${{ vars.NUGET_USER }}
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
+        run: |
+          if ($env:TESTED_SHA -and $env:TESTED_SHA -cne (git rev-parse HEAD)) {
+            throw 'The branch has advanced since testing. Run Testing again before releasing.'
+          }
+          if (-not $env:NUGET_USER) { throw 'Set the NUGET_USER repository variable and configure NuGet trusted publishing.' }
+          if (-not $env:PSGALLERY_API_KEY) { throw 'Set the PSGALLERY_TOKEN repository secret.' }
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
         with:
           global-json-file: global.json
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.2
+
       - name: Restore
         run: dotnet msbuild tools/tasks.proj -t:Restore
-      - name: Semantic Release
+
+      - name: Authenticate to NuGet
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        id: nuget
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Prepare and publish release
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
-        id: semantic
         env:
-          GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN || github.token }}
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
+          NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
         with:
           semantic_version: 25
           extra_plugins: |
@@ -46,9 +80,15 @@ jobs:
             @semantic-release/exec@7.0.3
             @semantic-release/git@10.0.1
             conventional-changelog-conventionalcommits@8.0.0
-      - name: Publish validated package
-        if: steps.semantic.outputs.new_release_published == 'true'
-        env:
-          SUBSTRATE_RELEASE_VERSION: ${{ steps.semantic.outputs.new_release_version }}
-          NUGET_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
-        run: ./tools/release.ps1 -Publish -Version $env:SUBSTRATE_RELEASE_VERSION
+
+      - name: Retain prepared release for inspection or retry
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: prepared-release-${{ github.run_id }}
+          path: |
+            build/release.json
+            build/module/AdNoctem.Substrate.PowerShell/**
+            dist/**
+          if-no-files-found: warn
+          retention-days: 14

@@ -22,9 +22,11 @@ function Invoke-SubstrateHostProbe {
     [ValidateRange(1, 600)][int]$TimeoutSeconds = 120,
     [ValidateRange(32, 1024)][int]$MemoryLimitMiB = 512
   )
+
   if ($null -eq ('AdNoctem.Substrate.DevTools.ProbeProcess' -as [type])) {
     Add-Type -Path (Join-Path $PSScriptRoot 'ProbeProcess.cs') -ErrorAction Stop
   }
+
   $executable = (Get-Command -Name $Engine -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
   [AdNoctem.Substrate.DevTools.ProbeProcess]::Run($executable, $ArgumentList, ($TimeoutSeconds * 1000), $MemoryLimitMiB)
 }

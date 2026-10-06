@@ -11,25 +11,30 @@ $observations = [ordered]@{}
 
 function Convert-Error {
   param ([Management.Automation.ErrorRecord]$Record)
+
   [ordered]@{ Stream = 'Error'; Message = $Record.Exception.Message; Exception = $Record.Exception.GetType().FullName; Category = [string]$Record.CategoryInfo.Category; Id = ($Record.FullyQualifiedErrorId -split ',')[0]; Target = $Record.TargetObject }
 }
 
 function Add-Observation {
   param ([string]$Name, [scriptblock]$Action)
+
   [IO.File]::WriteAllText($ReportPath + '.progress', $Name)
   $records = New-Object 'Collections.Generic.List[object]'
   $terminated = $false
+
   try {
     & $Action *>&1 | ForEach-Object {
       if ($_ -is [Management.Automation.ErrorRecord]) { $records.Add((Convert-Error $_)) }
       elseif ($_ -is [Management.Automation.VerboseRecord]) { $records.Add([ordered]@{ Stream = 'Verbose'; Message = $_.Message }) }
       else {
         $dataType = if ($_.PSObject.Properties['Data'] -and $null -ne $_.Data) { $_.Data.GetType().FullName } else { $null }
+
         $records.Add([ordered]@{ Type = $_.GetType().FullName; Names = @($_.PSObject.TypeNames); DataType = $dataType; Value = $_ })
       }
     }
   }
   catch { $terminated = $true; $records.Add((Convert-Error $_)) }
+
   $observations[$Name] = [ordered]@{ Terminated = $terminated; Records = @($records.ToArray()) }
 }
 
@@ -69,6 +74,7 @@ Add-Observation 'whatif' {
   $entries | ConvertTo-RegistryPolicy -Path $path -Force -WhatIf
   [Convert]::ToBase64String([IO.File]::ReadAllBytes($path)) -eq [Convert]::ToBase64String($before)
 }
+
 foreach ($bad in @(
     @{ Name = 'missing-field'; Entry = @{ Key = 'K' } }
     @{ Name = 'null-entry'; Entry = $null }
@@ -88,18 +94,23 @@ foreach ($bad in @(
   )) {
   Add-Observation $bad.Name { ConvertTo-RegistryPolicy -InputObject @($entries[0], $bad.Entry) -Path $path -Force }
 }
+
 Add-Observation 'invalid-preserves-destination' {
   $before = [IO.File]::ReadAllBytes($path)
+
   try { ConvertTo-RegistryPolicy @{ Key = 'K' } $path -Force } catch { $null = $_ }
+
   [Convert]::ToBase64String([IO.File]::ReadAllBytes($path)) -eq [Convert]::ToBase64String($before)
 }
 Add-Observation 'locked-destination' {
   $stream = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
+
   try { $entries | ConvertTo-RegistryPolicy -Path $path -Force }
   finally { $stream.Dispose() }
 }
 Add-Observation 'staging-cleanup' { @(Get-ChildItem -LiteralPath $scratch -File).Count }
 $header = [byte[]]@(80, 82, 101, 103, 1, 0, 0, 0)
+
 foreach ($bad in @(
     @{ Name = 'empty-file'; Bytes = [byte[]]@() }
     @{ Name = 'short-signature'; Bytes = [byte[]]@(80) }
@@ -111,6 +122,7 @@ foreach ($bad in @(
   )) {
   Add-Observation $bad.Name { [IO.File]::WriteAllBytes($path, $bad.Bytes); ConvertFrom-RegistryPolicy $path }
 }
+
 foreach ($bytes in @([byte[]]@(65), [byte[]]@(65, 0), [byte[]]@(0, 216, 0, 0))) {
   $raw = [PSCustomObject]@{ Key = 'K'; ValueName = 'V'; Type = 1; Data = $bytes }
   $raw.PSObject.TypeNames.Insert(0, 'PSFoundation.RegistryPolicy.RawEntry')
@@ -118,6 +130,7 @@ foreach ($bytes in @([byte[]]@(65), [byte[]]@(65, 0), [byte[]]@(0, 216, 0, 0))) 
   Add-Observation "malformed-string:$([Convert]::ToBase64String($bytes))" { ConvertFrom-RegistryPolicy $path }
   Add-Observation "raw-string:$([Convert]::ToBase64String($bytes))" { ConvertFrom-RegistryPolicy $path -Raw }
 }
+
 Add-Observation 'malformed-short-multi' {
   $raw = [PSCustomObject]@{ Key = 'K'; ValueName = 'V'; Type = 7; Data = [byte[]]@(65, 0) }
   $raw.PSObject.TypeNames.Insert(0, 'adnoctem.substrate.registrypolicy.rawentry')
@@ -131,6 +144,7 @@ Add-Observation 'lgpo-source' {
         throw 'LGPO source must expose the reviewed ZIP pin and verification date.'
       }
     }
+
     # The reviewed source pin/date intentionally replace the frozen placeholder. Compare all other fields and types normally.
     $source.Sha256 = '<reviewed-source-pin>'
     $source.LastVerified = '<reviewed-source-date>'
@@ -152,19 +166,27 @@ Add-Observation 'lgpo-whatif' { Invoke-LGPO -PolicyPath $policyInput -LgpoExe $e
 Add-Observation 'lgpo-missing-executable' { Invoke-LGPO -PolicyPath $policyInput -LgpoExe (Join-Path $scratch 'missing.exe') }
 Add-Observation 'lgpo-invalid-policy' { Invoke-LGPO -PolicyPath (Join-Path $scratch 'missing.txt') -LgpoExe $executable }
 Add-Observation 'lgpo-invalid-executable' { Invoke-LGPO -PolicyPath $policyInput -LgpoExe $policyInput }
+
 foreach ($mode in @('text', 'backup', 'failure')) {
   if ($mode -eq 'failure') { [IO.File]::WriteAllText($policyInput, 'fail') }
+
   $inputPath = if ($mode -eq 'backup') { $scratch } else { $policyInput }
+
   Add-Observation "lgpo-apply:$mode" {
     $result = Invoke-LGPO -PolicyPath $inputPath -LgpoExe $executable
+
     # Get-Content in v1 attaches provider objects to strings. Capture text separately to avoid serializing provider object graphs.
     if ($null -ne $result.StdOut) { $result.StdOut = [string]::Concat('', [string]$result.StdOut) }
+
     if ($null -ne $result.StdErr) { $result.StdErr = [string]::Concat('', [string]$result.StdErr) }
+
     if ($result.AppliedAt.Kind -ne [DateTimeKind]::Utc) { throw 'LGPO timestamp must be UTC.' }
+
     $result.AppliedAt = [datetime]'2026-01-01T00:00:00Z'
     $result
   }
 }
+
 Remove-Item -LiteralPath $policyInput
 $installDirectory = Join-Path $scratch 'tool-install'
 Add-Observation 'lgpo-install-whatif' { Install-LGPO -Destination $installDirectory -WhatIf; Test-Path -LiteralPath $installDirectory }

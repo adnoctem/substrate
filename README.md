@@ -1,4 +1,10 @@
-# substrate
+<p align="center">
+    <!-- substrate -->
+    <picture>
+      <img src="https://raw.githubusercontent.com/adnoctem/artwork/refs/heads/main/projects/substrate/icon/substrate.svg" alt="substrate Logo" width="225">
+    </picture>
+    <h1 align="center">substrate</h1>
+</p>
 
 [![License](https://img.shields.io/github/license/adnoctem/substrate?label=License)][license]
 [![Language](https://img.shields.io/github/languages/top/adnoctem/substrate?label=C%23)][dotnet]

@@ -21,6 +21,7 @@ $session.Application.Version = '12.0'
 $observations['legacy-identities'] = @(Get-OutlookStandardFolderIdentity -Namespace $session -StoreRoot $store.Root)
 $path = Join-Path (Split-Path $ReportPath -Parent) 'synthetic.pst'
 [IO.File]::WriteAllText($path, 'synthetic')
+
 try {
   $session = New-Object AdNoctem.Substrate.Tests.Fixtures.OutlookFixture
   $observations['preview'] = @(Open-OutlookPstStore -Namespace $session -LiteralPath $path -WhatIf)
@@ -35,4 +36,5 @@ try {
   $observations['counts'] = [PSCustomObject]@{ Added = $session.Added; Removed = $session.Removed; Remaining = $session.Stores.Count }
 }
 finally { [IO.File]::Delete($path) }
+
 $observations | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $ReportPath -Encoding UTF8

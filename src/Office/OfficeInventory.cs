@@ -18,8 +18,18 @@ public sealed class OfficeProductState
     public IReadOnlyList<string> RegisteredLanguages { get; }
     public IReadOnlyList<string>? ExcludedApplications { get; }
     public IReadOnlyList<string> Evidence { get; }
-    internal OfficeProductState(string productId, OfficeArchitecture? architecture, OfficeVersionEvidence installedVersion, OfficeChannel? channel,
-        IEnumerable<string>? languages, string? primaryLanguage, IEnumerable<string> registeredLanguages, IEnumerable<string>? excludedApplications, IEnumerable<string> evidence)
+
+    internal OfficeProductState(
+        string productId,
+        OfficeArchitecture? architecture,
+        OfficeVersionEvidence installedVersion,
+        OfficeChannel? channel,
+        IEnumerable<string>? languages,
+        string? primaryLanguage,
+        IEnumerable<string> registeredLanguages,
+        IEnumerable<string>? excludedApplications,
+        IEnumerable<string> evidence
+    )
     {
         ProductId = productId;
         Architecture = architecture;
@@ -28,12 +38,27 @@ public sealed class OfficeProductState
         Languages = languages == null ? null : Array.AsReadOnly(languages.ToArray());
         PrimaryLanguage = primaryLanguage;
         RegisteredLanguages = Array.AsReadOnly(registeredLanguages.ToArray());
-        ExcludedApplications = excludedApplications == null ? null : Array.AsReadOnly(excludedApplications.ToArray());
+        ExcludedApplications =
+            excludedApplications == null ? null : Array.AsReadOnly(excludedApplications.ToArray());
         Evidence = Array.AsReadOnly(evidence.ToArray());
     }
 }
-public enum OfficeMsiResourceKind { ProductOrComponent, Proofing, LanguageInterfacePack, LanguageResource }
-public enum OfficeRelatedRole { ClickToRunInfrastructure, AddIn, PatchRegistration }
+
+public enum OfficeMsiResourceKind
+{
+    ProductOrComponent,
+    Proofing,
+    LanguageInterfacePack,
+    LanguageResource,
+}
+
+public enum OfficeRelatedRole
+{
+    ClickToRunInfrastructure,
+    AddIn,
+    PatchRegistration,
+}
+
 /// <summary>An observed MSI Office registration. Reading it does not trigger Windows Installer consistency checks.</summary>
 public sealed class OfficeMsiRegistration
 {
@@ -43,9 +68,23 @@ public sealed class OfficeMsiRegistration
     public RegistryView RegistryView { get; }
     public string? LanguageId { get; }
     public OfficeMsiResourceKind ResourceKind { get; }
-    internal OfficeMsiRegistration(string code, OfficeRegistryRecord record, string? language, OfficeMsiResourceKind kind)
-    { ProductCode = code; Name = record.GetString("DisplayName"); Version = record.GetString("DisplayVersion"); RegistryView = record.View; LanguageId = language; ResourceKind = kind; }
+
+    internal OfficeMsiRegistration(
+        string code,
+        OfficeRegistryRecord record,
+        string? language,
+        OfficeMsiResourceKind kind
+    )
+    {
+        ProductCode = code;
+        Name = record.GetString("DisplayName");
+        Version = record.GetString("DisplayVersion");
+        RegistryView = record.View;
+        LanguageId = language;
+        ResourceKind = kind;
+    }
 }
+
 /// <summary>A related Office component classified separately from the main suite.</summary>
 public sealed class OfficeRelatedComponent
 {
@@ -56,9 +95,25 @@ public sealed class OfficeRelatedComponent
     public OfficeRelatedRole Role { get; }
     public string? ParentProductCode { get; }
     public bool? SystemComponent { get; }
-    internal OfficeRelatedComponent(string code, OfficeRegistryRecord record, OfficeRelatedRole role, string? parent = null, bool? system = null)
-    { ProductCode = code; Name = record.GetString("DisplayName"); Version = record.GetString("DisplayVersion"); RegistryView = record.View; Role = role; ParentProductCode = parent; SystemComponent = system; }
+
+    internal OfficeRelatedComponent(
+        string code,
+        OfficeRegistryRecord record,
+        OfficeRelatedRole role,
+        string? parent = null,
+        bool? system = null
+    )
+    {
+        ProductCode = code;
+        Name = record.GetString("DisplayName");
+        Version = record.GetString("DisplayVersion");
+        RegistryView = record.View;
+        Role = role;
+        ParentProductCode = parent;
+        SystemComponent = system;
+    }
 }
+
 /// <summary>Office installation observations across registration sources, preserving ambiguities and inventory diagnostics.</summary>
 public sealed class OfficeInventory
 {
@@ -71,8 +126,18 @@ public sealed class OfficeInventory
     public IReadOnlyList<OfficeRegistryRecord> RegistryRecords { get; }
     public IReadOnlyList<OfficeRegistryReadError> ReadErrors { get; }
     public IReadOnlyList<OfficeAppPathEvidence> AppPaths { get; }
-    internal OfficeInventory(string machineId, IEnumerable<OfficeProductState> products, IEnumerable<OfficeMsiRegistration> msi, IEnumerable<OfficeRelatedComponent> related,
-        IEnumerable<string> unknowns, IEnumerable<string> limitations, IEnumerable<OfficeRegistryRecord> records, IEnumerable<OfficeAppPathEvidence> appPaths, IEnumerable<OfficeRegistryReadError> errors)
+
+    internal OfficeInventory(
+        string machineId,
+        IEnumerable<OfficeProductState> products,
+        IEnumerable<OfficeMsiRegistration> msi,
+        IEnumerable<OfficeRelatedComponent> related,
+        IEnumerable<string> unknowns,
+        IEnumerable<string> limitations,
+        IEnumerable<OfficeRegistryRecord> records,
+        IEnumerable<OfficeAppPathEvidence> appPaths,
+        IEnumerable<OfficeRegistryReadError> errors
+    )
     {
         MachineId = machineId;
         Products = Array.AsReadOnly(products.ToArray());

@@ -23,10 +23,38 @@ public sealed class RegistrySnapshotServiceTests
             Assert.False(absent.Exists);
             fixture.Manager.SetValue(fixture.Root, "", RegistryValue.String(""));
             Assert.True(snapshots.CaptureValue(fixture.Root).Exists);
-            Assert.Throws<ArgumentException>(() => new RegistryValueSnapshot(fixture.Root, "", fixture.Manager.View, false, RegistryValue.String("bad")));
-            Assert.Throws<ArgumentException>(() => new RegistryTreeSnapshot(fixture.Root, fixture.Manager.View,
-                new[] { new RegistryKeySnapshot(fixture.Root.Combine("MissingParent"), Array.Empty<RegistryValueEntry>()) }));
-            Assert.Throws<ArgumentException>(() => new RegistryKeySnapshot(fixture.Root, new[] { new RegistryValueEntry("a", RegistryValue.String("a")), new RegistryValueEntry("A", RegistryValue.String("b")) }));
+            Assert.Throws<ArgumentException>(() =>
+                new RegistryValueSnapshot(
+                    fixture.Root,
+                    "",
+                    fixture.Manager.View,
+                    false,
+                    RegistryValue.String("bad")
+                )
+            );
+            Assert.Throws<ArgumentException>(() =>
+                new RegistryTreeSnapshot(
+                    fixture.Root,
+                    fixture.Manager.View,
+                    new[]
+                    {
+                        new RegistryKeySnapshot(
+                            fixture.Root.Combine("MissingParent"),
+                            Array.Empty<RegistryValueEntry>()
+                        ),
+                    }
+                )
+            );
+            Assert.Throws<ArgumentException>(() =>
+                new RegistryKeySnapshot(
+                    fixture.Root,
+                    new[]
+                    {
+                        new RegistryValueEntry("a", RegistryValue.String("a")),
+                        new RegistryValueEntry("A", RegistryValue.String("b")),
+                    }
+                )
+            );
         }
     }
 
@@ -51,8 +79,14 @@ public sealed class RegistrySnapshotServiceTests
             Assert.Equal(RegistryApplyStatus.Completed, result.Status);
             Assert.Equal("original", manager.GetValue(fixture.Root, "Value")!.GetString());
             Assert.True(manager.KeyExists(fixture.Root.Combine("Empty")));
-            Assert.Equal(mode == RegistryRestoreMode.Merge, manager.ValueExists(fixture.Root, "Extra"));
-            Assert.Equal(mode == RegistryRestoreMode.Merge, manager.KeyExists(fixture.Root.Combine("Other")));
+            Assert.Equal(
+                mode == RegistryRestoreMode.Merge,
+                manager.ValueExists(fixture.Root, "Extra")
+            );
+            Assert.Equal(
+                mode == RegistryRestoreMode.Merge,
+                manager.KeyExists(fixture.Root.Combine("Other"))
+            );
             Assert.Empty(manager.Snapshots.PlanRestore(desired, mode).Changes);
         }
     }
@@ -74,7 +108,12 @@ public sealed class RegistrySnapshotServiceTests
             Assert.Equal(RegistryApplyStatus.Conflict, manager.Snapshots.Apply(plan).Status);
             Assert.Equal("changed", manager.GetValue(fixture.Root, "A")!.GetString());
             plan = manager.Snapshots.PlanRestore(desired);
-            var result = manager.Snapshots.Apply(plan, progress: new InlineProgress(_ => manager.SetValue(fixture.Root, "B", RegistryValue.String("raced"))));
+            var result = manager.Snapshots.Apply(
+                plan,
+                progress: new InlineProgress(_ =>
+                    manager.SetValue(fixture.Root, "B", RegistryValue.String("raced"))
+                )
+            );
             Assert.Equal(RegistryApplyStatus.Conflict, result.Status);
             Assert.Single(result.Completed);
             Assert.Equal("raced", manager.GetValue(fixture.Root, "B")!.GetString());
@@ -89,9 +128,26 @@ public sealed class RegistrySnapshotServiceTests
         {
             var manager = fixture.Manager;
             manager.CreateKey(fixture.Root);
-            var desired = new RegistryTreeSnapshot(fixture.Root, manager.View, new[] { new RegistryKeySnapshot(fixture.Root,
-                new[] { new RegistryValueEntry("A", RegistryValue.String("one")), new RegistryValueEntry("B", RegistryValue.String("two")) }) });
-            var result = manager.Snapshots.Apply(manager.Snapshots.PlanRestore(desired), cancellation.Token, new InlineProgress(_ => cancellation.Cancel()));
+            var desired = new RegistryTreeSnapshot(
+                fixture.Root,
+                manager.View,
+                new[]
+                {
+                    new RegistryKeySnapshot(
+                        fixture.Root,
+                        new[]
+                        {
+                            new RegistryValueEntry("A", RegistryValue.String("one")),
+                            new RegistryValueEntry("B", RegistryValue.String("two")),
+                        }
+                    ),
+                }
+            );
+            var result = manager.Snapshots.Apply(
+                manager.Snapshots.PlanRestore(desired),
+                cancellation.Token,
+                new InlineProgress(_ => cancellation.Cancel())
+            );
             Assert.Equal(RegistryApplyStatus.Cancelled, result.Status);
             Assert.Single(result.Completed);
             Assert.True(manager.ValueExists(fixture.Root, "A"));
@@ -110,16 +166,30 @@ public sealed class RegistrySnapshotServiceTests
             var original = manager.Snapshots.CaptureValue(fixture.Root, "A");
             manager.SetValue(fixture.Root, "A", RegistryValue.String("new"));
             manager.SetValue(fixture.Root, "B", RegistryValue.String("keep"));
-            Assert.Equal(RegistryApplyStatus.Conflict, manager.Snapshots.RestoreValue(original, original).Status);
+            Assert.Equal(
+                RegistryApplyStatus.Conflict,
+                manager.Snapshots.RestoreValue(original, original).Status
+            );
             var expected = manager.Snapshots.CaptureValue(fixture.Root, "A");
-            Assert.Equal(RegistryApplyStatus.Completed, manager.Snapshots.RestoreValue(original, expected).Status);
+            Assert.Equal(
+                RegistryApplyStatus.Completed,
+                manager.Snapshots.RestoreValue(original, expected).Status
+            );
             Assert.Equal("original", manager.GetValue(fixture.Root, "A")!.GetString());
             Assert.Equal("keep", manager.GetValue(fixture.Root, "B")!.GetString());
-            Assert.Throws<ArgumentException>(() => manager.Snapshots.RestoreValue(original, manager.Snapshots.CaptureValue(fixture.Root, "B")));
+            Assert.Throws<ArgumentException>(() =>
+                manager.Snapshots.RestoreValue(
+                    original,
+                    manager.Snapshots.CaptureValue(fixture.Root, "B")
+                )
+            );
             var wrongView = new RegistryManager(RegistryView.Registry32);
             Assert.Throws<ArgumentException>(() => wrongView.Snapshots.RestoreValue(original));
             var absent = new RegistryValueSnapshot(fixture.Root, "A", manager.View, true, null);
-            Assert.Equal(RegistryApplyStatus.Completed, manager.Snapshots.RestoreValue(absent).Status);
+            Assert.Equal(
+                RegistryApplyStatus.Completed,
+                manager.Snapshots.RestoreValue(absent).Status
+            );
             Assert.False(manager.ValueExists(fixture.Root, "A"));
             Assert.True(manager.ValueExists(fixture.Root, "B"));
         }
@@ -131,11 +201,31 @@ public sealed class RegistrySnapshotServiceTests
         using (var fixture = new RegistryFixture())
         {
             var manager = fixture.Manager;
-            manager.SetValue(fixture.Root.Combine(@"Child\Grandchild"), "A", RegistryValue.String("x"), true);
-            var absent = new RegistryTreeSnapshot(fixture.Root, manager.View, Array.Empty<RegistryKeySnapshot>());
-            Assert.Equal(RegistryApplyStatus.Completed, manager.Snapshots.Apply(manager.Snapshots.PlanRestore(absent, RegistryRestoreMode.Replace)).Status);
+            manager.SetValue(
+                fixture.Root.Combine(@"Child\Grandchild"),
+                "A",
+                RegistryValue.String("x"),
+                true
+            );
+            var absent = new RegistryTreeSnapshot(
+                fixture.Root,
+                manager.View,
+                Array.Empty<RegistryKeySnapshot>()
+            );
+            Assert.Equal(
+                RegistryApplyStatus.Completed,
+                manager
+                    .Snapshots.Apply(
+                        manager.Snapshots.PlanRestore(absent, RegistryRestoreMode.Replace)
+                    )
+                    .Status
+            );
             Assert.False(manager.KeyExists(fixture.Root));
-            var root = new RegistryTreeSnapshot(new RegistryPath(RegistryHive.CurrentUser), manager.View, Array.Empty<RegistryKeySnapshot>());
+            var root = new RegistryTreeSnapshot(
+                new RegistryPath(RegistryHive.CurrentUser),
+                manager.View,
+                Array.Empty<RegistryKeySnapshot>()
+            );
             Assert.Throws<InvalidOperationException>(() => manager.Snapshots.PlanRestore(root));
         }
     }
@@ -143,7 +233,9 @@ public sealed class RegistrySnapshotServiceTests
     internal sealed class InlineProgress : IProgress<RegistryChange>
     {
         private readonly Action<RegistryChange> action;
+
         public InlineProgress(Action<RegistryChange> action) => this.action = action;
+
         public void Report(RegistryChange value) => action(value);
     }
 
@@ -160,11 +252,23 @@ public sealed class RegistrySnapshotServiceTests
             manager.SetValue(fixture.Root, "A", RegistryValue.String("before"));
             manager.SetValue(fixture.Root, "B", RegistryValue.String("before"));
             var plan = manager.Snapshots.PlanRestore(desired);
-            var result = manager.Snapshots.Apply(plan, progress: new InlineProgress(_ =>
-            {
-                using (var key = manager.OpenKey(fixture.Root, true))
-                    NativeRegistry.ThrowIfError(RegistryManagerTests.RegSetValueExW(key!.Handle, "B", 0, 5, new byte[] { 0, 0, 0, 1 }, 4));
-            }));
+            var result = manager.Snapshots.Apply(
+                plan,
+                progress: new InlineProgress(_ =>
+                {
+                    using (var key = manager.OpenKey(fixture.Root, true))
+                        NativeRegistry.ThrowIfError(
+                            RegistryManagerTests.RegSetValueExW(
+                                key!.Handle,
+                                "B",
+                                0,
+                                5,
+                                new byte[] { 0, 0, 0, 1 },
+                                4
+                            )
+                        );
+                })
+            );
             Assert.Equal(RegistryApplyStatus.Failed, result.Status);
             Assert.IsType<NotSupportedException>(result.Error);
             Assert.Single(result.Completed);

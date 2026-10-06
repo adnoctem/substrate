@@ -55,12 +55,15 @@ Import-DevelopmentModule PSScriptAnalyzer
 
 if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
   Write-Error 'PSScriptAnalyzer is not installed. Install it with: Install-Module PSScriptAnalyzer'
+
   exit 1
 }
 
 $settingsPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Settings)
+
 if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
   Write-Error "Settings file not found: $settingsPath"
+
   exit 1
 }
 
@@ -75,6 +78,7 @@ function Test-LintExcludedPath {
   )
 
   $relative = $FilePath
+
   if ($FilePath.StartsWith($rootFullPath, [System.StringComparison]::OrdinalIgnoreCase)) {
     $relative = $FilePath.Substring($rootFullPath.Length).TrimStart('\', '/')
   }
@@ -90,6 +94,7 @@ function Test-LintExcludedPath {
 
 $files = foreach ($entry in $Path) {
   $resolvedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($entry)
+
   if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
     Get-Item -LiteralPath $resolvedPath
   }
@@ -108,6 +113,7 @@ $files = @($files |
 
 if ($files.Count -eq 0) {
   Write-Output 'PSScriptAnalyzer passed: no PowerShell files to analyze.'
+
   exit 0
 }
 
@@ -115,6 +121,7 @@ $results = New-Object System.Collections.Generic.List[object]
 
 foreach ($file in $files) {
   $_analysis = @(Invoke-ScriptAnalyzer -Path $file.FullName -Settings $settingsPath)
+
   foreach ($_result in $_analysis) {
     [void]$results.Add($_result)
   }
@@ -124,8 +131,10 @@ if ($results.Count -gt 0) {
   $results |
     Select-Object RuleName, Severity, ScriptName, Line, Message |
     Format-Table -AutoSize
+
   exit 1
 }
 
 Write-Output "PSScriptAnalyzer passed for $($files.Count) file(s)."
+
 exit 0

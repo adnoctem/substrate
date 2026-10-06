@@ -6,8 +6,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Runtime.Serialization" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.19041.1" PrivateAssets="all" />
-    <Compile Include="../Packages/Runtime/PackageRuntimeProtocol.cs" Link="PackageRuntimeProtocol.cs" />
+    <PackageReference
+      Include="Microsoft.NETFramework.ReferenceAssemblies"
+      Version="1.0.3"
+      PrivateAssets="all"
+    />
+    <PackageReference
+      Include="Microsoft.Windows.SDK.Contracts"
+      Version="10.0.19041.1"
+      PrivateAssets="all"
+    />
+    <Compile
+      Include="../Packages/Runtime/PackageRuntimeProtocol.cs"
+      Link="PackageRuntimeProtocol.cs"
+    />
   </ItemGroup>
 </Project>

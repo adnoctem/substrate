@@ -13,13 +13,17 @@ $native = 'HKCU\' + $subkey
 $scratch = Join-Path (Split-Path $ReportPath -Parent) $FixtureName
 $scratch = [IO.Path]::GetFullPath($scratch)
 $reportDirectory = [IO.Path]::GetFullPath((Split-Path $ReportPath -Parent)) + [IO.Path]::DirectorySeparatorChar
+
 if (-not $scratch.StartsWith($reportDirectory, [StringComparison]::OrdinalIgnoreCase)) { throw 'Scratch must remain below report directory.' }
+
 $null = [IO.Directory]::CreateDirectory($scratch)
 $observations = [ordered]@{}
 
 function Convert-Observation {
   param ([AllowNull()][object]$Value)
+
   if ($null -eq $Value) { return $null }
+
   if ($Value -is [Management.Automation.ErrorRecord]) {
     return [ordered]@{
       Stream = 'Error'; Message = $Value.Exception.Message; Exception = $Value.Exception.GetType().FullName
@@ -27,25 +31,35 @@ function Convert-Observation {
       Target = $Value.TargetObject
     }
   }
+
   if ($Value -is [Management.Automation.VerboseRecord]) { return [ordered]@{ Stream = 'Verbose'; Message = $Value.Message } }
+
   if ($Value -is [Management.Automation.InformationRecord]) { return [ordered]@{ Stream = 'Information'; Message = [string]$Value.MessageData; Tags = @($Value.Tags) } }
+
   if ($Value -is [Array]) {
     return [ordered]@{ Type = $Value.GetType().FullName; Items = @($Value | ForEach-Object { Convert-Observation $_ }) }
   }
+
   if ($Value -is [System.Management.Automation.PSCustomObject]) {
     $properties = [ordered]@{}
+
     foreach ($property in $Value.PSObject.Properties) { $properties[$property.Name] = Convert-Observation $property.Value }
+
     return [ordered]@{ Type = 'PSCustomObject'; Properties = $properties }
   }
+
   return [ordered]@{ Type = $Value.GetType().FullName; Value = $Value }
 }
 
 function Add-Observation {
   param ([string]$CaseName, [scriptblock]$Action)
+
   $captured = New-Object 'Collections.Generic.List[object]'
   $terminated = $false
+
   try { & $Action *>&1 | ForEach-Object { $captured.Add((Convert-Observation $_)) } }
   catch { $terminated = $true; $captured.Add((Convert-Observation $_)) }
+
   $observations[$CaseName] = [ordered]@{ Terminated = $terminated; Output = @($captured.ToArray()) }
 }
 
@@ -53,6 +67,7 @@ try {
   foreach ($inputPath in @('HKLM', 'hkey_current_user\Software\\', 'Registry::HKEY_USERS', 'HKCC:', 'HKCR\*\shell', 'HKCU:\Software::', 'NONSENSE\Path', '')) {
     Add-Observation "normalize:$inputPath" { ConvertTo-RegistryProviderPath -Path $inputPath -ErrorAction Continue }
   }
+
   Add-Observation 'invalid-stop' { ConvertTo-RegistryProviderPath 'NONSENSE' -ErrorAction Stop }
   Add-Observation 'root-create' { Set-RegistryKey HKCU: -ErrorAction Continue }
   Add-Observation 'root-delete' { Remove-RegistryKey HKCU: -ErrorAction Continue }
@@ -75,11 +90,13 @@ try {
     Empty  = @{ Value = [string[]]@(); Type = 'MultiString' }
     Null   = @{ Value = $null; Type = 'String' }
   }
+
   foreach ($name in $values.Keys) {
     $entry = $values[$name]
     Add-Observation "set:$name" { Set-RegistryValue $path -Name $name @entry -Verbose; Set-RegistryValue $path -Name $name @entry -Verbose }
     Add-Observation "get:$name" { Get-RegistryValue $path -Name $name; Get-RegistryValueKind $path -Name $name; Test-RegistryValue $path -Name $name }
   }
+
   Add-Observation 'case-insensitive-set' { Set-RegistryValue $path -Name Text -Value 'text'; Get-RegistryValue $path -Name Text }
   Add-Observation 'get-key' { Get-RegistryKey $path }
   Add-Observation 'binding-null-name' { Get-RegistryValue $path -Name $null; Test-RegistryValue $path -Name $null }
@@ -119,6 +136,7 @@ try {
   }
   Add-Observation 'handle' {
     $key = Resolve-RegistryPath $path -Writable -View Registry32
+
     try { $key.SetValue('Handle', 'owned'); $key.GetValue('Handle') }
     finally { $key.Dispose() }
   }
@@ -127,8 +145,10 @@ try {
   Add-Observation 'detailed-snapshot' { $settings | Export-RegistrySettingState -Detailed -View Registry32 }
   $before = @($settings | Export-RegistrySettingState -Detailed)
   $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($subkey, $true)
+
   try { foreach ($setting in $settings) { $key.SetValue($setting.Name, 'changed', [Microsoft.Win32.RegistryValueKind]::String) } }
   finally { $key.Dispose() }
+
   $expected = @($settings | Export-RegistrySettingState -Detailed)
   Add-Observation 'compare' { Compare-RegistrySettingState $before }
   Add-Observation 'restore-preview' { Restore-RegistrySettingState $before -ExpectedState $expected -WhatIf }
@@ -179,8 +199,10 @@ try {
 }
 finally {
   [Microsoft.Win32.Registry]::CurrentUser.DeleteSubKeyTree($subkey, $false)
+
   # Both paths are constructed below the dedicated report directory.
   if (Test-Path -LiteralPath $scratch) { Remove-Item -LiteralPath $scratch -Recurse -Force }
 }
+
 [IO.File]::WriteAllText($ReportPath, ($observations | ConvertTo-Json -Depth 40), (New-Object Text.UTF8Encoding($false)))
 Write-Output "Registry behavior captured: $($observations.Count) cases"

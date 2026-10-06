@@ -9,10 +9,16 @@ internal sealed class OperationResult
 {
     public IReadOnlyList<KeyValuePair<string, object?>> Fields { get; }
 
-    private OperationResult(List<KeyValuePair<string, object?>> fields) => Fields = fields.AsReadOnly();
+    private OperationResult(List<KeyValuePair<string, object?>> fields) =>
+        Fields = fields.AsReadOnly();
 
-    public static OperationResult Create(string? target, string? action, string? status,
-        IReadOnlyDictionary<string, object?> supplied, IDictionary? extra = null)
+    public static OperationResult Create(
+        string? target,
+        string? action,
+        string? status,
+        IReadOnlyDictionary<string, object?> supplied,
+        IDictionary? extra = null
+    )
     {
         var fields = new List<KeyValuePair<string, object?>>();
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -34,11 +40,26 @@ internal sealed class OperationResult
         Optional("Detail");
         Optional("SkippedReason");
         Optional("ErrorMessage", "Error");
-        foreach (var name in new[] { "Changed", "AlreadyCompliant", "Before", "After", "ExitCode", "RebootRequired", "Duration", "RunId" })
+
+        foreach (
+            var name in new[]
+            {
+                "Changed",
+                "AlreadyCompliant",
+                "Before",
+                "After",
+                "ExitCode",
+                "RebootRequired",
+                "Duration",
+                "RunId",
+            }
+        )
             Optional(name);
+
         if (extra != null)
             foreach (DictionaryEntry entry in extra)
                 Add(Convert.ToString(entry.Key) ?? "", entry.Value);
+
         return new OperationResult(fields);
     }
 }

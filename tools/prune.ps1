@@ -57,9 +57,11 @@ $maintenancePath = Join-Path -Path $repoRoot -ChildPath 'build/module/AdNoctem.S
 
 if (-not (Test-Path -LiteralPath $maintenancePath -PathType Leaf)) {
   Write-Error "Module source not found: $maintenancePath"
+
   exit 1
 }
 
 Import-Module $maintenancePath -Force -ErrorAction Stop
 Remove-PSModule @PSBoundParameters
+
 exit $LASTEXITCODE

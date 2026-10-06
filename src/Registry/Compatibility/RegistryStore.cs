@@ -8,6 +8,7 @@ namespace AdNoctem.Substrate.Registry.Compatibility;
 internal sealed class RegistryStore : IRegistryStateStore
 {
     private readonly LegacyRegistryReader reader = new LegacyRegistryReader();
+
     public bool KeyExists(LegacyRegistryPath path)
     {
         using (var key = reader.Open(path))
@@ -18,9 +19,20 @@ internal sealed class RegistryStore : IRegistryStateStore
     {
         using (var key = reader.Open(path, false, view))
         {
-            var exists = key != null && key.GetValueNames().Contains(name, StringComparer.OrdinalIgnoreCase);
-            return new RegistryState(path, name, view, exists, exists ? key!.GetValueKind(name) : (RegistryValueKind?)null,
-                exists ? key!.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames) : null, key != null);
+            var exists =
+                key != null && key.GetValueNames().Contains(name, StringComparer.OrdinalIgnoreCase);
+
+            return new RegistryState(
+                path,
+                name,
+                view,
+                exists,
+                exists ? key!.GetValueKind(name) : (RegistryValueKind?)null,
+                exists
+                    ? key!.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames)
+                    : null,
+                key != null
+            );
         }
     }
 
@@ -29,7 +41,10 @@ internal sealed class RegistryStore : IRegistryStateStore
         if (desired.Exists)
         {
             using (var root = RegistryKey.OpenBaseKey(desired.Path.Hive, desired.View))
-            using (var key = desired.Path.SubKey.Length == 0 ? null : root.CreateSubKey(desired.Path.SubKey))
+            using (
+                var key =
+                    desired.Path.SubKey.Length == 0 ? null : root.CreateSubKey(desired.Path.SubKey)
+            )
                 (key ?? root).SetValue(desired.Name, desired.Value!, desired.Kind!.Value);
         }
         else
@@ -44,11 +59,14 @@ internal sealed class RegistryStore : IRegistryStateStore
         using (var key = reader.Open(path))
         {
             var value = key?.GetValue(name);
+
             // The PowerShell registry provider exposes negative native integers as unsigned.
             if (value is int integer && integer < 0)
                 return unchecked((uint)integer);
+
             if (value is long large && large < 0)
                 return unchecked((ulong)large);
+
             return value;
         }
     }
@@ -69,16 +87,16 @@ internal sealed class RegistryStore : IRegistryStateStore
     {
         if (path.SubKey.Length == 0)
             throw new InvalidOperationException("Cannot create a root hive key.");
+
         using (var root = RegistryKey.OpenBaseKey(path.Hive, RegistryView.Default))
-        using (root.CreateSubKey(path.SubKey))
-        {
-        }
+        using (root.CreateSubKey(path.SubKey)) { }
     }
 
     public void DeleteKey(LegacyRegistryPath path, bool recurse)
     {
         if (path.SubKey.Length == 0)
             throw new InvalidOperationException("Cannot remove a root hive key.");
+
         using (var root = RegistryKey.OpenBaseKey(path.Hive, RegistryView.Default))
         {
             if (recurse)

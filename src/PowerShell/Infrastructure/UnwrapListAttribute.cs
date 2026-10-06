@@ -8,6 +8,6 @@ namespace AdNoctem.Substrate.PowerShell.Infrastructure;
 [AttributeUsage(AttributeTargets.Property)]
 internal sealed class UnwrapListAttribute : ArgumentTransformationAttribute
 {
-    public override object Transform(EngineIntrinsics engineIntrinsics, object inputData)
-        => LanguagePrimitives.ConvertTo(inputData, typeof(IList));
+    public override object Transform(EngineIntrinsics engineIntrinsics, object inputData) =>
+        LanguagePrimitives.ConvertTo(inputData, typeof(IList));
 }

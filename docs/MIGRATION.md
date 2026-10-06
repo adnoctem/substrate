@@ -63,7 +63,8 @@ release tags were not imported. Ancestor history remains available; the predeces
 migration.
 
 Importing the successor requires the new module identity. Command-name compatibility does not automatically migrate a consumer's dependency
-declaration. NuGet distribution and winkit's adoption are separate follow-ups.
+declaration. The reusable domain libraries have separate NuGet packages; the PowerShell module is distributed through PSGallery.
+Both use the same release version. Winkit's adoption remains a separate follow-up.
 
 Some PSFoundation names intentionally remain because they identify persisted state or public compatibility objects:
 

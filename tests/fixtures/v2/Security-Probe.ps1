@@ -2,7 +2,9 @@
 param ([string]$ModulePath, [string]$ReportPath)
 
 $ErrorActionPreference = 'Stop'
+
 if ($PSVersionTable.PSEdition -eq 'Desktop') { Add-Type -AssemblyName System.Web }
+
 $null = Import-Module $ModulePath -Force
 $observations = [ordered]@{}
 $configuration = Import-SecurityEventConfiguration -Force
@@ -20,6 +22,7 @@ $sampleEvent | Add-Member ScriptMethod ToXml { '<Event xmlns="http://schemas.mic
 $observations['converted'] = $sampleEvent | ConvertFrom-WinEvent | Select-Object * -ExcludeProperty EventRecord
 $directory = Join-Path ([IO.Path]::GetTempPath()) ('AdNoctem.Substrate.PowerShell-event-probe-' + [Guid]::NewGuid().ToString('N'))
 $null = [IO.Directory]::CreateDirectory($directory)
+
 try {
   $scan = Join-Path $directory 'scan'
   $null = [IO.Directory]::CreateDirectory($scan)
@@ -37,44 +40,61 @@ try {
   $observations['missing-export'] = Export-EventLog -LogName AdNoctem.Substrate.Synthetic.Nonexistent -OutputPath (Join-Path $directory 'never.evtx') -MissingLogPath $missing
   $observations['missing-text'] = [IO.File]::ReadAllText($missing)
   $observations['missing-bytes'] = [Convert]::ToBase64String([IO.File]::ReadAllBytes($missing))
+
   if ((Get-Command Export-EventLog).CommandType -eq 'Cmdlet') {
     $taskActions = @(Get-ScheduledTaskAction)
+
     if ($taskActions.Count -eq 0) { throw 'Native task action discovery returned no actions.' }
+
     $persistence = Get-WMIPersistence
+
     if ($null -eq $persistence.EventFilters -or $null -eq $persistence.CommandLineConsumers -or $null -eq $persistence.Bindings) { throw 'Persistence inventory lost its collections.' }
+
     $expectedDefinitions = @(Get-SecurityEventDefinition | ForEach-Object { '{0}|{1}|{2}|{3}|{4}' -f $_.Id, $_.LogName, $_.ProviderName, $_.Name, $_.UtilityGroup } | Sort-Object)
     $actualDefinitions = @([AdNoctem.Substrate.Security.SecurityEventCatalog]::Default.Definitions | ForEach-Object { '{0}|{1}|{2}|{3}|{4}' -f $_.Id, $_.LogName, $_.ProviderName, $_.Name, $_.Group } | Sort-Object)
+
     if (Compare-Object $expectedDefinitions $actualDefinitions) { throw 'The C# event catalog differs from the PowerShell configuration.' }
+
     $latest = Get-WinEvent -LogName System -MaxEvents 1
+
     try {
       $start = $latest.TimeCreated.AddSeconds(-1)
       $end = $latest.TimeCreated.AddSeconds(1)
       $records = @(Get-WindowsEventByDefinition -Id $latest.Id -LogName System -StartTime $start -EndTime $end -MaxEvents 1)
+
       try {
         if ($records.Count -ne 1 -or $records[0].Id -ne $latest.Id) { throw 'Native event query did not honor its ID and result limit.' }
+
         if ([string]::IsNullOrWhiteSpace($records[0].ToXml())) { throw 'Returned event record lost its native data.' }
       }
       finally { foreach ($record in $records) { $record.Dispose() } }
+
       $synthetic = @{
         FieldMaps = @{}
         Groups    = @{ BootShutdown = @{ EventIds = @($latest.Id); DefaultLogs = @('System') } }
         Events    = @{ System = @{ Synthetic = @(@{ Id = $latest.Id; LogName = 'System'; UtilityGroup = 'BootShutdown' }) } }
       }
       $events = @(Get-WindowsBootEvent -Configuration $synthetic -StartTime $start -EndTime $end -MaxEvents 1)
+
       try {
         if ($events.Count -ne 1 -or $events[0].Id -ne $latest.Id -or $null -eq $events[0].RawData) { throw 'Semantic event query failed.' }
       }
       finally { foreach ($item in $events) { $item.EventRecord.Dispose() } }
     }
     finally { $latest.Dispose() }
+
     $unsafe = Join-Path $directory 'unsafe.psd1'
     [IO.File]::WriteAllText($unsafe, '@{ Value = (Get-Process) }')
     $rejected = $false
+
     try { $null = Import-SecurityEventConfiguration -Path $unsafe -Force } catch { $rejected = $true }
+
     if (-not $rejected) { throw 'Configuration executed a command expression.' }
+
     $null = Import-SecurityEventConfiguration -Force
   }
 }
 finally { [IO.Directory]::Delete($directory, $true) }
+
 [IO.File]::WriteAllText($ReportPath, ($observations | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
 Write-Output "Security compatibility observations: $($observations.Count)"

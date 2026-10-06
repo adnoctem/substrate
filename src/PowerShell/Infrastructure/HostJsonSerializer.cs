@@ -10,15 +10,25 @@ internal static class HostJsonSerializer
     // enum, extended-property, depth and escaping behavior between Desktop and Core.
     public static string Serialize(PSCmdlet owner, PSObject value)
     {
-        using (var pipeline = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
+        using (
+            var pipeline = System.Management.Automation.PowerShell.Create(
+                RunspaceMode.CurrentRunspace
+            )
+        )
         {
-            pipeline.AddCommand("Microsoft.PowerShell.Utility\\ConvertTo-Json")
-                .AddParameter("InputObject", value).AddParameter("Compress").AddParameter("Depth", 8);
+            pipeline
+                .AddCommand("Microsoft.PowerShell.Utility\\ConvertTo-Json")
+                .AddParameter("InputObject", value)
+                .AddParameter("Compress")
+                .AddParameter("Depth", 8);
             var result = pipeline.Invoke();
+
             foreach (var warning in pipeline.Streams.Warning)
                 owner.WriteWarning(warning.Message);
+
             foreach (var error in pipeline.Streams.Error)
                 owner.WriteError(error);
+
             return result.Count == 0 ? "" : (string)result[0].BaseObject;
         }
     }

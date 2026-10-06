@@ -11,8 +11,10 @@ $observations = [ordered]@{}
 
 function Add-Observation {
   param ([string]$Name, [scriptblock]$Action)
+
   $records = New-Object 'Collections.Generic.List[object]'
   $terminated = $false
+
   try {
     & $Action *>&1 | ForEach-Object {
       if ($_ -is [Management.Automation.InformationRecord]) {
@@ -23,11 +25,13 @@ function Add-Observation {
     }
   }
   catch { $terminated = $true; $records.Add((Convert-Error $_)) }
+
   $observations[$Name] = [ordered]@{ Terminated = $terminated; Records = @($records.ToArray()) }
 }
 
 function Convert-Error {
   param ([Management.Automation.ErrorRecord]$Record)
+
   [ordered]@{ Stream = 'Error'; Message = $Record.Exception.Message; Exception = $Record.Exception.GetType().FullName; Category = [string]$Record.CategoryInfo.Category; Id = ($Record.FullyQualifiedErrorId -split ',')[0]; Target = $Record.TargetObject }
 }
 
@@ -51,7 +55,9 @@ Add-Observation 'operation-log-invalid-provider' { Write-OperationResultLog -Res
 Add-Observation 'operation-log-string-enumeration' {
   $path = Write-OperationResultLog -Results 'text' -ScriptName Synthetic -Path (Join-Path $scratch 'scalar.jsonl')
   $entries = @(Get-Content -LiteralPath $path | ForEach-Object { $_ | ConvertFrom-Json })
+
   foreach ($entry in $entries) { $entry.Timestamp = 'fixed' }
+
   $entries
 }
 Add-Observation 'result-fixed-size-stop' { Add-OperationResult -Results ([object[]]@()) -Target 'value' -PassThru }
@@ -59,18 +65,22 @@ Add-Observation 'result-fixed-size-continue' { Add-OperationResult -Results ([ob
 Add-Observation 'log-default' { Write-Log 'hello' }
 Add-Observation 'log-colors' { Write-Log 'first' -Color DarkGreen; Write-Log 'second' -Color Red }
 Add-Observation 'log-silenced' { Write-Log 'hidden' -InformationAction Ignore }
+
 foreach ($entry in @(@('Msi', 0), @('Msi', 1602), @('Msi', 1603), @('Msi', 1618), @('Msi', 1638), @('Msi', 1641), @('Msi', 3010), @('Msi', 42), @('Appx', '0x80073D06'), @('Winget', '0x8A150011'), @('Dism', '0x800F081F'), @('appx', '-2147009274'))) {
   Add-Observation "translate:$($entry[0]):$($entry[1])" { Get-ErrorTranslation -Code $entry[1] -Domain $entry[0] }
 }
+
 foreach ($code in @('invalid', '4294967296', '-2147483649', '0x123456789', '+3010')) {
   Add-Observation "invalid:$code" { Get-ErrorTranslation -Code $code -Domain Msi }
 }
+
 foreach ($text in @('0x80073D06', '0x80073D06 and 0x80073CF0', '0x80073D06 twice 0x80073D06', '3010 records', 'unknown')) {
   Add-Observation "message:$text" {
     $record = New-Object Management.Automation.ErrorRecord ([Exception]::new($text)), 'Synthetic', 'NotSpecified', $null
     $record | Get-ErrorTranslation
   }
 }
+
 Add-Observation 'structured-priority' {
   $exception = New-Object Runtime.InteropServices.COMException '0x80073CF0', ([int]-2147009274)
   $record = New-Object Management.Automation.ErrorRecord $exception, 'Synthetic', 'NotSpecified', $null
@@ -81,6 +91,7 @@ Add-Observation 'path-literal' {
   [IO.File]::WriteAllText($path, 'test')
   Resolve-LongPath -LiteralPath $path
   Push-Location $scratch
+
   try { Resolve-LongPath -LiteralPath 'literal[1].txt' }
   finally { Pop-Location }
 }
@@ -90,12 +101,15 @@ Add-Observation 'path-missing-provider' { Resolve-LongPath -LiteralPath 'HKCU:\A
 Add-Observation 'process-arguments' { Invoke-SafeProcess $executable -ArgumentList @('arguments', '', 'space value', 'a"b', 'C:\space end\', 'a&b|c') -PassThru }
 Add-Observation 'process-result' {
   $result = Invoke-SafeProcess $executable -ArgumentList @('arguments', 'value') -AsResult
+
   if ($result.Duration -isnot [timespan] -or $result.Duration.TotalSeconds -lt 0) { throw 'Missing process duration.' }
+
   $result.Duration = [timespan]::Zero
   $result
 }
 Add-Observation 'process-file' {
   Push-Location $scratch
+
   try {
     Invoke-SafeProcess $executable -ArgumentList @('arguments', 'test') -OutputPath 'result.txt'
     [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $scratch 'result.txt')))
@@ -105,7 +119,9 @@ Add-Observation 'process-file' {
 Add-Observation 'process-error-result' { Invoke-SafeProcess -FilePath 'AdNoctem.Substrate.synthetic.missing.exe' -AsResult }
 Add-Observation 'process-error-text' { Invoke-SafeProcess -FilePath 'AdNoctem.Substrate.synthetic.missing.exe' -PassThru }
 Add-Observation 'process-precancelled' { Invoke-SafeProcess $executable -AsResult -CancellationToken ([Threading.CancellationToken]::new($true)) }
+
 foreach ($address in @('192.0.2.1', '127.1', '0.0.0.0', '255.255.255.255', '256.2.3.4', '+1.2.3.4', ' 1.2.3.4', '01.2.3.4', '-0.2.3.4', '::', '::1', '2001:db8::1', '2001:::1', '::ffff:192.0.2.1', '1:2:3:4:5:6:192.0.2.1', '1:2:3:4:5:6:7:8', 'fe80::1%3', '1::2::3', '[::1]')) {
   Add-Observation "address:$address" { Test-IPv4Address $address; Test-IPv6Address $address }
 }
+
 [IO.File]::WriteAllText($ReportPath, ($observations | ConvertTo-Json -Depth 30), (New-Object Text.UTF8Encoding($false)))

@@ -17,7 +17,10 @@ public sealed class RegistryManagerTests
         var path = RegistryPath.Parse(@"HKCU\Software\\Synthetic\");
         Assert.Equal(@"HKEY_CURRENT_USER\Software\Synthetic", path.ToString());
         Assert.Equal(path, new RegistryPath(RegistryHive.CurrentUser, @"software\SYNTHETIC"));
-        Assert.Equal(path.GetHashCode(), RegistryPath.Parse(@"HKCU\SOFTWARE\synthetic").GetHashCode());
+        Assert.Equal(
+            path.GetHashCode(),
+            RegistryPath.Parse(@"HKCU\SOFTWARE\synthetic").GetHashCode()
+        );
         Assert.Equal(@"Software\Synthetic\..\*", path.Combine(@"..\*").SubKey);
         Assert.True(path.Combine("Child").IsDescendantOf(path));
         Assert.False(path.IsDescendantOf(path));
@@ -64,28 +67,48 @@ public sealed class RegistryManagerTests
             var manager = fixture.Manager;
             Assert.True(manager.CreateKey(fixture.Root));
             Assert.False(manager.CreateKey(fixture.Root));
-            var values = new[] { RegistryValue.String(""), RegistryValue.ExpandString("%TEMP%\\raw"), RegistryValue.DWord(-1), RegistryValue.QWord(-1L),
-                RegistryValue.Binary(new byte[] { 0, 255 }), RegistryValue.MultiString(), RegistryValue.MultiString("Alpha", "Beta"), new RegistryValue(RegistryValueKind.None, new byte[] { 9 }) };
+            var values = new[]
+            {
+                RegistryValue.String(""),
+                RegistryValue.ExpandString("%TEMP%\\raw"),
+                RegistryValue.DWord(-1),
+                RegistryValue.QWord(-1L),
+                RegistryValue.Binary(new byte[] { 0, 255 }),
+                RegistryValue.MultiString(),
+                RegistryValue.MultiString("Alpha", "Beta"),
+                new RegistryValue(RegistryValueKind.None, new byte[] { 9 }),
+            };
+
             for (var index = 0; index < values.Length; index++)
             {
                 var name = index == 0 ? "" : index.ToString();
                 manager.SetValue(fixture.Root, name, values[index]);
                 Assert.Equal(values[index], manager.GetValue(fixture.Root, name));
             }
+
             Assert.Equal(values.Length, manager.GetValues(fixture.Root).Count);
             Assert.False(manager.TryGetValue(fixture.Root, "missing", out var absent));
             Assert.Null(absent);
             Assert.Equal("%TEMP%\\raw", manager.GetValue(fixture.Root, "1")!.GetString());
-            Assert.Equal(Environment.ExpandEnvironmentVariables("%TEMP%\\raw"), manager.GetValue(fixture.Root, "1")!.GetString(true));
+            Assert.Equal(
+                Environment.ExpandEnvironmentVariables("%TEMP%\\raw"),
+                manager.GetValue(fixture.Root, "1")!.GetString(true)
+            );
             Assert.True(manager.DeleteValue(fixture.Root));
             Assert.False(manager.DeleteValue(fixture.Root));
             var missing = fixture.Root.Combine("Missing");
-            Assert.Throws<IOException>(() => manager.SetValue(missing, "X", RegistryValue.String("x")));
+            Assert.Throws<IOException>(() =>
+                manager.SetValue(missing, "X", RegistryValue.String("x"))
+            );
             Assert.False(manager.KeyExists(missing));
             manager.SetValue(missing, "X", RegistryValue.String("x"), createKey: true);
+
             using (var handle = manager.OpenKey(missing))
                 Assert.Equal("x", handle!.GetValue("X"));
-            Assert.Throws<InvalidOperationException>(() => manager.DeleteKey(new RegistryPath(RegistryHive.CurrentUser), true));
+
+            Assert.Throws<InvalidOperationException>(() =>
+                manager.DeleteKey(new RegistryPath(RegistryHive.CurrentUser), true)
+            );
             Assert.Throws<InvalidOperationException>(() => manager.DeleteKey(fixture.Root));
             Assert.True(manager.DeleteKey(fixture.Root, true));
             Assert.False(manager.DeleteKey(fixture.Root, true));
@@ -100,20 +123,48 @@ public sealed class RegistryManagerTests
             var manager = fixture.Manager;
             manager.CreateKey(fixture.Root.Combine(@"Alpha\Nested"));
             manager.SetValue(fixture.Root, "AlphaValue", RegistryValue.MultiString("one", "ALPHA"));
-            manager.SetValue(fixture.Root, "Bytes", RegistryValue.Binary(new byte[] { 0xab, 0xcd }));
+            manager.SetValue(
+                fixture.Root,
+                "Bytes",
+                RegistryValue.Binary(new byte[] { 0xab, 0xcd })
+            );
             Assert.Single(manager.EnumerateKeys(fixture.Root, 0));
             Assert.Equal(2, manager.EnumerateKeys(fixture.Root, 1).Count());
             var matches = await manager.SearchAsync(fixture.Root, "alpha");
             Assert.Equal(2, matches.Count);
-            Assert.Contains(matches, m => m.Matched == (RegistrySearchTargets.ValueNames | RegistrySearchTargets.ValueData));
-            Assert.Single(manager.Search(fixture.Root, "ABCD", new RegistrySearchOptions(RegistrySearchTargets.ValueData)));
-            Assert.Empty(manager.Search(fixture.Root, "alpha", new RegistrySearchOptions(caseSensitive: true)));
+            Assert.Contains(
+                matches,
+                m =>
+                    m.Matched
+                    == (RegistrySearchTargets.ValueNames | RegistrySearchTargets.ValueData)
+            );
+            Assert.Single(
+                manager.Search(
+                    fixture.Root,
+                    "ABCD",
+                    new RegistrySearchOptions(RegistrySearchTargets.ValueData)
+                )
+            );
+            Assert.Empty(
+                manager.Search(
+                    fixture.Root,
+                    "alpha",
+                    new RegistrySearchOptions(caseSensitive: true)
+                )
+            );
             Assert.Throws<IOException>(() => manager.GetSubKeys(fixture.Root.Combine("Missing")));
+
             using (var cancelled = new CancellationTokenSource())
             {
                 cancelled.Cancel();
-                Assert.Throws<OperationCanceledException>(() => manager.EnumerateKeys(fixture.Root, cancellationToken: cancelled.Token).ToArray());
-                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => manager.SearchAsync(fixture.Root, "x", cancellationToken: cancelled.Token));
+                Assert.Throws<OperationCanceledException>(() =>
+                    manager
+                        .EnumerateKeys(fixture.Root, cancellationToken: cancelled.Token)
+                        .ToArray()
+                );
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                    manager.SearchAsync(fixture.Root, "x", cancellationToken: cancelled.Token)
+                );
             }
         }
     }
@@ -132,11 +183,19 @@ public sealed class RegistryManagerTests
             Assert.True(manager.KeyExists(target.Combine("Empty")));
             Assert.True(manager.KeyExists(source));
             Assert.Throws<IOException>(() => manager.CopyKey(source, target));
-            Assert.Throws<ArgumentException>(() => manager.CopyKey(source, source.Combine("Recursive")));
+            Assert.Throws<ArgumentException>(() =>
+                manager.CopyKey(source, source.Combine("Recursive"))
+            );
             manager.SetValue(target, "Extra", RegistryValue.String("keep"));
-            Assert.Equal(RegistryApplyStatus.Completed, manager.CopyKey(source, target, RegistryCopyMode.Merge).Status);
+            Assert.Equal(
+                RegistryApplyStatus.Completed,
+                manager.CopyKey(source, target, RegistryCopyMode.Merge).Status
+            );
             Assert.True(manager.ValueExists(target, "Extra"));
-            Assert.Equal(RegistryApplyStatus.Completed, manager.CopyKey(source, target, RegistryCopyMode.Replace).Status);
+            Assert.Equal(
+                RegistryApplyStatus.Completed,
+                manager.CopyKey(source, target, RegistryCopyMode.Replace).Status
+            );
             Assert.False(manager.ValueExists(target, "Extra"));
             var renamed = manager.RenameKey(target, "Renamed");
             Assert.False(manager.KeyExists(target));
@@ -144,7 +203,10 @@ public sealed class RegistryManagerTests
             var moved = manager.MoveKey(renamed, fixture.Root.Combine("Moved"));
             Assert.True(moved.SourceRemoved);
             Assert.False(manager.KeyExists(renamed));
-            Assert.Equal("original", manager.GetValue(fixture.Root.Combine("Moved"), "Name")!.GetString());
+            Assert.Equal(
+                "original",
+                manager.GetValue(fixture.Root.Combine("Moved"), "Name")!.GetString()
+            );
         }
     }
 
@@ -152,14 +214,31 @@ public sealed class RegistryManagerTests
     public void ReusableSurfaceContainsNoCompatibilityOrHostContracts()
     {
         var assembly = typeof(RegistryManager).Assembly;
-        Assert.DoesNotContain(assembly.GetExportedTypes(), type => type.Namespace!.Contains("Compatibility"));
-        Assert.DoesNotContain(assembly.GetReferencedAssemblies(), reference => reference.Name!.Contains("PowerShell") || reference.Name.Contains("Management.Automation"));
-        Assert.DoesNotContain(assembly.GetExportedTypes().SelectMany(t => t.GetMethods()), method => method.Name == "get_ProviderPath");
+        Assert.DoesNotContain(
+            assembly.GetExportedTypes(),
+            type => type.Namespace!.Contains("Compatibility")
+        );
+        Assert.DoesNotContain(
+            assembly.GetReferencedAssemblies(),
+            reference =>
+                reference.Name!.Contains("PowerShell")
+                || reference.Name.Contains("Management.Automation")
+        );
+        Assert.DoesNotContain(
+            assembly.GetExportedTypes().SelectMany(t => t.GetMethods()),
+            method => method.Name == "get_ProviderPath"
+        );
         Assert.Throws<ArgumentException>(() => new RegistryManager(machineName: @"\\host"));
         var remote = new RegistryManager(RegistryView.Registry64, "synthetic.invalid");
-        Assert.Throws<NotSupportedException>(() => remote.OpenKey(new RegistryPath(RegistryHive.CurrentUser)));
-        Assert.Throws<NotSupportedException>(() => remote.Watch(new RegistryPath(RegistryHive.LocalMachine)));
-        Assert.Throws<NotSupportedException>(() => remote.Files.Export(new RegistryPath(RegistryHive.LocalMachine), "unused.reg"));
+        Assert.Throws<NotSupportedException>(() =>
+            remote.OpenKey(new RegistryPath(RegistryHive.CurrentUser))
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            remote.Watch(new RegistryPath(RegistryHive.LocalMachine))
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            remote.Files.Export(new RegistryPath(RegistryHive.LocalMachine), "unused.reg")
+        );
     }
 
     [Fact]
@@ -168,21 +247,45 @@ public sealed class RegistryManagerTests
         using (var fixture = new RegistryFixture())
         {
             fixture.Manager.CreateKey(fixture.Root);
+
             using (var key = fixture.Manager.OpenKey(fixture.Root, true))
-                NativeRegistry.ThrowIfError(RegSetValueExW(key!.Handle, "BigEndian", 0, 5, new byte[] { 0, 0, 0, 1 }, 4));
+                NativeRegistry.ThrowIfError(
+                    RegSetValueExW(key!.Handle, "BigEndian", 0, 5, new byte[] { 0, 0, 0, 1 }, 4)
+                );
+
             Assert.True(fixture.Manager.ValueExists(fixture.Root, "BigEndian"));
-            Assert.Throws<NotSupportedException>(() => fixture.Manager.GetValue(fixture.Root, "BigEndian"));
+            Assert.Throws<NotSupportedException>(() =>
+                fixture.Manager.GetValue(fixture.Root, "BigEndian")
+            );
         }
     }
 
-    [System.Runtime.InteropServices.DllImport("advapi32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, ExactSpelling = true)]
-    internal static extern int RegSetValueExW(Microsoft.Win32.SafeHandles.SafeRegistryHandle key, string name, int reserved, int kind, byte[] value, int size);
+    [System.Runtime.InteropServices.DllImport(
+        "advapi32.dll",
+        CharSet = System.Runtime.InteropServices.CharSet.Unicode,
+        ExactSpelling = true
+    )]
+    internal static extern int RegSetValueExW(
+        Microsoft.Win32.SafeHandles.SafeRegistryHandle key,
+        string name,
+        int reserved,
+        int kind,
+        byte[] value,
+        int size
+    );
 }
 
 internal sealed class RegistryFixture : IDisposable
 {
     public RegistryManager Manager { get; }
-    public RegistryPath Root { get; } = new RegistryPath(RegistryHive.CurrentUser, @"Software\AdNoctem.Substrate.Tests\" + Guid.NewGuid().ToString("N"));
-    public RegistryFixture(RegistryView view = RegistryView.Registry64) => Manager = new RegistryManager(view);
+    public RegistryPath Root { get; } =
+        new RegistryPath(
+            RegistryHive.CurrentUser,
+            @"Software\AdNoctem.Substrate.Tests\" + Guid.NewGuid().ToString("N")
+        );
+
+    public RegistryFixture(RegistryView view = RegistryView.Registry64) =>
+        Manager = new RegistryManager(view);
+
     public void Dispose() => Manager.DeleteKey(Root, true);
 }

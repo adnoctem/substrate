@@ -83,6 +83,7 @@ else {
   else {
     Join-Path -Path $HOME -ChildPath 'Documents'
   }
+
   $modulesRoot = Join-Path -Path $documentsPath -ChildPath 'PowerShell\Modules'
 }
 
@@ -92,6 +93,7 @@ $installPath = Join-Path -Path $modulesRoot -ChildPath "$moduleName\$moduleVersi
 if ($Undo) {
   if (-not (Test-Path -LiteralPath $installPath)) {
     Write-Output "No installation found at: $installPath"
+
     exit 0
   }
 
@@ -99,6 +101,7 @@ if ($Undo) {
   $isSymlink = ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq [System.IO.FileAttributes]::ReparsePoint
 
   $removalKind = if ($isSymlink) { 'symlink' } else { 'copy' }
+
   if ($PSCmdlet.ShouldProcess($installPath, "Remove $removalKind")) {
     if ($isSymlink) {
       try {
@@ -111,11 +114,13 @@ if ($Undo) {
     else {
       Remove-Item -LiteralPath $installPath -Recurse -Force
     }
+
     Write-Output "Removed: $installPath"
   }
 
   $parentPath = Split-Path -Path $installPath -Parent
   $remaining = Get-ChildItem -LiteralPath $parentPath -ErrorAction SilentlyContinue
+
   if ($null -eq $remaining -or @($remaining).Count -eq 0) {
     if ($PSCmdlet.ShouldProcess($parentPath, 'Remove empty module folder')) {
       Remove-Item -LiteralPath $parentPath -Recurse -Force
@@ -130,6 +135,7 @@ if ($Undo) {
 if (Test-Path -LiteralPath $installPath) {
   if (-not $Force -and -not $PSCmdlet.ShouldContinue("$installPath exists. Overwrite?", 'Install AdNoctem.Substrate.PowerShell')) {
     Write-Warning 'Installation cancelled.'
+
     exit 0
   }
 
@@ -143,6 +149,7 @@ if (-not (Test-Path -LiteralPath $modulesRoot)) {
 }
 
 $parentPath = Split-Path -Path $installPath -Parent
+
 if (-not (Test-Path -LiteralPath $parentPath)) {
   New-Item -Path $parentPath -ItemType Directory -Force | Out-Null
 }

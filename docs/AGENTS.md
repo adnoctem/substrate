@@ -9,13 +9,13 @@ Use `dotnet msbuild tools/tasks.proj -t:<Target>`. Restore first on a fresh chec
 
 | Target         | Purpose                                                            |
 | -------------- | ------------------------------------------------------------------ |
-| Restore        | Restore locked NuGet packages, DocFX, and PowerShell tools         |
+| Restore        | Restore locked NuGet packages, .NET tools, and PowerShell tools    |
 | Build / Stage  | Compile / assemble the importable module                           |
 | Test           | Managed tests plus packaged-module checks in both PowerShell hosts |
 | UpdateHelp     | Explicitly refresh tracked PowerShell command metadata             |
 | Docs           | Validate help and build the reference site                         |
 | Format / Check | Apply formatting / check formatting and analysis                   |
-| Pack           | Create archives and checksums under dist                           |
+| Pack           | Create module archives, NuGet libraries, and checksums under dist  |
 | Verify         | Check, test, document, and package                                 |
 | Clean          | Remove generated output while retaining dependency caches          |
 
@@ -35,7 +35,7 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 
 ## Conventions
 
-- C#: four-space indentation, nullable references, deterministic builds, warnings as errors. Use short domain project paths; Directory.Build.props derives fully qualified assembly and resource names. Keep explicit C# namespaces stable.
+- C# and project files: CSharpier defaults. Use nullable references, deterministic builds, and warnings as errors. Use short domain project paths; Directory.Build.props derives fully qualified assembly and resource names. Keep explicit C# namespaces stable.
 - PowerShell: two-space indentation. Preserve existing line endings and BOMs; scripts with non-ASCII text executed by 5.1 require a UTF-8 BOM. Staging ensures shipped scripts are BOM-encoded.
 - Development scripts may use PowerShell 7 when declared with Requires. Keep runtime and development prerequisites distinct.
 - Keep repository filenames free of spaces; test whitespace paths using temporary fixtures.

@@ -49,10 +49,10 @@
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)lint.ps1&quot;" />
   </Target>
   <Target Name="CheckManaged">
-    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace Substrate.slnx --no-restore --verify-no-changes" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet tool run csharpier check ." />
   </Target>
   <Target Name="Format" DependsOnTargets="FormatPowerShell">
-    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet format whitespace Substrate.slnx --no-restore" />
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="dotnet tool run csharpier format ." />
     <Exec WorkingDirectory="$(RepositoryRoot)" Command="bun x prettier --write --end-of-line auto &quot;**/*.md&quot;" />
   </Target>
   <Target Name="Check" DependsOnTargets="CheckPowerShell;CheckManaged">
@@ -61,7 +61,10 @@
   <Target Name="Pack" DependsOnTargets="HelpFiles">
     <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)pack.ps1&quot;" />
   </Target>
-  <Target Name="Verify" DependsOnTargets="Check;Test;Docs;Pack" />
+  <Target Name="TestPackages" DependsOnTargets="Pack">
+    <Exec WorkingDirectory="$(RepositoryRoot)" EnvironmentVariables="$(TaskEnvironment)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)test-packages.ps1&quot;" />
+  </Target>
+  <Target Name="Verify" DependsOnTargets="Check;Test;Docs;TestPackages" />
   <Target Name="CheckVendors">
     <Exec WorkingDirectory="$(RepositoryRoot)" Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)vendor-updates.ps1&quot;" />
   </Target>

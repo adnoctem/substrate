@@ -69,29 +69,37 @@ if ($Managed) {
   $root = Split-Path $PSScriptRoot -Parent
   $env:DOTNET_CLI_HOME = Join-Path $root 'build/dotnet'
   $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-  $env:Configuration = 'Release'
-  $arguments = @('format', 'whitespace', (Join-Path $root 'Substrate.slnx'), '--no-restore')
-  if ($Check) { $arguments += '--verify-no-changes' }
-  if ($VerbosePreference -eq 'Continue') { $arguments += @('--verbosity', 'diagnostic') }
-  & dotnet @arguments
-  exit $LASTEXITCODE
+  Push-Location $root
+
+  try {
+    $operation = if ($Check) { 'check' } else { 'format' }
+
+    & dotnet tool run csharpier $operation .
+
+    exit $LASTEXITCODE
+  }
+  finally { Pop-Location }
 }
 
 if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
   Write-Error 'PSScriptAnalyzer is not installed. Install it with: Install-Module PSScriptAnalyzer'
+
   exit 1
 }
 
 Import-DevelopmentModule PSScriptAnalyzer
 
 $settingsPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Settings)
+
 if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
   Write-Error "Settings file not found: $settingsPath"
+
   exit 1
 }
 
 $extensions = @('.ps1', '.psm1', '.psd1')
 $excludedDirectories = @('.git', '.idea', '.codex', '.agents', 'node_modules', 'dist', 'build')
+
 if (-not $IncludeSecrets) {
   $excludedDirectories += 'secrets'
 }
@@ -107,6 +115,7 @@ function Test-FormatterExcludedPath {
   )
 
   $relative = $FilePath
+
   if ($FilePath.StartsWith($rootFullPath, [System.StringComparison]::OrdinalIgnoreCase)) {
     $relative = $FilePath.Substring($rootFullPath.Length).TrimStart('\', '/')
   }
@@ -122,6 +131,7 @@ function Test-FormatterExcludedPath {
 
 $files = foreach ($entry in $Path) {
   $resolvedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($entry)
+
   if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
     Get-Item -LiteralPath $resolvedPath
   }
@@ -151,8 +161,10 @@ foreach ($file in $files) {
 
   if ($_needsFormat) {
     [void]$changed.Add($file.FullName)
+
     if (-not $Check) {
       $newline = if ($source.Contains("`r`n")) { "`r`n" } else { "`n" }
+
       $formatted = $formatted -replace "`r`n|`r|`n", $newline
       $bytes = [IO.File]::ReadAllBytes($file.FullName)
       $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 239 -and $bytes[1] -eq 187 -and $bytes[2] -eq 191
@@ -166,10 +178,12 @@ if ($Check) {
   if ($changed.Count -gt 0) {
     Write-Output "Formatting required for $($changed.Count) file(s):"
     $changed | ForEach-Object { Write-Output "  $_" }
+
     exit 1
   }
 
   Write-Output "Formatting check passed for $processed file(s)."
+
   exit 0
 }
 

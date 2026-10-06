@@ -25,9 +25,17 @@ public sealed class WindowsVersionInfo
     {
         if (values == null)
             throw new ArgumentNullException(nameof(values));
-        var lookup = values.ToDictionary(entry => entry.Name, entry => entry.Value.Data, StringComparer.OrdinalIgnoreCase);
+
+        var lookup = values.ToDictionary(
+            entry => entry.Name,
+            entry => entry.Value.Data,
+            StringComparer.OrdinalIgnoreCase
+        );
         object? Value(string name) => lookup.TryGetValue(name, out var value) ? value : null;
-        string? Text(string name) => lookup.ContainsKey(name) ? Convert.ToString(Value(name), CultureInfo.InvariantCulture) : null;
+        string? Text(string name) =>
+            lookup.ContainsKey(name)
+                ? Convert.ToString(Value(name), CultureInfo.InvariantCulture)
+                : null;
         BuildNumber = Convert.ToInt32(Value("CurrentBuild"), CultureInfo.InvariantCulture);
         UpdateBuildRevision = Convert.ToInt32(Value("UBR"), CultureInfo.InvariantCulture);
         ProductName = NormalizeProductName(Text("ProductName"), BuildNumber);
@@ -37,29 +45,60 @@ public sealed class WindowsVersionInfo
         ReleaseId = Text("ReleaseId");
         BuildBranch = Text("BuildBranch");
         RegisteredOwner = Text("RegisteredOwner");
+
         if (lookup.ContainsKey("InstallDate"))
         {
             try
-            { InstalledAt = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(Value("InstallDate"), CultureInfo.InvariantCulture)); }
-            catch (Exception error) when (error is FormatException || error is OverflowException || error is ArgumentOutOfRangeException || error is InvalidCastException)
-            { InvalidInstallDate = true; }
+            {
+                InstalledAt = DateTimeOffset.FromUnixTimeSeconds(
+                    Convert.ToInt64(Value("InstallDate"), CultureInfo.InvariantCulture)
+                );
+            }
+            catch (Exception error)
+                when (error is FormatException
+                    || error is OverflowException
+                    || error is ArgumentOutOfRangeException
+                    || error is InvalidCastException
+                )
+            {
+                InvalidInstallDate = true;
+            }
         }
     }
 
-    public static string? NormalizeProductName(string? name, int buildNumber) => buildNumber >= 22000 && name != null
-        && name.StartsWith("Windows 10", StringComparison.OrdinalIgnoreCase) ? "Windows 11" + name.Substring(10) : name;
+    public static string? NormalizeProductName(string? name, int buildNumber) =>
+        buildNumber >= 22000
+        && name != null
+        && name.StartsWith("Windows 10", StringComparison.OrdinalIgnoreCase)
+            ? "Windows 11" + name.Substring(10)
+            : name;
 }
 
 /// <summary>Pure applicability checks. A null constraint is unrestricted; bounds are inclusive.</summary>
 public static class HostValidator
 {
-    public static bool IsApplicable(int buildNumber, string? edition, bool is64BitOperatingSystem,
-        int? minimumBuild = null, int? maximumBuild = null, IEnumerable<string>? editions = null, bool? require64Bit = null)
+    public static bool IsApplicable(
+        int buildNumber,
+        string? edition,
+        bool is64BitOperatingSystem,
+        int? minimumBuild = null,
+        int? maximumBuild = null,
+        IEnumerable<string>? editions = null,
+        bool? require64Bit = null
+    )
     {
-        if (minimumBuild.HasValue && buildNumber < minimumBuild.Value || maximumBuild.HasValue && buildNumber > maximumBuild.Value)
+        if (
+            minimumBuild.HasValue && buildNumber < minimumBuild.Value
+            || maximumBuild.HasValue && buildNumber > maximumBuild.Value
+        )
             return false;
+
         var allowed = editions?.ToArray();
-        return (allowed == null || allowed.Length == 0 || allowed.Contains(edition, StringComparer.OrdinalIgnoreCase))
-            && (!require64Bit.HasValue || is64BitOperatingSystem == require64Bit.Value);
+
+        return (
+                allowed == null
+                || allowed.Length == 0
+                || allowed.Contains(edition, StringComparer.OrdinalIgnoreCase)
+            ) && (!require64Bit.HasValue || is64BitOperatingSystem == require64Bit.Value);
     }
 }

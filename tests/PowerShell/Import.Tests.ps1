@@ -3,6 +3,7 @@
 
 Describe 'Incremental binary module imports' {
   BeforeAll { . (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'tools/probe.ps1') }
+
   It 'imports and exercises compiled commands in a fresh <Engine> process' -ForEach @(
     @{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }
   ) {

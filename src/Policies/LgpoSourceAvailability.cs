@@ -11,6 +11,18 @@ public sealed class LgpoSourceAvailability
     public long? ContentLength { get; }
     public Exception? Error { get; }
     public DateTime CheckedAtUtc { get; }
-    internal LgpoSourceAvailability(Uri source, int? statusCode, long? contentLength, Exception? error)
-    { Source = source; StatusCode = statusCode; ContentLength = contentLength; Error = error; CheckedAtUtc = DateTime.UtcNow; }
+
+    internal LgpoSourceAvailability(
+        Uri source,
+        int? statusCode,
+        long? contentLength,
+        Exception? error
+    )
+    {
+        Source = source;
+        StatusCode = statusCode;
+        ContentLength = contentLength;
+        Error = error;
+        CheckedAtUtc = DateTime.UtcNow;
+    }
 }
