@@ -46,6 +46,8 @@ repos:
         entry: bun x prettier --write --end-of-line auto
         language: system
         types: [markdown]
+        # Avoid concurrent bun x installs racing on an empty Windows cache.
+        require_serial: true
 
       - id: powershell-check
         name: PowerShell format and analysis
