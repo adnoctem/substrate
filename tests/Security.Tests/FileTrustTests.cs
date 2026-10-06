@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using AdNoctem.Substrate.IO;
@@ -31,6 +32,16 @@ public sealed class FileTrustTests
                 manager.Write(path, descriptor, FileSecurityParts.Access, protectAccessRules: true);
                 Assert.Contains("D:P", manager.Read(path).GetSddl());
                 Assert.Throws<System.ComponentModel.Win32Exception>(() => manager.CreateDirectory(path, descriptor));
+                var child = path.Combine("inherited.txt");
+                File.WriteAllText(child.Value, "synthetic");
+                try
+                {
+                    var inherited = Assert.IsType<CommonAce>(Assert.Single(manager.Read(child).ToRawDescriptor().DiscretionaryAcl!));
+                    Assert.Equal(sid, inherited.SecurityIdentifier.Value);
+                    Assert.True(inherited.IsInherited);
+                    Assert.Equal(AceFlags.Inherited, inherited.AceFlags);
+                }
+                finally { File.Delete(child.Value); }
             }
             finally { Directory.Delete(path.Value); }
         }

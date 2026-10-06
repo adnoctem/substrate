@@ -59,22 +59,20 @@ public sealed class FileSecurityManager
     public FileSecurityDescriptor Read(FileSystemPath path, FileSecurityParts parts = FileSecurityParts.Owner | FileSecurityParts.Group | FileSecurityParts.Access)
     {
         Require(path, parts);
-        _ = GetFileSecurity(path.Value, (uint)parts, null, 0, out var size);
-        var error = Marshal.GetLastWin32Error();
-        if (error != 122)
-            throw new Win32Exception(error, "Cannot read filesystem security descriptor.");
-        for (var attempt = 0; attempt < 8; attempt++)
+        // GetFileSecurity strips inherited ACE flags for legacy callers.
+        var error = GetNamedSecurityInfo(path.Value, 1, (uint)parts, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, out var descriptor);
+        try
         {
+            if (error != 0)
+                throw new Win32Exception(unchecked((int)error), "Cannot read filesystem security descriptor.");
+            var size = descriptor == IntPtr.Zero ? 0 : GetSecurityDescriptorLength(descriptor);
             if (size == 0 || size > 16 * 1024 * 1024)
                 throw new IOException("Unsupported filesystem security descriptor size.");
             var bytes = new byte[checked((int)size)];
-            if (GetFileSecurity(path.Value, (uint)parts, bytes, size, out size))
-                return new FileSecurityDescriptor(bytes);
-            error = Marshal.GetLastWin32Error();
-            if (error != 122)
-                throw new Win32Exception(error, "Cannot read filesystem security descriptor.");
+            Marshal.Copy(descriptor, bytes, 0, bytes.Length);
+            return new FileSecurityDescriptor(bytes);
         }
-        throw new IOException("Filesystem security changed repeatedly during capture.");
+        finally { if (descriptor != IntPtr.Zero) LocalFree(descriptor); }
     }
     /// <summary>Writes only selected sections. Access-rule inheritance protection changes only when explicitly supplied.</summary>
     public void Write(FileSystemPath path, FileSecurityDescriptor descriptor, FileSecurityParts parts, bool? protectAccessRules = null)
@@ -116,9 +114,14 @@ public sealed class FileSecurityManager
     [StructLayout(LayoutKind.Sequential)]
     private struct SecurityAttributes { public int Length; public IntPtr Descriptor; [MarshalAs(UnmanagedType.Bool)] public bool InheritHandle; }
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [DllImport("advapi32.dll", EntryPoint = "GetFileSecurityW", CharSet = CharSet.Unicode, SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetFileSecurity(string path, uint parts, byte[]? descriptor, uint length, out uint needed);
+    [DllImport("advapi32.dll", EntryPoint = "GetNamedSecurityInfoW", CharSet = CharSet.Unicode)]
+    private static extern uint GetNamedSecurityInfo(string path, int objectType, uint parts, IntPtr owner, IntPtr group, IntPtr dacl, IntPtr sacl, out IntPtr descriptor);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("advapi32.dll")]
+    private static extern uint GetSecurityDescriptorLength(IntPtr descriptor);
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr LocalFree(IntPtr memory);
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("advapi32.dll", EntryPoint = "SetFileSecurityW", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

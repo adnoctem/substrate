@@ -189,5 +189,6 @@ public sealed class OfficeInventoryManager
     }
     internal static bool IsAppPath(OfficeRegistryRecord record) => record.Path.SubKey.IndexOf(@"\App Paths\", StringComparison.OrdinalIgnoreCase) >= 0;
     private static bool Match(string? value, string pattern) => OfficeVersionResolver.IsMatch(value, pattern);
-    private static string[] Sorted(IEnumerable<string> values) => values.Distinct(Names).OrderBy(value => value, Names).ToArray();
+    // Retain the legacy Sort-Object ordering used by inventory fingerprints.
+    private static string[] Sorted(IEnumerable<string> values) => values.Distinct(Names).OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase).ToArray();
 }

@@ -28,6 +28,12 @@ $processHost = Join-Path $repo 'build/bin/ProcessHost/Release/net48/ProcessHost.
 $observations['unsigned-tool'] = Test-OfficeDeploymentTool -OdtPath $processHost
 $rejectedMedia = Test-OfficeDeploymentMedia -SourcePath (Join-Path $repo 'README.md')
 $observations['untrusted-media'] = $rejectedMedia | Select-Object Valid, Path, Manifest, Fingerprint, ReasonCode, Error, Diagnostic
+if ($rejectedMedia.ReasonCode -eq 'ReprepareMedia') {
+  # Source locations and CLR exception types differ between scripts and compiled commands.
+  $expectedException = if ($managed) { 'AdNoctem.Substrate.Office.OfficeException' } else { 'System.InvalidOperationException' }
+  if ($rejectedMedia.Diagnostic.ExceptionType -cne $expectedException) { throw 'Unexpected media exception type.' }
+  foreach ($property in @('ExceptionType', 'ScriptPath', 'Line')) { $observations['untrusted-media'].Diagnostic.PSObject.Properties.Remove($property) }
+}
 $previewPath = Join-Path $repo 'build/office-tool-preview-absent'
 $observations['tool-preview'] = Install-OfficeDeploymentTool -Destination $previewPath -DryRun
 $observations['tool-whatif'] = Install-OfficeDeploymentTool -Destination $previewPath -WhatIf
@@ -121,11 +127,16 @@ function Read-Fixture {
   } $Records $active
   Get-OfficeInventory
 }
-foreach ($case in @('Complete', 'Malformed', 'Conflict', 'Empty')) {
+foreach ($case in @('Complete', 'Malformed', 'Conflict', 'Empty', 'Unclassified')) {
   $fixture = @($records)
   if ($case -eq 'Malformed') { $fixture += New-Record ($root + 'Inventory\Office\16.0') @{ OfficeProductReleaseIds = 'Standard2019Volume'; OfficePackageVersion = 'bad' } }
   if ($case -eq 'Conflict') { $fixture += New-Record ($root + 'Inventory\Office\16.0') @{ OfficeProductReleaseIds = 'ProPlus2019Volume'; OfficePackageVersion = '16.0.10417.20095' } }
   if ($case -eq 'Empty') { $fixture = @() }
+  if ($case -eq 'Unclassified') {
+    $uninstall = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\'
+    $fixture += New-Record ($uninstall + 'Synthetic Office Runtime') @{ Publisher = 'Microsoft Corporation'; DisplayName = 'Synthetic Office Runtime' }
+    $fixture += New-Record ($uninstall + '{11111111-2222-3333-4444-555555555555}') @{ Publisher = 'Microsoft Corporation'; DisplayName = 'Synthetic Office Tools' }
+  }
   $inventory = Read-Fixture $fixture
   $observations["inventory-$case"] = $inventory
   $assessment = Test-OfficeDeployment -Configuration $target -Inventory $inventory

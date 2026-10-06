@@ -105,8 +105,12 @@ public sealed class OfficePathGuard
             // Write, delete (including deleting children), ACL/owner changes and generic write/all can alter deployment content.
             const int mutation = 0x000D0156 | 0x10000000 | 0x40000000;
             if (rule.AceQualifier == AceQualifier.AccessAllowed && (rule.AccessMask & mutation) != 0 && !Trusted(rule.SecurityIdentifier.Value))
-                throw Failure(OfficeFailureReason.UntrustedMedia, "Untrusted write grant for SID " + rule.SecurityIdentifier.Value + " on " + objectKind + " at '" + path + "'.",
-                    new OfficePathDiagnostic("WriteGrant", objectKind, path, rule.SecurityIdentifier.Value, rule.AccessMask, rule.AceFlags));
+            {
+                var diagnostic = new OfficePathDiagnostic("WriteGrant", objectKind, path, rule.SecurityIdentifier.Value, rule.AccessMask, rule.AceFlags);
+                throw Failure(OfficeFailureReason.UntrustedMedia, "Untrusted write grant for SID " + diagnostic.Sid + " on " + objectKind + " at '" + path
+                    + "': " + (FileSystemRights)rule.AccessMask + "; inherited=" + diagnostic.IsInherited + "; inheritance=" + diagnostic.InheritanceFlags
+                    + "; propagation=" + diagnostic.PropagationFlags + ".", diagnostic);
+            }
         }
     }
     /// <summary>Creates a dedicated protected directory. The parent must exist; existing directories must already meet the policy.</summary>
