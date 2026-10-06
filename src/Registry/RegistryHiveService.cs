@@ -6,6 +6,9 @@ using Microsoft.Win32;
 namespace AdNoctem.Substrate.Registry;
 
 /// <summary>Binary hive operations. Uses existing process authority; never prompts, elevates, or forces collection.</summary>
+/// <remarks>Binary hives are distinct from .reg text files. Operations require a local manager and use the system reg.exe for
+/// its selected view. Save publishes through a sibling temporary file, preserving the old destination on failure. Relative paths
+/// use the process working directory. Save/restore/load privileges must already be available to the caller.</remarks>
 public sealed class RegistryHiveService
 {
     private readonly RegistryManager manager;
@@ -38,6 +41,10 @@ public sealed class RegistryHiveService
     /// <summary>Loads a new HKLM/HKU child and returns its owner. Once started, load finishes before returning ownership.</summary>
     public RegistryHiveLease Mount(RegistryPath mountPoint, string source, CancellationToken cancellationToken = default) => MountAsync(mountPoint, source, cancellationToken).GetAwaiter().GetResult();
     /// <summary>Loads a hive and transfers responsibility for unloading it to the returned lease.</summary>
+    /// <remarks>The mount must be a missing immediate child of HKLM or HKU. Cancellation is checked before starting;
+    /// once load starts it finishes before ownership is returned, even if cancellation is requested meanwhile.
+    /// Close all child handles before disposing the lease. Unload failure throws and permits retry; no forced GC occurs.
+    /// Caller-managed Unmount requires ownership and coordination against external replacement or unload races.</remarks>
     public async Task<RegistryHiveLease> MountAsync(RegistryPath mountPoint, string source, CancellationToken cancellationToken = default)
     {
         ValidateMount(mountPoint);

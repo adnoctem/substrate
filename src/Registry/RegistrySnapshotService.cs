@@ -9,6 +9,25 @@ using System.Threading.Tasks;
 namespace AdNoctem.Substrate.Registry;
 
 /// <summary>Capture and restoration without prompts. Checks narrow races but do not create registry transactions.</summary>
+/// <remarks>Snapshots retain raw values, empty keys, and resolved machine/view identity, but no security descriptors.
+/// Callers requiring a consistent capture must arrange quiescence. Read-only cancellation throws; apply cancellation returns
+/// a partial result. Completed writes are never rolled back automatically.</remarks>
+/// <example><code>
+/// var registry = new RegistryManager(Microsoft.Win32.RegistryView.Registry64);
+/// var settings = RegistryPath.Parse(@"HKCU\Software\ExampleApplication");
+/// var before = await registry.Snapshots.CaptureTreeAsync(settings, cancellationToken);
+/// // Perform application-controlled changes, then review the restoration plan.
+/// var plan = registry.Snapshots.PlanRestore(before, RegistryRestoreMode.Merge, cancellationToken);
+/// foreach (var change in plan.Changes)
+/// {
+///     // Present Path, Action, Name, Before and After as appropriate to the application.
+/// }
+/// var result = await registry.Snapshots.ApplyAsync(plan, cancellationToken);
+/// if (result.Status != RegistryApplyStatus.Completed)
+/// {
+///     // Inspect Completed, IncompleteChange and Error before deciding what to do next.
+/// }
+/// </code></example>
 public sealed class RegistrySnapshotService
 {
     private readonly RegistryManager manager;
@@ -92,6 +111,10 @@ public sealed class RegistrySnapshotService
     }
 
     /// <summary>Stops on the first conflict/failure. Cancellation returns a result retaining completed changes.</summary>
+    /// <remarks>Plans apply only to their original machine/view. The entire baseline is compared before writing, then each change
+    /// is checked immediately before and verified after its write. New data encountered during deletion causes a conflict rather
+    /// than recursive pruning. A write is recorded before verification, so verification failure does not imply nothing changed.
+    /// Progress reports verified changes; the supplied IProgress implementation determines how notifications are delivered.</remarks>
     public RegistryApplyResult Apply(RegistryChangePlan plan, CancellationToken cancellationToken = default, IProgress<RegistryChange>? progress = null)
     {
         if (plan == null)
@@ -143,6 +166,9 @@ public sealed class RegistrySnapshotService
         Task.Run(() => Apply(plan, cancellationToken, progress));
 
     /// <summary>Restores only one value, preserving unrelated data. Expected state is optional; identity must match.</summary>
+    /// <remarks>Restoring absence deletes only the value, retaining its key. Restoring a present value can recreate its parent;
+    /// use a tree plan when each key creation needs a separate change record. Omitting expected state allows replacement of
+    /// the currently observed value, with rechecks before writing but no atomic transaction.</remarks>
     public RegistryApplyResult RestoreValue(RegistryValueSnapshot desired, RegistryValueSnapshot? expected = null, CancellationToken cancellationToken = default)
     {
         if (desired == null)

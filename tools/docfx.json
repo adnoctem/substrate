@@ -7,7 +7,8 @@
   }],
   "build": {
     "content": [
-      { "src": "../docs", "files": ["index.md", "API.md", "architecture.md", "documentation.md", "troubleshooting.md", "vendor-updates.md", "registry-api.md", "networking-api.md", "toc.yml", "commands/**/*.md"], "dest": "." },
+      { "src": "../docs/www", "files": ["**/*.md", "toc.yml"], "dest": "." },
+      { "src": "../build/docs/commands", "files": ["toc.yml"], "dest": "commands" },
       { "src": "../build/docs/api", "files": ["**/*.yml"], "dest": "api" }
     ],
     "output": "../build/docs/site",

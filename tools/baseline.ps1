@@ -5,7 +5,7 @@
 .PARAMETER WriteFixtures
   Writes reviewed-source captures to tests/Fixtures/Api rather than build/baseline.
 .PARAMETER Inventory
-  Records public command dependencies and migration status in docs/migration/commands.json.
+  Records public command dependencies and migration status in build/baseline/commands.json.
 .EXAMPLE
   dotnet msbuild tools/tasks.proj -t:Baseline
 #>
@@ -60,7 +60,7 @@ if ($Inventory) {
       [PSCustomObject][ordered]@{ Command = $function.Name; Source = $file.Name; Compiled = $function.Name -in $compiled; Implementation = $implementation; Calls = $calls }
     }
   }
-  $inventoryPath = Join-Path $root 'docs/migration/commands.json'
+  $inventoryPath = Join-Path $root 'build/baseline/commands.json'
   [IO.File]::WriteAllText($inventoryPath, (($rows | ConvertTo-Json -Depth 8) + "`n"), (New-Object Text.UTF8Encoding($false)))
   $rows | Group-Object Source | ForEach-Object { Write-Output ("{0}: {1} commands" -f $_.Name, $_.Count) }
 }

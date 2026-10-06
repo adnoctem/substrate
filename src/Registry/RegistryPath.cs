@@ -5,6 +5,9 @@ using Microsoft.Win32;
 namespace AdNoctem.Substrate.Registry;
 
 /// <summary>A literal hive-relative key address. View and machine belong to the manager.</summary>
+/// <remarks>Accepts hive names such as HKCU or HKEY_CURRENT_USER followed by a backslash and subkey path.
+/// PowerShell provider syntax such as HKCU: is not supported. Wildcards and dot segments are literal key names;
+/// comparison is case-insensitive. This type does not select a registry view or resolve filesystem paths.</remarks>
 public sealed class RegistryPath : IEquatable<RegistryPath>
 {
     private static readonly Dictionary<string, RegistryHive> Hives = new Dictionary<string, RegistryHive>(StringComparer.OrdinalIgnoreCase)

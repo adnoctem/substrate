@@ -42,7 +42,7 @@ public sealed class LgpoSource
     }
 
     // Supplied archive reviewed on 2026-10-04: exactly the executable and two PDFs; the contained executable matches the supplied
-    // Microsoft-signed binary with Valid Authenticode status. See docs/migration/progress.md for provenance and future update requirements.
+    // Microsoft-signed binary with Valid Authenticode status. See docs/www/vendor-updates.md for provenance and future update requirements.
     public static LgpoSource Standalone { get; } = new LgpoSource("Security Compliance Toolkit - LGPO standalone",
         new Uri("https://download.microsoft.com/download/8/5/C/85C25433-A1B0-4FFA-9429-7E023E7DA8D8/LGPO.zip"), "LGPO_30/LGPO.exe",
         "CB7159D134A0A1E7B1ED2ADA9A3CE8CE8F4DE391D14403D55438AF824247CC55",

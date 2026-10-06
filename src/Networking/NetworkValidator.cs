@@ -23,6 +23,7 @@ public static class NetworkValidator
         catch (ArgumentException) { return false; }
     }
     /// <summary>Tests supported six-octet MAC address notation; it does not establish an address's ownership or reachability.</summary>
+    /// <remarks>Requires six hexadecimal byte pairs separated consistently by colons or hyphens.</remarks>
     public static bool TestMACAddress(string? address)
     {
         if (address == null)

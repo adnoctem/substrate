@@ -3,7 +3,7 @@
 .SYNOPSIS
   Builds documentation from C# XML comments and reviewed PowerShell Markdown.
 .PARAMETER Mode
-  Help validates and stages MAML; Site builds DocFX; Update refreshes command metadata and the API catalog.
+  Help validates and stages MAML; Site builds DocFX; Update refreshes command metadata.
 .EXAMPLE
   dotnet msbuild tools/tasks.proj -t:Docs
 #>
@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'environment.ps1')
 Import-DevelopmentModule Microsoft.PowerShell.PlatyPS
 $stage = Join-Path $repositoryRoot 'build/module/AdNoctem.Substrate.PowerShell'
-$commandRoot = Join-Path $repositoryRoot 'docs/commands/AdNoctem.Substrate.PowerShell'
+$commandRoot = Join-Path $repositoryRoot 'docs/www/commands/AdNoctem.Substrate.PowerShell'
 $compiled = @((Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compiled-commands.psd1')).Values | ForEach-Object { $_ })
 $compatibility = @((Import-PowerShellDataFile (Join-Path $PSScriptRoot 'compatibility-commands.psd1')).Values | ForEach-Object { $_ })
 $expected = @($compiled + $compatibility | Sort-Object)
@@ -127,7 +127,13 @@ if ($Mode -in @('Site', 'Update')) {
     if (Test-Path -LiteralPath $metadataRoot) { Remove-Item -LiteralPath $metadataRoot -Recurse -Force }
     & dotnet tool run docfx metadata tools/docfx.json --warningsAsErrors
     if ($LASTEXITCODE) { throw 'DocFX metadata generation failed.' }
-    & (Join-Path $PSScriptRoot 'api-catalog.ps1') -Update:($Mode -eq 'Update')
+    $navigation = Join-Path $repositoryRoot 'build/docs/commands'
+    $null = [IO.Directory]::CreateDirectory($navigation)
+    $toc = foreach ($file in $files) {
+      "- name: $($file.BaseName)"
+      "  href: ../../../docs/www/commands/AdNoctem.Substrate.PowerShell/$($file.Name)"
+    }
+    [IO.File]::WriteAllLines((Join-Path $navigation 'toc.yml'), $toc, [Text.UTF8Encoding]::new($false))
     & dotnet tool run docfx build tools/docfx.json --warningsAsErrors
     if ($LASTEXITCODE) { throw 'DocFX site generation failed.' }
   }
@@ -137,7 +143,7 @@ if ($Mode -in @('Site', 'Update')) {
 if ($Mode -eq 'Update') {
   Push-Location $repositoryRoot
   try {
-    & bun x prettier --write --end-of-line auto docs/API.md 'docs/commands/**/*.md'
+    & bun x prettier --write --end-of-line auto 'docs/www/commands/**/*.md'
     if ($LASTEXITCODE) { throw 'Documentation formatting failed.' }
   }
   finally { Pop-Location }

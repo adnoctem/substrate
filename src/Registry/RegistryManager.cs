@@ -9,12 +9,27 @@ using Microsoft.Win32;
 namespace AdNoctem.Substrate.Registry;
 
 /// <summary>Host-independent registry access for one machine and resolved view. No shared open handles.</summary>
-/// <remarks>Reads distinguish missing data from access failures. Mutations use the caller's existing Windows authority.
-/// Multi-step operations are not transactions; inspect their results before assuming all requested changes completed.</remarks>
+/// <remarks>
+/// <para>Reads distinguish missing data from access failures. Mutations use the caller's existing Windows authority.
+/// Multi-step operations are not transactions; inspect their results before assuming all requested changes completed.</para>
+/// <para>The view is fixed at construction. Remote access uses the caller's credentials and supports only HKLM and HKU;
+/// use an explicit SID for user data. Reachability, Remote Registry service configuration and permissions remain caller concerns.
+/// File/hive operations and notifications require a local manager.</para>
+/// <para>Value names are literal and case-insensitive. An empty name selects the default value; "(default)" is an ordinary name.
+/// String data comparisons remain case-sensitive. Async traversal offloads synchronous native calls and checks cancellation between
+/// operations; it cannot interrupt an individual registry call or remote RPC.</para>
+/// </remarks>
 /// <example><code>
 /// var registry = new RegistryManager(RegistryView.Registry64);
-/// var path = RegistryPath.Parse(@"HKLM\SOFTWARE\Example");
-/// var installedVersion = registry.GetValue(path, "Version")?.GetString();
+/// var path = RegistryPath.Parse(@"HKCU\Software\ExampleApplication");
+/// registry.CreateKey(path);
+/// registry.SetValue(path, "Enabled", RegistryValue.DWord(1));
+/// registry.SetValue(path, "Cache", RegistryValue.ExpandString(@"%LOCALAPPDATA%\ExampleApplication"));
+/// if (registry.TryGetValue(path, "Cache", out var value))
+/// {
+///     var raw = value!.GetString();
+///     var expanded = value.GetString(expandEnvironmentVariables: true);
+/// }
 /// </code></example>
 public sealed class RegistryManager
 {
@@ -253,6 +268,9 @@ public sealed class RegistryManager
         new RegistryChangeWatcher(this, path, includeSubKeys, kinds);
 
     /// <summary>Copies data and empty keys. Destination permissions are inherited, not copied. Multi-step and non-atomic.</summary>
+    /// <remarks>Overlapping trees are rejected. FailIfExists refuses an existing destination; Merge preserves unmentioned data;
+    /// Replace removes unmentioned data inside the destination. Capture is not a point-in-time snapshot of a changing source.
+    /// Cancellation during capture throws; cancellation during application returns completed writes without rollback.</remarks>
     public RegistryApplyResult CopyKey(RegistryPath source, RegistryPath destination, RegistryCopyMode mode = RegistryCopyMode.FailIfExists, CancellationToken cancellationToken = default)
     {
         ValidateTransfer(source, destination);
@@ -269,6 +287,8 @@ public sealed class RegistryManager
         Task.Run(() => CopyKey(source, destination, mode, cancellationToken));
 
     /// <summary>Copies data to a missing destination, then removes an unchanged source. Permissions are not transferred.</summary>
+    /// <remarks>Overlapping trees are rejected. Inspect both copy and source-removal results; a completed copy does not establish
+    /// successful removal. Use RenameKey for an in-place rename. No retry silently overwrites newer state.</remarks>
     public RegistryMoveResult MoveKey(RegistryPath source, RegistryPath destination, CancellationToken cancellationToken = default)
     {
         ValidateTransfer(source, destination);

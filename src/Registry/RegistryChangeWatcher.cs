@@ -9,6 +9,18 @@ namespace AdNoctem.Substrate.Registry;
 public enum RegistryChangeKinds { Names = 1, Attributes = 2, Values = 4, Security = 8 }
 
 /// <summary>Local Windows 8+ change signals. Notifications can coalesce and do not identify individual writes.</summary>
+/// <remarks>Arms immediately and rearms after a signal. A cancelled wait leaves the watcher usable; disposal closes the
+/// key/event and cancels a pending wait. Deletion invalidates the watched key: open a replacement key and create a new watcher.
+/// Remote notifications are unsupported. The Windows 8 requirement applies to thread-agnostic notifications, not ordinary CRUD.</remarks>
+/// <example><code>
+/// var registry = new RegistryManager();
+/// var settings = RegistryPath.Parse(@"HKCU\Software\ExampleApplication");
+/// using (var watcher = registry.Watch(settings, includeSubKeys: true))
+/// {
+///     await watcher.WaitForChangeAsync(cancellationToken);
+///     // Re-read the relevant settings; the signal does not identify individual writes.
+/// }
+/// </code></example>
 public sealed class RegistryChangeWatcher : IDisposable
 {
     private readonly object gate = new object();

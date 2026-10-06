@@ -12,7 +12,7 @@ Use `dotnet msbuild tools/tasks.proj -t:<Target>`. Restore first on a fresh chec
 | Restore        | Restore locked NuGet packages, DocFX, and PowerShell tools         |
 | Build / Stage  | Compile / assemble the importable module                           |
 | Test           | Managed tests plus packaged-module checks in both PowerShell hosts |
-| UpdateHelp     | Explicitly refresh tracked PowerShell metadata and API catalog     |
+| UpdateHelp     | Explicitly refresh tracked PowerShell command metadata             |
 | Docs           | Validate help and build the reference site                         |
 | Format / Check | Apply formatting / check formatting and analysis                   |
 | Pack           | Create archives and checksums under dist                           |
@@ -29,7 +29,7 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 - Define cancellation and partial-completion behavior for long operations. Release native resources deterministically.
 - Public PowerShell ownership is declared in `tools/compiled-commands.psd1` and `tools/compatibility-commands.psd1`.
 - Implement compiled commands in the PowerShell adapter; keep host compatibility functions in its `compat.ps1`.
-- C# comments feed DocFX. Reviewed `docs/commands/AdNoctem.Substrate.PowerShell` Markdown feeds PlatyPS and packaged help.
+- C# comments feed DocFX. Reviewed `docs/www/commands/AdNoctem.Substrate.PowerShell` Markdown feeds PlatyPS and packaged help.
 - Document meaningful contracts without adding filler comments to obvious members. UpdateHelp refreshes metadata; review its output.
 - Compatibility tests materialize the pinned v1 baseline from Git history under `build/baseline`; retain that history.
 
@@ -58,5 +58,5 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 - `src/<domain>`: C# domain libraries, PowerShell adapter, and isolated Windows Runtime helper.
 - `tests/<domain>.Tests`: managed tests; `tests/PowerShell`: current packaged-module tests.
 - `tools/`: MSBuild orchestration and supporting scripts; `tools/module.psd1`: manifest template.
-- `docs/`: documentation sources; `build/`, `dist/`: ignored output.
+- `docs/`: repository documents; `docs/www/`: website and command-help sources; `build/`, `dist/`: ignored output.
 - This file lives at `docs/AGENTS.md`; root `AGENTS.md` is a symlink. Edit this file.

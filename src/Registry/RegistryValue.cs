@@ -5,6 +5,10 @@ using Microsoft.Win32;
 namespace AdNoctem.Substrate.Registry;
 
 /// <summary>Immutable native value data. Integers preserve their signed CLR representation and raw bits.</summary>
+/// <remarks>String and ExpandString require string; DWord requires Int32; QWord requires Int64; Binary and None require byte[];
+/// MultiString requires string[]. Unsigned integer factory overloads preserve the raw bits. Arrays are copied on input and output.
+/// Strings cannot contain NUL. Multi-string elements must be nonempty, although an empty array is valid. Unsupported kinds and
+/// mismatched CLR data are rejected rather than coerced. ExpandString remains raw unless expansion is explicitly requested.</remarks>
 public sealed class RegistryValue : IEquatable<RegistryValue>
 {
     private readonly object data;

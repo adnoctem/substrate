@@ -38,6 +38,7 @@ public static class IPAddressParser
         return address!;
     }
 
+    /// <summary>Calculates an IPv6 solicited-node multicast address while preserving the source scope ID.</summary>
     public static IPAddress GetSolicitedNodeMulticastAddress(IPAddress address)
     {
         if (address == null)

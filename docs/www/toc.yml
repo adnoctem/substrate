@@ -1,0 +1,22 @@
+- name: Overview
+  href: index.md
+- name: .NET reference
+  href: ../../build/docs/api/toc.yml
+- name: PowerShell reference
+  href: ../../build/docs/commands/toc.yml
+- name: Guides
+  items:
+    - name: PowerShell workflows
+      href: guides/powershell.md
+    - name: Office deployment
+      href: guides/office.md
+    - name: Outlook PST sources
+      href: guides/outlook.md
+- name: Architecture
+  href: architecture.md
+- name: Troubleshooting
+  href: troubleshooting.md
+- name: Documentation maintenance
+  href: documentation.md
+- name: Vendor updates
+  href: vendor-updates.md

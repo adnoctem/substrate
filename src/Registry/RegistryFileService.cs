@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 namespace AdNoctem.Substrate.Registry;
 
 /// <summary>Local registry file operations. Import is a mutation, not an atomic transaction or a scoped sandbox.</summary>
+/// <remarks>Uses the Windows system reg.exe matching the manager's view, with independently quoted arguments and captured output.
+/// Import can target multiple hives or remove keys; no subtree restriction is imposed. Export publishes through a sibling temporary
+/// file and preserves the previous destination on failure. Relative filesystem paths use the process working directory;
+/// pass absolute paths when stable resolution matters. The constructor accepts an optional execution timeout.
+/// Native failures retain output in RegistryCommandException. The library does not log, download executables or elevate.</remarks>
 public sealed class RegistryFileService
 {
     private readonly RegistryManager manager;

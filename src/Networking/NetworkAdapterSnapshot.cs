@@ -32,6 +32,8 @@ public sealed class NetworkInterfaceAddress
 }
 
 /// <summary>A detached read-only snapshot. It owns no native handles and never changes the adapter it describes.</summary>
+/// <remarks>Input collections and mutable address data are copied. Address getters return copies, preserving snapshot identity.
+/// Gateway and DNS order follows the observed Windows configuration; it is not a reachability assessment.</remarks>
 public sealed class NetworkAdapterSnapshot
 {
     private readonly string[] gateways;

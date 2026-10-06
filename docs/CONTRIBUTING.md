@@ -49,7 +49,7 @@ informational, not C# coverage.
 C# uses the .NET formatter defaults; PowerShell uses two spaces.
 No repository-wide line ending is required. The PowerShell formatter preserves existing line endings and BOMs.
 Scripts containing non-ASCII text and executed by Windows PowerShell 5.1 still need UTF-8 with BOM; staging adds it to shipped scripts.
-Prettier runs unpinned through `bun x`, uses the Bun cache instead of a repository `node_modules`, and formats all Markdown, including command help and the API catalog.
+Prettier runs unpinned through `bun x`, uses the Bun cache instead of a repository `node_modules`, and formats all Markdown, including command help.
 The hook selects tracked Markdown; command-line formatting honors `.gitignore`.
 
 Run `pre-commit run --all-files` before committing. The hooks check PowerShell and C# style, Markdown, spelling, and workflow configuration.
@@ -58,8 +58,9 @@ PowerShell editions are tested as runtime hosts, without repeating every managed
 
 ## Documentation
 
-See [documentation maintenance](documentation.md). XML comments describe the reusable .NET API. PowerShell Markdown describes command
-behavior, while compiled metadata supplies parameter binding details. The generated [API catalog](API.md) leads to the reference. Build the
+See [documentation maintenance](www/documentation.md). XML comments describe the reusable .NET API. PowerShell Markdown describes command
+behavior, while compiled metadata supplies parameter binding details. The [site overview](www/index.md) introduces the generated reference
+and workflow guides. Build the
 site under `build/docs/site`; no site is published by the build.
 
 When changing commands, update the owning catalog, implement the adapter, run UpdateHelp, and review the resulting command pages. Keep
@@ -78,7 +79,9 @@ Get-Help Get-OfficeInventory -Full
 A rebuild cannot unload assemblies already imported by an existing PowerShell process. Keep the loader, both binary directories, helper
 executable, configuration, data, and help together when copying the package.
 
-Semantic-release passes its selected version to `tools/release.ps1 -Prepare`, which verifies and packages that version. Substrate starts an independent release sequence at 1.0.0; PSFoundation release tags are not imported. The release workflow
+Semantic-release generates CHANGELOG.md from commits; do not maintain it by hand. It passes its selected version to `tools/release.ps1
+-Prepare`, which verifies and packages that version. Substrate starts an independent release sequence at 1.0.0; PSFoundation release tags
+are not imported. The release workflow
 remains manual and requires `SUBSTRATE_RELEASE_ENABLED=true` on a supported release branch.
 
 ```powershell
@@ -101,4 +104,4 @@ release.
 
 Keep administrative mutation tests separate from ordinary development checks. Use disposable or recoverable Windows machines for Office
 deployment, Windows Update servicing, AppX lifecycle operations, and remote directory or certificate workflows. Track remaining evidence in
-[migration progress](migration/progress.md).
+[TODO](TODO.md).
