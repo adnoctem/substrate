@@ -1,5 +1,23 @@
 # Existing Outlook PST sources
 
+## Folder discovery and incomplete plans
+
+`Get-OutlookFolderPlan` tolerates individual standard-folder lookup failures. For example, a provider error for
+SuggestedContacts leaves the resolved Inbox and ordinary mail folders usable. The error remains an `Unresolved` identity with its exact
+HRESULT; unsupported lookups are `Unavailable`, and a provider-reported missing folder is `Absent`. Discovery never creates missing folders.
+
+Warnings identify the folder kind, StoreID and provider error. Unknown excluded identities are handled conservatively: branches that could
+be the protected folder receive `IncompleteIdentity:<kinds>` with `Process` and `Traverse` false. Known identities and default item types
+constrain these matches, without guessing from localized names. An unknown mail-folder identity can therefore prevent processing ordinary
+branches too. The root remains traversable, but its own items are skipped when classification is incomplete. Review both warnings and plan
+rows; successful planning does not imply every branch was included. Inclusion flags, custom exclusions and search-folder exclusions still apply.
+
+The default selection requires Inbox by identity and fails with store/error details if it cannot resolve it. For an archive without Inbox,
+use an explicit existing `-FolderName` or `-FolderName ''` for the root. Source access and identity-integrity failures still fail planning;
+none of this relaxes destination or transfer error handling. The plan contains scalar metadata only and performs no item transfers.
+
+## PST attachment lifetime
+
 `Open-OutlookPstStore -Namespace $context.Namespace -LiteralPath <existing.pst>` reuses a matching attachment or temporarily attaches the
 existing file. `Close-OutlookPstStore -Context $source` releases its root and removes only the attachment that Open created, identified by
 StoreID and normalized file path. Existing attachments keep their names and remain attached. Neither helper releases the borrowed MAPI

@@ -206,7 +206,23 @@ public sealed class GetOutlookStandardFolderIdentityCommand : OutlookCommand
             var value in Manager.GetStandardFolderIdentities(
                 Unwrap(Namespace),
                 Unwrap(StoreRoot),
-                Cancellation
+                Cancellation,
+                identity =>
+                {
+                    var message =
+                        "Standard folder '"
+                        + identity.Kind
+                        + "' in store '"
+                        + identity.StoreId
+                        + "': "
+                        + identity.State
+                        + ". "
+                        + identity.Evidence;
+                    if (identity.State == OutlookFolderIdentityState.Unresolved)
+                        WriteWarning(message);
+                    else
+                        WriteVerbose(message);
+                }
             )
         )
             WriteObject(
@@ -296,7 +312,8 @@ public sealed class GetOutlookFolderPlanCommand : OutlookCommand
                         CurrentOperation = value,
                     }
                 ),
-            Cancellation
+            Cancellation,
+            WriteWarning
         );
 
         foreach (var value in result)

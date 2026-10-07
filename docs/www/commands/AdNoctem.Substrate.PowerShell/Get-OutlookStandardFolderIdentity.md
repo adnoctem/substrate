@@ -39,6 +39,13 @@ Missing optional properties are reported separately
 from unexpected provider errors.
 Does not create optional default folders.
 
+State is Resolved when an identity is known, Absent when the provider reports no folder,
+Unavailable when the lookup is unsupported, or Unresolved when it fails or lacks identity evidence.
+Unavailable and Unresolved do not prove absence. Evidence retains the provider error and exact HRESULT.
+Unresolved records also produce warnings; absent and unsupported records produce verbose diagnostics.
+Diagnostics use separate PowerShell streams and do not add result rows or COM objects.
+Store access, invalid returned identities and cancellation remain errors.
+
 ## EXAMPLES
 
 ### Example 1

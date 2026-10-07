@@ -11,6 +11,7 @@ namespace AdNoctem.Substrate.Tests.Fixtures
 {
     public class OutlookFixture
     {
+        public const int E_ABORT = unchecked((int)0x80004004);
         public readonly FakeStores Stores = new FakeStores();
         public readonly FakeApplication Application = new FakeApplication();
         public int Added;
@@ -126,6 +127,10 @@ namespace AdNoctem.Substrate.Tests.Fixtures
         }
         public readonly FakeFolder Root;
         public readonly Dictionary<int, FakeFolder> Standard = new Dictionary<int, FakeFolder>();
+        public readonly Dictionary<int, Exception> StandardErrors =
+            new Dictionary<int, Exception>();
+        public int FolderCreations;
+        public int ItemAccesses;
         public readonly FakeAccessor PropertyAccessor = new FakeAccessor();
 
         public FakeStore(string path, string id)
@@ -151,6 +156,10 @@ namespace AdNoctem.Substrate.Tests.Fixtures
 
         public FakeFolder GetDefaultFolder(int kind)
         {
+            Exception error;
+            if (StandardErrors.TryGetValue(kind, out error))
+                throw error;
+
             FakeFolder result;
 
             if (Standard.TryGetValue(kind, out result))
@@ -173,6 +182,14 @@ namespace AdNoctem.Substrate.Tests.Fixtures
         public FakeStore Store { get; private set; }
         public FakeFolders Folders { get; private set; }
         public readonly FakeAccessor PropertyAccessor = new FakeAccessor();
+        public object Items
+        {
+            get
+            {
+                Store.ItemAccesses++;
+                throw new InvalidOperationException("Planning must not access or transfer items.");
+            }
+        }
 
         public FakeFolder(FakeStore store, string id, string name, string path)
         {
@@ -206,6 +223,7 @@ namespace AdNoctem.Substrate.Tests.Fixtures
 
         public FakeFolder Add(string name)
         {
+            parent.Store.FolderCreations++;
             var path = parent.FolderPath + "\\" + name;
             var result = new FakeFolder(parent.Store, path, name, path);
             Values.Add(result);
@@ -218,9 +236,14 @@ namespace AdNoctem.Substrate.Tests.Fixtures
     {
         public int FolderType = 1;
         public readonly Dictionary<string, object> Properties = new Dictionary<string, object>();
+        public readonly Dictionary<string, Exception> Errors = new Dictionary<string, Exception>();
 
         public object GetProperty(string name)
         {
+            Exception error;
+            if (Errors.TryGetValue(name, out error))
+                throw error;
+
             if (name.EndsWith("36010003", StringComparison.Ordinal))
                 return FolderType;
 

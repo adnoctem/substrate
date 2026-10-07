@@ -10,7 +10,8 @@ $observations['installations'] = @(Get-OutlookInstallation)
 $observations['repair-tools'] = @(Find-OutlookRepairTool)
 $session = New-Object AdNoctem.Substrate.Tests.Fixtures.OutlookFixture
 $store = $session.AddExisting('C:\Synthetic.pst', 'synthetic')
-$observations['identities'] = @(Get-OutlookStandardFolderIdentity -Namespace $session -StoreRoot $store.Root)
+# Identity keys retain v1 parity; refined failure states and diagnostics have a separate regression probe.
+$observations['identities'] = @(Get-OutlookStandardFolderIdentity -Namespace $session -StoreRoot $store.Root | Select-Object Kind, StoreID, EntryID)
 $observations['plan'] = @(Get-OutlookFolderPlan -Namespace $session -StoreRoot $store.Root -Recurse -Exclusions 'Posteingang\Skip')
 $observations['explicit-root'] = @(Get-OutlookFolderPlan -Namespace $session -StoreRoot $store.Root -FolderName '' -Recurse)
 $observations['root'] = (Get-OutlookStoreRoot $session).EntryID

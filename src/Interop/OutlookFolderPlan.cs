@@ -40,8 +40,10 @@ public sealed class OutlookFolderPlanEntry
 
 public sealed partial class OutlookManager
 {
-    /// <summary>Collects a complete read-only folder plan. Null selects Inbox by identity, empty selects the root, otherwise an exact relative path.</summary>
-    /// <remarks>No COM references escape in the plan. Cancellation and inspection failures discard partial results. Plans do not authorize mutation.</remarks>
+    /// <summary>Collects a read-only folder plan. Null requires Inbox by identity, empty selects the root, otherwise an exact relative path.</summary>
+    /// <remarks>Uncertain excluded identities cause potentially matching branches to be skipped with an IncompleteIdentity reason and a diagnostic.
+    /// Resolved identities and item types constrain classification; names are never used to guess standard kinds.
+    /// No COM references escape. Cancellation and source inspection failures discard partial results. Plans do not authorize mutation.</remarks>
     public IReadOnlyList<OutlookFolderPlanEntry> GetFolderPlan(
         object session,
         object storeRoot,
@@ -50,7 +52,8 @@ public sealed partial class OutlookManager
         IEnumerable<OutlookFolderKind>? include = null,
         IEnumerable<string>? exclusions = null,
         Action<string>? progress = null,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        Action<string>? diagnostic = null
     )
     {
         if (session == null)
@@ -74,26 +77,48 @@ public sealed partial class OutlookManager
         if (included.Any(kind => !Enum.IsDefined(typeof(OutlookFolderKind), kind)))
             throw new ArgumentOutOfRangeException(nameof(include));
 
-        var identities = GetStandardFolderIdentities(session, storeRoot, cancellationToken);
+        var identities = GetStandardFolderIdentities(
+            session,
+            storeRoot,
+            cancellationToken,
+            identity =>
+            {
+                if (identity.State != OutlookFolderIdentityState.Absent)
+                    diagnostic?.Invoke(
+                        "Standard folder '"
+                            + identity.Kind
+                            + "' in store '"
+                            + identity.StoreId
+                            + "': "
+                            + identity.State
+                            + ". "
+                            + identity.Evidence
+                            + ". Folder classification is incomplete."
+                    );
+            }
+        );
+        var uncertain = identities
+            .Where(identity =>
+                (
+                    identity.State == OutlookFolderIdentityState.Unresolved
+                    || identity.State == OutlookFolderIdentityState.Unavailable
+                ) && !included.Contains(identity.Kind)
+            )
+            .Select(identity => identity.Kind)
+            .ToArray();
         var kinds = new Dictionary<string, OutlookFolderKind>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var identity in identities)
         {
             if (
-                identity.State == OutlookFolderIdentityState.Unresolved
-                && !included.Contains(identity.Kind)
+                identity.State == OutlookFolderIdentityState.Resolved
+                && !string.IsNullOrEmpty(identity.EntryId)
             )
-                throw new InvalidOperationException(
-                    "Cannot enforce exclusion of '"
-                        + identity.Kind
-                        + "' on this store and Outlook version. Select a supported store or explicitly include this kind."
-                );
-
-            if (!string.IsNullOrEmpty(identity.EntryId))
                 kinds[identity.EntryId!] = identity.Kind;
         }
 
         var storeId = OutlookDispatch.Text(storeRoot, "StoreID");
+        var rootId = OutlookDispatch.Text(storeRoot, "EntryID");
         string? implicitInboxId = null;
 
         if (folderName == null)
@@ -106,7 +131,13 @@ public sealed partial class OutlookManager
                 || !OutlookDispatch.Equal(inboxIdentity.StoreId, storeId)
             )
                 throw new InvalidOperationException(
-                    "Cannot resolve the selected store Inbox identity. Supply FolderName explicitly."
+                    "Cannot resolve the selected store Inbox identity (StoreID '"
+                        + storeId
+                        + "', "
+                        + inboxIdentity.State
+                        + "). "
+                        + inboxIdentity.Evidence
+                        + ". Supply FolderName explicitly to select an existing folder or the store root."
                 );
 
             implicitInboxId = inboxIdentity.EntryId;
@@ -243,11 +274,22 @@ public sealed partial class OutlookManager
                 OutlookDispatch.Release(accessor);
             }
 
-            var mail =
-                Convert.ToInt32(
-                    OutlookDispatch.Get(folder, "DefaultItemType"),
-                    System.Globalization.CultureInfo.InvariantCulture
-                ) == 0;
+            var itemType = Convert.ToInt32(
+                OutlookDispatch.Get(folder, "DefaultItemType"),
+                System.Globalization.CultureInfo.InvariantCulture
+            );
+            var mail = itemType == 0;
+            var isRoot = OutlookDispatch.Equal(entryId, rootId);
+            var ambiguous = !kind.HasValue
+                ? uncertain.Where(candidate => CouldBeFolderKind(candidate, itemType)).ToArray()
+                : Array.Empty<OutlookFolderKind>();
+
+            if (reason == null && !isRoot && ambiguous.Length != 0)
+                reason = "IncompleteIdentity:" + string.Join(",", ambiguous);
+
+            // The store root is a traversal boundary, not an unidentified default folder.
+            // Do not process its own items while mail-folder exclusions are uncertain.
+            var rootIncomplete = reason == null && isRoot && ambiguous.Length != 0;
 
             return new OutlookFolderPlanEntry(
                 entryId,
@@ -255,9 +297,14 @@ public sealed partial class OutlookManager
                 OutlookDispatch.Text(folder, "FolderPath"),
                 path,
                 kind,
-                reason == null && mail,
+                reason == null && mail && !rootIncomplete,
                 reason == null,
-                reason ?? (mail ? "Included" : "NonMailContainer")
+                reason
+                    ?? (
+                        rootIncomplete ? "IncompleteIdentity:" + string.Join(",", ambiguous)
+                        : mail ? "Included"
+                        : "NonMailContainer"
+                    )
             );
         }
         void Walk(object folder, string path, int depth)
@@ -274,6 +321,21 @@ public sealed partial class OutlookManager
 
             progress?.Invoke(decision.FolderPath);
             result.Add(decision);
+
+            if (decision.Reason.StartsWith("IncompleteIdentity:", StringComparison.Ordinal))
+                diagnostic?.Invoke(
+                    "Skipped "
+                        + (decision.Traverse ? "items in" : "branch")
+                        + " '"
+                        + decision.FolderPath
+                        + "' (StoreID '"
+                        + decision.StoreId
+                        + "', EntryID '"
+                        + decision.EntryId
+                        + "'): "
+                        + decision.Reason
+                        + "."
+                );
 
             if (!recurse || !decision.Traverse)
                 return;
@@ -307,6 +369,22 @@ public sealed partial class OutlookManager
             }
         }
     }
+
+    // OlItemType identifies the container's default item class, not its localized name.
+    // Group folders and mail kinds cannot safely be narrowed by item class.
+    private static bool CouldBeFolderKind(OutlookFolderKind kind, int itemType) =>
+        itemType < 0
+        || itemType > 7
+        || kind switch
+        {
+            OutlookFolderKind.Calendar => itemType == 1,
+            OutlookFolderKind.Contacts or OutlookFolderKind.SuggestedContacts => itemType == 2
+                || itemType == 7,
+            OutlookFolderKind.Tasks => itemType == 3,
+            OutlookFolderKind.Journal => itemType == 4,
+            OutlookFolderKind.Notes => itemType == 5,
+            _ => true,
+        };
 
     private static string Join(string parent, string name) =>
         parent.Length == 0 ? name : parent + "\\" + name;

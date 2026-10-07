@@ -39,6 +39,15 @@ Returns plain metadata; callers reopen selected folders by EntryID and
 StoreID.
 The entire plan must be collected successfully before mutation.
 
+An unavailable optional standard-folder lookup does not abort discovery.
+Provider failures and unsupported lookups produce warnings with the kind, StoreID and HRESULT.
+Branches that could match an unresolved excluded kind are skipped with Process and Traverse false
+and an IncompleteIdentity reason; resolved identities and default item types constrain that decision.
+The store root can still be traversed while its own items are skipped.
+Review warnings and skipped rows before treating a plan as complete.
+Omitting FolderName requires a resolved Inbox; an explicit existing path or empty root selection does not.
+Source access, invalid identities and cancellation remain errors. Planning never creates folders or transfers items.
+
 ## EXAMPLES
 
 ### Example 1

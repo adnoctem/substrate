@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace AdNoctem.Substrate.Interop;
@@ -33,8 +34,14 @@ public enum OutlookFolderKind
 public enum OutlookFolderIdentityState
 {
     Resolved,
+
+    /// <summary>The provider reports that the folder does not exist.</summary>
     Absent,
+
+    /// <summary>The provider does not support this lookup; absence is not established.</summary>
     Unavailable,
+
+    /// <summary>The lookup failed or lacks identity evidence; absence is not established.</summary>
     Unresolved,
 }
 
@@ -66,12 +73,17 @@ public sealed partial class OutlookManager
 {
     private const int MapiNotFound = unchecked((int)0x8004010f);
     private const int MapiNoSupport = unchecked((int)0x80040102);
+    private const int EAbort = unchecked((int)0x80004004);
     private const string MapiTag = "http://schemas.microsoft.com/mapi/proptag/0x";
 
+    /// <summary>Reads standard-folder identities without creating folders. Individual provider failures remain identity records.</summary>
+    /// <remarks>Non-resolved records are sent to diagnostic when supplied. A failed lookup is not proof of absence.
+    /// Store access, invalid returned identities and cancellation still fail the operation. No COM references escape.</remarks>
     public IReadOnlyList<OutlookFolderIdentity> GetStandardFolderIdentities(
         object session,
         object storeRoot,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        Action<OutlookFolderIdentity>? diagnostic = null
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -144,32 +156,9 @@ public sealed partial class OutlookManager
                             )
                         );
                     }
-                    catch (Exception error)
+                    catch (COMException error)
                     {
-                        if (
-                            error.HResult != MapiNotFound
-                            && error.HResult != MapiNoSupport
-                            && !(
-                                error.HResult == unchecked((int)0x80070057) && OptionalFolder(kind)
-                            )
-                        )
-                            throw new InvalidOperationException(
-                                "Cannot determine standard folder '"
-                                    + kind
-                                    + "' in the selected store: "
-                                    + error.Message,
-                                error
-                            );
-
-                        result.Add(
-                            new OutlookFolderIdentity(
-                                kind,
-                                storeId,
-                                null,
-                                OutlookFolderIdentityState.Unavailable,
-                                "Store.GetDefaultFolder"
-                            )
-                        );
+                        result.Add(FailedIdentity(kind, storeId, "Store.GetDefaultFolder", error));
                     }
                     finally
                     {
@@ -177,7 +166,7 @@ public sealed partial class OutlookManager
                     }
                 }
 
-                return result.AsReadOnly();
+                return ReportIdentities(result, diagnostic);
             }
 
             if (
@@ -192,23 +181,48 @@ public sealed partial class OutlookManager
                 );
 
             var known = new Dictionary<OutlookFolderKind, string>();
+            var failures = new Dictionary<OutlookFolderKind, OutlookFolderIdentity>();
             defaultStore = OutlookDispatch.Require(OutlookDispatch.Get(session, "DefaultStore"));
 
             if (OutlookDispatch.Equal(OutlookDispatch.Text(defaultStore, "StoreID"), storeId))
             {
-                inbox = OutlookDispatch.Require(
-                    OutlookDispatch.Call(session, "GetDefaultFolder", 6)
-                );
+                try
+                {
+                    inbox = OutlookDispatch.Call(session, "GetDefaultFolder", 6);
 
-                if (!OutlookDispatch.Equal(OutlookDispatch.Text(inbox, "StoreID"), storeId))
-                    throw new InvalidOperationException(
-                        "Default Inbox belongs to a different store."
+                    if (inbox != null)
+                    {
+                        if (
+                            !OutlookDispatch.Equal(OutlookDispatch.Text(inbox, "StoreID"), storeId)
+                            || string.IsNullOrWhiteSpace(OutlookDispatch.Text(inbox, "EntryID"))
+                        )
+                            throw new InvalidOperationException(
+                                "Default Inbox identity is empty or belongs to a different store."
+                            );
+
+                        known[OutlookFolderKind.Inbox] = OutlookDispatch.Text(inbox, "EntryID");
+                        accessors.Add(
+                            OutlookDispatch.Require(OutlookDispatch.Get(inbox, "PropertyAccessor"))
+                        );
+                    }
+                    else
+                        failures[OutlookFolderKind.Inbox] = new OutlookFolderIdentity(
+                            OutlookFolderKind.Inbox,
+                            storeId,
+                            null,
+                            OutlookFolderIdentityState.Absent,
+                            "Namespace.GetDefaultFolder returned null"
+                        );
+                }
+                catch (COMException error)
+                {
+                    failures[OutlookFolderKind.Inbox] = FailedIdentity(
+                        OutlookFolderKind.Inbox,
+                        storeId,
+                        "Namespace.GetDefaultFolder",
+                        error
                     );
-
-                known[OutlookFolderKind.Inbox] = OutlookDispatch.Text(inbox, "EntryID");
-                accessors.Add(
-                    OutlookDispatch.Require(OutlookDispatch.Get(inbox, "PropertyAccessor"))
-                );
+                }
             }
 
             accessors.Add(
@@ -237,7 +251,7 @@ public sealed partial class OutlookManager
                     if (known.ContainsKey(tag.Key))
                         continue;
 
-                    var binary = ReadOptionalMapi(accessor, tag.Value + "0102");
+                    var binary = ReadProperty(accessor, tag.Value + "0102", tag.Key);
 
                     if (binary is byte[] bytes && bytes.Length > 0)
                         known[tag.Key] = BinaryId(accessor, bytes);
@@ -245,7 +259,15 @@ public sealed partial class OutlookManager
                         throw new InvalidDataException("Invalid binary folder identity property.");
                 }
 
-                var additional = ReadOptionalMapi(accessor, "36D81102");
+                var additional = ReadProperty(
+                    accessor,
+                    "36D81102",
+                    OutlookFolderKind.Conflicts,
+                    OutlookFolderKind.SyncIssues,
+                    OutlookFolderKind.LocalFailures,
+                    OutlookFolderKind.ServerFailures,
+                    OutlookFolderKind.Junk
+                );
 
                 if (additional != null)
                 {
@@ -278,7 +300,13 @@ public sealed partial class OutlookManager
                     }
                 }
 
-                var extended = ReadOptionalMapi(accessor, "36D90102");
+                var extended = ReadProperty(
+                    accessor,
+                    "36D90102",
+                    OutlookFolderKind.RssFeeds,
+                    OutlookFolderKind.ToDo,
+                    OutlookFolderKind.SuggestedContacts
+                );
 
                 if (extended != null)
                 {
@@ -296,6 +324,13 @@ public sealed partial class OutlookManager
             foreach (OutlookFolderKind kind in Enum.GetValues(typeof(OutlookFolderKind)))
             {
                 var resolved = known.TryGetValue(kind, out var entry);
+
+                if (!resolved && failures.TryGetValue(kind, out var failure))
+                {
+                    result.Add(failure);
+                    continue;
+                }
+
                 result.Add(
                     new OutlookFolderIdentity(
                         kind,
@@ -310,7 +345,35 @@ public sealed partial class OutlookManager
                 );
             }
 
-            return result.AsReadOnly();
+            return ReportIdentities(result, diagnostic);
+
+            object? ReadProperty(object accessor, string tag, params OutlookFolderKind[] kinds)
+            {
+                try
+                {
+                    return ReadOptionalMapi(accessor, tag);
+                }
+                catch (COMException error)
+                {
+                    foreach (var kind in kinds)
+                    {
+                        var failure = FailedIdentity(
+                            kind,
+                            storeId,
+                            "Outlook2007.MAPI " + tag,
+                            error
+                        );
+
+                        if (
+                            !failures.TryGetValue(kind, out var previous)
+                            || previous.State != OutlookFolderIdentityState.Unresolved
+                        )
+                            failures[kind] = failure;
+                    }
+
+                    return null;
+                }
+            }
         }
         finally
         {
@@ -321,6 +384,41 @@ public sealed partial class OutlookManager
             OutlookDispatch.Release(defaultStore);
             OutlookDispatch.Release(store);
         }
+    }
+
+    private static OutlookFolderIdentity FailedIdentity(
+        OutlookFolderKind kind,
+        string storeId,
+        string source,
+        COMException error
+    ) =>
+        new OutlookFolderIdentity(
+            kind,
+            storeId,
+            null,
+            error.HResult == MapiNotFound ? OutlookFolderIdentityState.Absent
+                : error.HResult == MapiNoSupport
+                || error.HResult == unchecked((int)0x80070057) && OptionalFolder(kind)
+                    ? OutlookFolderIdentityState.Unavailable
+                : OutlookFolderIdentityState.Unresolved,
+            source
+                + ": HRESULT 0x"
+                + error.HResult.ToString("X8", CultureInfo.InvariantCulture)
+                + (error.HResult == EAbort ? " (E_ABORT)" : "")
+                + ": "
+                + error.Message
+        );
+
+    private static IReadOnlyList<OutlookFolderIdentity> ReportIdentities(
+        List<OutlookFolderIdentity> identities,
+        Action<OutlookFolderIdentity>? diagnostic
+    )
+    {
+        foreach (var identity in identities)
+            if (identity.State != OutlookFolderIdentityState.Resolved)
+                diagnostic?.Invoke(identity);
+
+        return identities.AsReadOnly();
     }
 
     /// <summary>Parses bounded little-endian PersistData/PersistElement records without accessing Outlook.</summary>
@@ -423,7 +521,7 @@ public sealed partial class OutlookManager
         {
             return OutlookDispatch.Call(accessor, "GetProperty", MapiTag + tag);
         }
-        catch (Exception error) when (error.HResult == MapiNotFound)
+        catch (COMException error) when (error.HResult == MapiNotFound)
         {
             return null;
         }
