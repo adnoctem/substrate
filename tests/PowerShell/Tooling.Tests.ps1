@@ -6,6 +6,41 @@ Describe 'Repository tooling boundaries' {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     . (Join-Path $root 'tools/vendor-support.ps1')
     . (Join-Path $root 'tools/probe.ps1')
+    . (Join-Path $root 'tools/compatibility.ps1')
+  }
+
+  It 'ignores validator spacing while detecting changes to logic, literals and statement boundaries' {
+    $modulePath = Join-Path $TestDrive 'SubstrateValidationFixture.psm1'
+
+    function Get-ValidationContract {
+      param ([string]$Validator)
+
+      $source = 'function Test-SyntheticValue { [CmdletBinding()] param ([ValidateScript({' + $Validator + '})][string]$Value) $Value }'
+      [IO.File]::WriteAllText($modulePath, $source)
+
+      try {
+        $contract = Get-SubstrateApiContract -ModulePath $modulePath
+
+        return ($contract.Commands | ConvertTo-Json -Depth 35 -Compress)
+      }
+      finally { Get-Module | Where-Object Path -EQ $modulePath | Remove-Module -Force }
+    }
+
+    $validator = @'
+if ($_ -eq 'blocked') {
+  throw 'not allowed'
+}
+$true
+'@
+    $expected = Get-ValidationContract $validator
+    $spaced = "`n`n" + ($validator -replace '\r?\n', "`r`n`r`n").Replace('  throw', '    throw') + "`r`n`r`n"
+    Get-ValidationContract $spaced | Should -BeExactly $expected
+    Get-ValidationContract $validator.Replace('$true', '$false') | Should -Not -BeExactly $expected
+    Get-ValidationContract $validator.Replace('not allowed', 'not  allowed') | Should -Not -BeExactly $expected
+    Get-ValidationContract "Write-Output 'value'`n`$true" | Should -Not -BeExactly (Get-ValidationContract "Write-Output 'value' `$true")
+
+    $hereString = "`$text = @'`nfirst`n`nlast`n'@`n`$true"
+    Get-ValidationContract $hereString | Should -Not -BeExactly (Get-ValidationContract $hereString.Replace("first`n`nlast", "first`nlast"))
   }
 
   It 'rejects unsafe vendor origins and archive paths before download or extraction' {

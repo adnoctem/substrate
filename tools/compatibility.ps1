@@ -24,7 +24,31 @@ function Get-SubstrateApiContract {
           foreach ($property in @($attribute.GetType().GetProperties() | Where-Object Name -NE TypeId | Sort-Object Name)) {
             $value = $property.GetValue($attribute, $null)
 
-            if ($value -is [scriptblock] -or $value -is [type]) { $value = [string]$value }
+            if ($value -is [scriptblock]) {
+              # Compare validator code without indentation or extra blank lines. Keep statement
+              # separators and literal token text, including whitespace inside quoted strings.
+              $tokens = $null
+              $null = [Management.Automation.Language.Parser]::ParseInput([string]$value, [ref]$tokens, [ref]$null)
+              $normalized = New-Object 'Collections.Generic.List[object]'
+
+              foreach ($token in $tokens) {
+                if ($token.Kind -eq 'EndOfInput') { continue }
+
+                if ($token.Kind -eq 'NewLine') {
+                  if ($normalized.Count -eq 0 -or $normalized[$normalized.Count - 1].Kind -eq 'NewLine') { continue }
+
+                  $normalized.Add([ordered]@{ Kind = 'NewLine'; Text = "`n" })
+                }
+                else {
+                  $normalized.Add([ordered]@{ Kind = [string]$token.Kind; Text = $token.Text })
+                }
+              }
+
+              if ($normalized.Count -gt 0 -and $normalized[$normalized.Count - 1].Kind -eq 'NewLine') { $normalized.RemoveAt($normalized.Count - 1) }
+
+              $value = @($normalized.ToArray())
+            }
+            elseif ($value -is [type]) { $value = [string]$value }
 
             $values[$property.Name] = $value
           }
