@@ -34,9 +34,11 @@ public sealed class ProbeProcessTests
     [Fact]
     public void RunnerBoundsCapturedOutputWhileDrainingBothStreams()
     {
-        var result = ProbeProcess.Run(Fixture, new[] { "streams" }, 10000, 64);
+        // Allow shared-runner startup and I/O contention; this verifies capture, not throughput.
+        // Timeout enforcement is exercised separately by RunnerTerminatesAStalledProbe.
+        var result = ProbeProcess.Run(Fixture, new[] { "streams" }, 60000, 64);
         Assert.Equal(17, result.ExitCode);
-        Assert.Equal(2 * 131072, result.Output.Length);
+        Assert.Equal(new string('O', 131072) + new string('E', 131072), result.Output);
     }
 
     [Fact]
