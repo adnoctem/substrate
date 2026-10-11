@@ -50,6 +50,48 @@ Add-Observation 'operation-log-json' {
   $path = Write-OperationResultLog -Results $items -ScriptName Synthetic -RunId 'new' -Path (Join-Path $scratch 'logs/result.jsonl')
   [Convert]::ToBase64String([IO.File]::ReadAllBytes($path))
 }
+
+foreach ($collection in @('ArrayList', 'List', 'Array')) {
+  foreach ($count in @(0, 1, 3)) {
+    Add-Observation "operation-log-collection-${collection}-${count}" {
+      # Assign outside an if-expression so PowerShell does not enumerate away the empty list.
+      if ($collection -eq 'List') { $items = New-Object 'Collections.Generic.List[object]' }
+      else { $items = New-Object Collections.ArrayList }
+
+      for ($index = 1; $index -le $count; $index++) {
+        Add-OperationResult -Results $items -Target "fixture-$index" -Source MigrationTest -Action Read -Status Completed -Detail Synthetic -Property @{ Timestamp = 'fixed'; Nested = @{ Value = $index } }
+      }
+
+      if ($collection -eq 'Array') { $items = $items.ToArray() }
+
+      $before = ConvertTo-Json -InputObject $items -Depth 10 -Compress
+      $directory = Join-Path $scratch "collections-${collection}-${count}"
+      $file = Join-Path $directory 'result.jsonl'
+
+      if (Test-Path -LiteralPath $file) { [IO.File]::Delete($file) }
+
+      if (Test-Path -LiteralPath $directory) { [IO.Directory]::Delete($directory) }
+
+      $path = Write-OperationResultLog -Results $items -ScriptName MigrationSmoke -Name winkit -RunId 'synthetic-run' -Path $file -ErrorAction Stop
+      $entries = @()
+
+      if ($count -gt 0) {
+        if ($path -isnot [string]) { throw 'Expected exactly one log path.' }
+
+        $entries = @([IO.File]::ReadAllLines($path) | ForEach-Object { $_ | ConvertFrom-Json })
+      }
+
+      [ordered]@{
+        Count            = $entries.Count
+        EmptyPath        = $null -eq $path
+        DirectoryCreated = Test-Path -LiteralPath $directory
+        Unchanged        = $before -ceq (ConvertTo-Json -InputObject $items -Depth 10 -Compress)
+        Entries          = $entries
+      }
+    }
+  }
+}
+
 Add-Observation 'operation-log-invalid-directory' { Write-OperationResultLog -Results @([PSCustomObject]@{}) -Path $scratch }
 Add-Observation 'operation-log-invalid-provider' { Write-OperationResultLog -Results @([PSCustomObject]@{}) -Path 'HKCU:\Software' }
 Add-Observation 'operation-log-string-enumeration' {

@@ -56,13 +56,23 @@ Write-Log -Message "Operation log: $path" -Color Gray
 
 Writes the accumulated operation results and prints the resulting path.
 
+### Example 2
+
+```powershell
+$results = New-Object Collections.ArrayList
+Add-OperationResult -Results $results -Target 'fixture' -Action Read -Status Completed
+Write-OperationResultLog -Results $results -ScriptName 'MigrationSmoke' -Name 'winkit'
+```
+
+Writes the accumulated collection without changing its objects.
+
 ## PARAMETERS
 
 ### -Name
 
 Directory name used under %TEMP% when Path is omitted.
 Defaults to
-AdNoctem.Substrate.
+PSFoundation.
 Consuming products supply their own name, for example
 -Name 'winkit'.
 A single path segment; separators are rejected.
@@ -110,6 +120,8 @@ HelpMessage: ""
 ### -Results
 
 Operation result objects to serialize.
+Accepts arrays and enumerable collections such as ArrayList or List[object].
+An empty collection returns no path and creates no log directory or file.
 
 ```yaml
 Type: System.Collections.IEnumerable

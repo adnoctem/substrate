@@ -14,7 +14,7 @@ namespace AdNoctem.Substrate.PowerShell.Core;
 [OutputType(typeof(string))]
 public sealed class WriteOperationResultLogCommand : PSCmdlet
 {
-    [Parameter(Mandatory = true, Position = 0), AllowEmptyCollection]
+    [Parameter(Mandatory = true, Position = 0), AllowEmptyCollection, UnwrapEnumerable]
     public IEnumerable Results { get; set; } = null!;
 
     [Parameter(Position = 1)]

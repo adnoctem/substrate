@@ -1,5 +1,21 @@
 # Existing Outlook PST sources
 
+## Automation objects and synthetic tests
+
+Namespace, store and folder inputs represent live Classic Outlook automation objects. The PowerShell adapter unwraps PSObject wrappers
+around COM or CLR objects; the shared C# planner reads public CLR/COM members directly. PSCustomObject note properties and ScriptMethod
+members are PowerShell extensions and do not provide that automation contract.
+
+For tests that exercise the real planner, load C# doubles with `Add-Type` and supply public properties, fields and methods matching the
+Outlook members used by the operation. The repository's
+[OutlookFixture.cs](https://github.com/adnoctem/substrate/blob/main/tests/fixtures/v2/OutlookFixture.cs) and
+[Outlook adapter probes](https://github.com/adnoctem/substrate/blob/main/tests/fixtures/v2/Outlook-Probe.ps1) show this approach, including
+one-based collections and configurable standard-folder identities and failures. These are test fixtures, not a shipped testing API.
+
+For script-only unit tests, mock the exported cmdlet that the consuming script calls in that script's scope. Mocking
+`Get-OutlookStandardFolderIdentity` does not intercept discovery inside the compiled `Get-OutlookFolderPlan` command. Keep real-planner
+fixture tests alongside script-level mocks so folder exclusions, incomplete identities and preview behavior remain covered.
+
 ## Folder discovery and incomplete plans
 
 `Get-OutlookFolderPlan` tolerates individual standard-folder lookup failures. For example, a provider error for

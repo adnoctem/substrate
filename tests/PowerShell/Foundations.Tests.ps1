@@ -25,5 +25,31 @@ Describe 'Compiled foundation compatibility' {
     }
 
     $differences | Should -BeNullOrEmpty -Because "v1/v2 foundation differences: $($differences -join ', '); reports: $reports"
+
+    foreach ($collection in @('ArrayList', 'List', 'Array')) {
+      foreach ($count in @(0, 1, 3)) {
+        $case = $after."operation-log-collection-${collection}-${count}"
+        $case.Terminated | Should -BeFalse -Because "$collection with $count results must bind and log"
+        $case.Records.Count | Should -Be 1
+        $observed = $case.Records[0].Value
+        $observed.Count | Should -Be $count
+        $observed.EmptyPath | Should -Be ($count -eq 0)
+        $observed.DirectoryCreated | Should -Be ($count -gt 0)
+        $observed.Unchanged | Should -BeTrue
+
+        for ($index = 0; $index -lt $count; $index++) {
+          $entry = $observed.Entries[$index]
+          $entry.Target | Should -BeExactly "fixture-$($index + 1)"
+          $entry.Source | Should -BeExactly 'MigrationTest'
+          $entry.Action | Should -BeExactly 'Read'
+          $entry.Status | Should -BeExactly 'Completed'
+          $entry.Detail | Should -BeExactly 'Synthetic'
+          $entry.Timestamp | Should -BeExactly 'fixed'
+          $entry.Script | Should -BeExactly 'MigrationSmoke'
+          $entry.RunId | Should -BeExactly 'synthetic-run'
+          $entry.Nested.Value | Should -Be ($index + 1)
+        }
+      }
+    }
   }
 }

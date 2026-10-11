@@ -28,8 +28,8 @@ foreach ($command in $contract.Commands) {
 
   foreach ($set in $command.ParameterSets) {
     foreach ($parameter in $set.Parameters) {
-      # Script parameters carry an internal binder implementation attribute.
-      $parameter.Attributes = @($parameter.Attributes | Where-Object Type -NotIn @('System.Management.Automation.ArgumentTypeConverterAttribute', 'System.Runtime.CompilerServices.NullableAttribute', 'AdNoctem.Substrate.PowerShell.Infrastructure.UnwrapListAttribute'))
+      # Ignore binder implementation attributes; collection conversion behavior is compared in Foundation-Probe.ps1.
+      $parameter.Attributes = @($parameter.Attributes | Where-Object Type -NotIn @('System.Management.Automation.ArgumentTypeConverterAttribute', 'System.Runtime.CompilerServices.NullableAttribute', 'AdNoctem.Substrate.PowerShell.Infrastructure.UnwrapListAttribute', 'AdNoctem.Substrate.PowerShell.Infrastructure.UnwrapEnumerableAttribute'))
     }
   }
 }
