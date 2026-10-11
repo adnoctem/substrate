@@ -1,13 +1,24 @@
 # Using the .NET libraries
 
+> [!WARNING]
+>
+> During pre-1.0 development (`0.x`), this project will regularly introduce breaking changes without a major version bump.
+> Public APIs, file layouts, and command-line interfaces may change between releases. Pin a release for reproducible builds
+> and review its release notes before updating. Stable compatibility guarantees will begin with version `1.0.0`.
+
 Substrate provides reusable C# libraries under the `AdNoctem.Substrate.*` package IDs. Install the domain package your application uses;
 NuGet resolves its dependencies. All domain packages share the release version. The PowerShell adapter is distributed separately as
 `AdNoctem.Substrate.PowerShell` on PSGallery.
 
+The eleven NuGet packages are `AdNoctem.Substrate.Core`, `AdNoctem.Substrate.Diagnostics`, `AdNoctem.Substrate.IO`,
+`AdNoctem.Substrate.Interop`, `AdNoctem.Substrate.Networking`, `AdNoctem.Substrate.Office`, `AdNoctem.Substrate.Packages`,
+`AdNoctem.Substrate.Policies`, `AdNoctem.Substrate.Registry`, `AdNoctem.Substrate.Security`, and `AdNoctem.Substrate.Windows`.
+There is no umbrella `AdNoctem.Substrate` package. The PowerShell adapter and Windows Runtime helper are not separate NuGet packages.
+
 For example, an application using the registry library can add a reference with:
 
 ```shell
-dotnet add package AdNoctem.Substrate.Registry
+dotnet add package AdNoctem.Substrate.Registry --version 0.1.0
 ```
 
 The libraries expose typed operations without loading PowerShell. Applications supply credentials, cancellation, logging and user

@@ -90,8 +90,8 @@
       "adnoctem.substrate.interop": {
         "type": "Project",
         "dependencies": {
-          "AdNoctem.Substrate.IO": "[1.0.0, )",
-          "AdNoctem.Substrate.Registry": "[1.0.0, )"
+          "AdNoctem.Substrate.IO": "[0.1.0, )",
+          "AdNoctem.Substrate.Registry": "[0.1.0, )"
         }
       },
       "adnoctem.substrate.io": {
@@ -101,16 +101,16 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Management.Infrastructure": "[3.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )",
-          "AdNoctem.Substrate.Interop": "[1.0.0, )"
+          "AdNoctem.Substrate.IO": "[0.1.0, )",
+          "AdNoctem.Substrate.Interop": "[0.1.0, )"
         }
       },
       "adnoctem.substrate.registry": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Win32.Registry": "[5.0.0, )",
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )"
         }
       }
     }

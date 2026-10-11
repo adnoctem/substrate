@@ -42,7 +42,7 @@ implementation changes, run the relevant MSBuild targets and finish with `Verify
 - Prefer focused functional tests for substantial behavior. Live administrative mutations belong on disposable or recoverable machines.
 - Conventional commits: `type(scope): summary`, with scopes `src|tools|tests|config|docs`. Types:
   `feat|fix|docs|refactor|test|chore|build|ci`. A body of at least 20 characters is required except for docs commits.
-- Semantic-release supplies the release version to verification and staging.
+- The initial release workflow bootstraps 0.1.0; semantic-release supplies subsequent versions to verification and staging. Keep the 0.x guard until the stable API policy is reviewed.
 - Publishing is explicitly gated. No pushing or publishing without user authorization.
 
 ## Security review rules

@@ -3,7 +3,7 @@
 .SYNOPSIS
   Prepares or explicitly publishes a verified substrate package.
 .PARAMETER Version
-  Semantic-release version. Releases before 1.0.0 are rejected.
+  Release version. Only plain 0.x versions starting at 0.1.0 are enabled until the stable API policy is reviewed.
 .PARAMETER Prepare
   Builds and verifies the selected version without publishing.
 .PARAMETER Publish
@@ -17,13 +17,13 @@
 .PARAMETER DryRun
   Reports the intended operation without building or publishing.
 .EXAMPLE
-  ./tools/release.ps1 -Prepare -Version 1.0.0
+  ./tools/release.ps1 -Prepare -Version 0.1.0
 .EXAMPLE
-  ./tools/release.ps1 -Publish -Version 1.0.0 -DryRun
+  ./tools/release.ps1 -Publish -Version 0.1.0 -DryRun
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param (
-  [Parameter(Mandatory = $true)][ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$')][string]$Version,
+  [Parameter(Mandatory = $true)][ValidatePattern('^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$')][string]$Version,
   [switch]$Prepare,
   [switch]$Publish,
   [switch]$ValidateOnly,
@@ -39,7 +39,9 @@ if (([int]$Prepare.IsPresent + [int]$Publish.IsPresent + [int]$ValidateOnly.IsPr
 
 if ($PackageId -and (-not $Publish -or $Destination -ne 'NuGet')) { throw 'PackageId requires Publish with Destination NuGet.' }
 
-if ([version]($Version -split '-', 2)[0] -lt [version]'1.0.0') { throw 'Substrate releases start at 1.0.0.' }
+if ([version]$Version -lt [version]'0.1.0' -or ([version]$Version).Major -ne 0) {
+  throw 'Substrate releases must be 0.x versions starting at 0.1.0. Review the release policy before enabling 1.0.0.'
+}
 
 $action = if ($Prepare) { 'Prepare and verify' } elseif ($ValidateOnly) { 'Validate prepared files' } else { "Publish to $Destination" }
 

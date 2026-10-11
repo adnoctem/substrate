@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <Deterministic>true</Deterministic>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>0.1.0</VersionPrefix>
     <IsPackable
       Condition="'$(MSBuildProjectName)' == 'PowerShell' or '$(MSBuildProjectName)' == 'WinRtHost'"
       >false</IsPackable>

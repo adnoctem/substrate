@@ -120,16 +120,16 @@
       "adnoctem.substrate.packages": {
         "type": "Project",
         "dependencies": {
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )",
-          "AdNoctem.Substrate.Registry": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )",
+          "AdNoctem.Substrate.Registry": "[0.1.0, )"
         }
       },
       "adnoctem.substrate.registry": {
         "type": "Project",
         "dependencies": {
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )"
         }
       }
     },
@@ -248,16 +248,16 @@
       "adnoctem.substrate.packages": {
         "type": "Project",
         "dependencies": {
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )",
-          "AdNoctem.Substrate.Registry": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )",
+          "AdNoctem.Substrate.Registry": "[0.1.0, )"
         }
       },
       "adnoctem.substrate.registry": {
         "type": "Project",
         "dependencies": {
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )"
         }
       }
     }

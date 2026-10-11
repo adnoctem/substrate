@@ -7,6 +7,11 @@ on:
         description: Optional tested commit; must still be the selected branch head
         required: false
         type: string
+      bootstrap:
+        description: Publish the first 0.1.0 release from main (requires no existing version tags)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -39,14 +44,21 @@ jobs:
       - name: Check release inputs
         env:
           TESTED_SHA: ${{ inputs.sha }}
+          BOOTSTRAP_RELEASE: ${{ inputs.bootstrap }}
           NUGET_USER: ${{ vars.NUGET_USER }}
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
         run: |
           if ($env:TESTED_SHA -and $env:TESTED_SHA -cne (git rev-parse HEAD)) {
             throw 'The branch has advanced since testing. Run Testing again before releasing.'
           }
-          if (-not $env:NUGET_USER) { throw 'Set the NUGET_USER repository variable and configure NuGet trusted publishing.' }
-          if (-not $env:PSGALLERY_API_KEY) { throw 'Set the PSGALLERY_TOKEN repository secret.' }
+          if ($env:BOOTSTRAP_RELEASE -eq 'true') {
+            if ($env:GITHUB_REF -ne 'refs/heads/main') { throw 'The first 0.1.0 release must use main.' }
+            $tags = @(git tag --list 'v*')
+            if ($LASTEXITCODE) { throw 'Could not inspect existing version tags.' }
+            if ($tags.Count) { throw 'Version tags already exist. Use semantic-release, or recover a partial publication.' }
+          }
+          if (-not $env:NUGET_USER) { throw 'Set NUGET_USER in Actions variables accessible to this repository and configure NuGet trusted publishing.' }
+          if (-not $env:PSGALLERY_API_KEY) { throw 'Set PSGALLERY_TOKEN in Actions secrets accessible to this repository.' }
 
       - name: Set up .NET
         uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
@@ -61,6 +73,10 @@ jobs:
       - name: Restore
         run: dotnet msbuild tools/tasks.proj -t:Restore
 
+      - name: Prepare initial 0.1.0 release
+        if: inputs.bootstrap
+        run: pwsh -NoProfile -File tools/release.ps1 -Prepare -Version 0.1.0
+
       - name: Authenticate to NuGet
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
         id: nuget
@@ -68,6 +84,7 @@ jobs:
           user: ${{ vars.NUGET_USER }}
 
       - name: Prepare and publish release
+        if: ${{ !inputs.bootstrap }}
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN || github.token }}
@@ -80,6 +97,19 @@ jobs:
             @semantic-release/exec@7.0.3
             @semantic-release/git@10.0.1
             conventional-changelog-conventionalcommits@8.0.0
+
+      - name: Publish initial 0.1.0 release
+        if: inputs.bootstrap
+        env:
+          GH_TOKEN: ${{ secrets.ANC_GITHUB_TOKEN || github.token }}
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_TOKEN }}
+          NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
+        run: |
+          pwsh -NoProfile -File tools/release.ps1 -Publish -Version 0.1.0
+          if ($LASTEXITCODE) { throw 'Initial package publication failed. Recover only missing packages from the retained artifacts.' }
+          $assets = @(Get-ChildItem -Path dist/*.zip, dist/*.tar.gz, dist/CHECKSUMS_SHA256.txt, dist/nuget/*.nupkg -File | ForEach-Object FullName)
+          gh release create v0.1.0 --target $env:GITHUB_SHA --title 'v0.1.0' --generate-notes @assets
+          if ($LASTEXITCODE) { throw 'Packages were published, but GitHub release creation failed. Finish the GitHub release without republishing packages.' }
 
       - name: Retain prepared release for inspection or retry
         if: always()

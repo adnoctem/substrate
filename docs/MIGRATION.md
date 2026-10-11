@@ -58,7 +58,8 @@ access. Build orchestration uses `dotnet msbuild tools/tasks.proj`; the old Powe
 ## Independent identity, compatible state
 
 The successor repository is [adnoctem/substrate](https://github.com/adnoctem/substrate). Libraries use `AdNoctem.Substrate.*`; the module is
-`AdNoctem.Substrate.PowerShell`, with GUID `81c6e99d-6a1d-4fc0-b688-2b36c361df05` and an independent initial version of 1.0.0. PSFoundation
+`AdNoctem.Substrate.PowerShell`, with GUID `81c6e99d-6a1d-4fc0-b688-2b36c361df05` and an independent initial release planned as 0.1.0. The
+original 1.0.0 plan was revised to allow API development while reusable implementations move out of winkit. PSFoundation
 release tags were not imported. Ancestor history remains available; the predecessor repository is not replaced or rewritten by this
 migration.
 

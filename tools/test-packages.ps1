@@ -11,7 +11,7 @@ param ()
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 
-$version = if ($env:SUBSTRATE_VERSION) { $env:SUBSTRATE_VERSION } else { '1.0.0' }
+$version = if ($env:SUBSTRATE_VERSION) { $env:SUBSTRATE_VERSION } else { '0.1.0' }
 
 $domains = @('Core', 'Diagnostics', 'IO', 'Interop', 'Networking', 'Office', 'Packages', 'Policies', 'Registry', 'Security', 'Windows')
 $work = Join-Path $root ('build/package-tests/' + [guid]::NewGuid().ToString('N'))

@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 
 $configuration = if ($env:SUBSTRATE_CONFIGURATION) { $env:SUBSTRATE_CONFIGURATION } else { 'Release' }
 
-$version = if ($env:SUBSTRATE_VERSION) { $env:SUBSTRATE_VERSION } else { '1.0.0' }
+$version = if ($env:SUBSTRATE_VERSION) { $env:SUBSTRATE_VERSION } else { '0.1.0' }
 
 if ($configuration -notin @('Debug', 'Release') -or $version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$') { throw 'Invalid build configuration or version.' }
 

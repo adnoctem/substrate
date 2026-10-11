@@ -56,19 +56,34 @@ $true
     { Assert-VendorArchivePath 'LGPO_30/LGPO.exe' } | Should -Not -Throw
   }
 
-  It 'previews release preparation without generating a release record or changing the staged manifest' {
+  It 'previews allowed 0.x preparation and publication without changing prepared files' {
     $manifest = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
     $before = (Get-FileHash -LiteralPath $manifest).Hash
-    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '1.0.0', '-DryRun')
-    $result.ExitCode | Should -Be 0 -Because $result.Output
-    $result.Output | Should -Match 'DRY RUN'
+    $record = Join-Path $root 'build/release.json'
+    $recordBefore = if (Test-Path -LiteralPath $record) { (Get-FileHash -LiteralPath $record).Hash } else { $null }
+
+    foreach ($version in @('0.1.0', '0.1.1', '0.2.0')) {
+      foreach ($mode in @('-Prepare', '-Publish')) {
+        $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), $mode, '-Version', $version, '-DryRun')
+        $result.ExitCode | Should -Be 0 -Because $result.Output
+        $result.Output | Should -Match ('DRY RUN: .* substrate ' + [regex]::Escape($version))
+      }
+    }
+
     (Get-FileHash -LiteralPath $manifest).Hash | Should -Be $before
+    $recordAfter = if (Test-Path -LiteralPath $record) { (Get-FileHash -LiteralPath $record).Hash } else { $null }
+    $recordAfter | Should -Be $recordBefore
   }
 
-  It 'rejects versions before the initial substrate release' {
-    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), '-Prepare', '-Version', '0.9.0', '-DryRun')
-    $result.ExitCode | Should -Not -Be 0
-    $result.Output | Should -Match 'Substrate releases start'
+  It 'rejects versions outside the pre-1.0 release policy before preparation or publication' {
+    foreach ($version in @('0.0.1', '1.0.0', '2.0.0', '0.1.0-beta.1', '00.1.0')) {
+      foreach ($mode in @('-Prepare', '-Publish')) {
+        $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', (Join-Path $root 'tools/release.ps1'), $mode, '-Version', $version, '-DryRun')
+        $result.ExitCode | Should -Not -Be 0 -Because $version
+        $result.Output | Should -Not -Match 'DRY RUN'
+        $result.Output | Should -Match 'Substrate releases must be|Cannot validate argument on parameter .Version.'
+      }
+    }
   }
 
   It 'validates relocated release artifacts and rejects altered, added, missing or mismatched artifacts' {
@@ -80,16 +95,16 @@ $true
 
     foreach ($path in $paths) { Set-Content -LiteralPath (Join-Path $fixture $path) -Value 'synthetic artifact' }
 
-    $record = @{ Schema = 2; Version = '1.0.0'; Files = @($paths | ForEach-Object {
+    $record = @{ Schema = 2; Version = '0.1.0'; Files = @($paths | ForEach-Object {
           @{ Path = $_; Sha256 = (Get-FileHash -LiteralPath (Join-Path $fixture $_)).Hash }
         })
     }
     $record | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath "$fixture/build/release.json"
-    $arguments = @('-NoProfile', '-File', $script, '-ValidateOnly', '-Version', '1.0.0')
+    $arguments = @('-NoProfile', '-File', $script, '-ValidateOnly', '-Version', '0.1.0')
     $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList $arguments
     $result.ExitCode | Should -Be 0 -Because $result.Output
     $result.Output | Should -Match 'Validated prepared'
-    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', $script, '-ValidateOnly', '-Version', '1.0.1')
+    $result = Invoke-SubstrateHostProbe -Engine pwsh -ArgumentList @('-NoProfile', '-File', $script, '-ValidateOnly', '-Version', '0.1.1')
     $result.ExitCode | Should -Not -Be 0
     $result.Output | Should -Match 'version does not match'
     $package = Join-Path $fixture $paths[1]

@@ -2,12 +2,12 @@
   <PropertyGroup>
     <RepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepositoryRoot>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <Version Condition="'$(Version)' == ''">0.1.0</Version>
     <TaskEnvironment>DOTNET_CLI_HOME=$(RepositoryRoot)/build/dotnet;DOTNET_CLI_TELEMETRY_OPTOUT=1;Configuration=$(Configuration);SUBSTRATE_CONFIGURATION=$(Configuration);SUBSTRATE_VERSION=$(Version)</TaskEnvironment>
   </PropertyGroup>
   <Target Name="Help">
     <Message Importance="high" Text="dotnet msbuild tools/tasks.proj -t:Restore|Build|Stage|Test|Docs|UpdateHelp|Format|Check|Pack|Verify|Clean" />
-    <Message Importance="high" Text="Optional properties: Configuration=Release|Debug, Version=1.0.0. Publishing is a separate, explicit operation." />
+    <Message Importance="high" Text="Optional properties: Configuration=Release|Debug, Version=0.1.0. Publishing is a separate, explicit operation." />
   </Target>
   <Target Name="Validate">
     <Error Condition="'$(Configuration)' != 'Release' and '$(Configuration)' != 'Debug'" Text="Configuration must be Release or Debug." />

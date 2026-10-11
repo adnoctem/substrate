@@ -25,8 +25,8 @@
       "adnoctem.substrate.registry": {
         "type": "Project",
         "dependencies": {
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )"
         }
       }
     },
@@ -104,8 +104,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Win32.Registry": "[5.0.0, )",
-          "AdNoctem.Substrate.Diagnostics": "[1.0.0, )",
-          "AdNoctem.Substrate.IO": "[1.0.0, )"
+          "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
+          "AdNoctem.Substrate.IO": "[0.1.0, )"
         }
       }
     }

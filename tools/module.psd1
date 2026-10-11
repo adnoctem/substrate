@@ -1,6 +1,6 @@
 ﻿@{
   RootModule            = 'AdNoctem.Substrate.PowerShell.psm1'
-  ModuleVersion         = '1.0.0'
+  ModuleVersion         = '0.1.0'
   GUID                  = '81c6e99d-6a1d-4fc0-b688-2b36c361df05'
   Author                = 'MVProwess'
   CompanyName           = 'Ad Noctem Collective'

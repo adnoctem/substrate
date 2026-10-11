@@ -89,17 +89,24 @@ Verify restores the packages into isolated .NET Framework and modern .NET consum
 to check transitive dependencies and helper deployment. These tests do not invoke the helper or perform administrative operations.
 
 Semantic-release generates CHANGELOG.md from commits; do not maintain it by hand. It passes its selected version to `tools/release.ps1
--Prepare`, which verifies and packages that version. Substrate starts an independent release sequence at 1.0.0; PSFoundation release tags
-are not imported. `main` and `next` retain their existing release-branch configuration; neither is a prerelease branch. The release workflow remains manual and requires
+-Prepare`, which verifies and packages that version. Substrate starts an independent release sequence at 0.1.0; PSFoundation release tags
+are not imported. During 0.x development, features and breaking changes increment the minor version; fixes increment the patch version.
+Ordinary documentation, refactoring and test commits do not trigger releases. The release script accepts only plain 0.x versions starting
+at 0.1.0, and semantic-release checks that policy before preparing files. Review both the breaking-change rule and version guard before
+graduating to 1.0.0. `main` and `next` retain their existing release-branch configuration; neither is a prerelease branch.
+The release workflow remains manual and requires
 `SUBSTRATE_RELEASE_ENABLED=true` on either branch. The final dispatch job in Testing is commented out. If enabled later, it supplies the
 tested commit and Release rejects a branch that has advanced since that test.
 
 Before enabling publication, configure:
 
-- `PSGALLERY_TOKEN`, a repository secret containing the PSGallery API key for `AdNoctem.Substrate.PowerShell`.
-- `NUGET_USER`, a repository variable containing the personal NuGet username used to authenticate, even when an organization owns packages.
+- `PSGALLERY_TOKEN`, an Actions secret containing the PSGallery API key for `AdNoctem.Substrate.PowerShell`.
+- `NUGET_USER`, an Actions variable containing the personal NuGet username (not email) used to authenticate, even when an organization owns packages.
+  Organization-level variables and secrets must grant this repository access; repository-level values override organization values.
 - A [NuGet trusted publishing policy](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing) for GitHub owner `adnoctem`,
-  repository `substrate`, workflow filename `release.yaml`, and package pattern `AdNoctem.Substrate.*`. The workflow does not use an environment.
+  repository `substrate`, workflow filename `release.yaml`, and package pattern `AdNoctem.Substrate*`, allowing new packages and new versions.
+  Select the NuGet organization `AdNoctem` as the policy's package owner, while keeping `NUGET_USER` as the personal account that created the
+  policy and remains a member of that organization. Package IDs and Git tags do not assign ownership. The workflow does not use an environment.
   NuGet/login exchanges the job's OIDC identity for a temporary API key; no stored NuGet API key is required in GitHub.
 - Optionally `ANC_GITHUB_TOKEN` when repository rules require a dedicated release identity; otherwise the workflow uses `GITHUB_TOKEN`.
   That identity must be allowed to push the generated changelog commit and release tags under the repository's branch rules.
@@ -108,9 +115,19 @@ A NuGet organization is optional and supports shared package ownership. It does 
 a separate application to NuGet. Complete ownership and publishing-policy setup before enabling the release gate.
 
 ```powershell
-./tools/release.ps1 -Prepare -Version 1.0.0 -DryRun
-./tools/release.ps1 -Publish -Version 1.0.0 -DryRun
+./tools/release.ps1 -Prepare -Version 0.1.0 -DryRun
+./tools/release.ps1 -Publish -Version 0.1.0 -DryRun
 ```
+
+For the first publication, run Testing on the release-ready `main` commit. After explicitly enabling the release gate, manually dispatch
+Release on `main`, supply that tested commit as `sha`, and select `bootstrap`. This path verifies and publishes exactly 0.1.0 to both feeds,
+then creates the matching `v0.1.0` tag and GitHub release with its assets. It refuses other branches or any existing `v*` tags. Until this
+bootstrap establishes a version tag, ordinary semantic-release proposes 1.0.0 and the version guard rejects it. Creating a tag alone does
+not publish packages; do not pre-create `v0.1.0` for this workflow.
+
+Leave `bootstrap` off for subsequent releases. Semantic-release analyzes commits after the latest version tag, so dispatching again without
+release-worthy changes does not create another version. Bootstrap is not a retry mechanism: after a partial publication, recover the
+retained artifacts as described below and complete the missing destinations and GitHub release without rebuilding or republishing.
 
 Actual publication validates the complete prepared file set and its hashes, then publishes the NuGet libraries and PSGallery module
 before attaching assets to the GitHub release. Local publishing reads `NUGET_API_KEY` and `PSGALLERY_API_KEY` from the environment only.

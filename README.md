@@ -16,11 +16,22 @@
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovate&logoColor=1A1F6C)][renovate]
 [![PreCommit](https://img.shields.io/badge/PreCommit-enabled-brightgreen?logo=precommit&logoColor=FAB040)][precommit]
 
+> [!WARNING]
+>
+> During pre-1.0 development (`0.x`), this project will regularly introduce breaking changes without a major version bump.
+> Public APIs, file layouts, and command-line interfaces may change between releases. Pin a release for reproducible builds
+> and review its release notes before updating. Stable compatibility guarantees will begin with version `1.0.0`.
+
 `substrate` is an open-source [MIT][license]-licensed library of reusable C# APIs, maintained by the [Ad Noctem Collective][org], for
 Windows administration, configuration management, and automation. Applications can use the domain libraries without loading PowerShell.
 
 The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Its first release
-is planned as 1.0.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
+is planned as 0.1.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
+
+PSGallery distributes the complete module as `AdNoctem.Substrate.PowerShell`. NuGet distributes eleven separate domain packages:
+`AdNoctem.Substrate.Core`, `.Diagnostics`, `.IO`, `.Interop`, `.Networking`, `.Office`, `.Packages`, `.Policies`, `.Registry`, `.Security`,
+and `.Windows` (each with the `AdNoctem.Substrate` prefix). There is no umbrella `AdNoctem.Substrate` package; reference the domains you use.
+All packages share the same release version.
 
 The implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter preserves 188 commands and four aliases,
 using compiled cmdlets and a small compatibility script. Comparison tests retrieve the frozen PSFoundation v1 scripts from Git history.
