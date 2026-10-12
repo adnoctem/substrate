@@ -1,7 +1,7 @@
 <p align="center">
     <!-- substrate -->
     <picture>
-      <img src="https://raw.githubusercontent.com/adnoctem/artwork/refs/heads/main/projects/substrate/icon/substrate.svg" alt="substrate Logo" width="225">
+      <img src="https://raw.githubusercontent.com/adnoctem/artwork/refs/heads/main/projects/substrate/icon/substrate.svg" alt="substrate Logo" width="256">
     </picture>
     <h1 align="center">substrate</h1>
 </p>
