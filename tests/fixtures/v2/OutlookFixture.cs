@@ -13,6 +13,7 @@ namespace AdNoctem.Substrate.Tests.Fixtures
     {
         public const int E_ABORT = unchecked((int)0x80004004);
         public readonly FakeStores Stores = new FakeStores();
+        public readonly FakeAccounts Accounts = new FakeAccounts();
         public readonly FakeApplication Application = new FakeApplication();
         public int Added;
         public int Removed;
@@ -28,6 +29,14 @@ namespace AdNoctem.Substrate.Tests.Fixtures
             Stores.Values.Add(store);
 
             return store;
+        }
+
+        public FakeAccount AddAccount(string name, int type, FakeStore delivery)
+        {
+            var account = new FakeAccount(name, type, delivery);
+            Accounts.Values.Add(account);
+
+            return account;
         }
 
         public void AddStore(string path)
@@ -109,14 +118,44 @@ namespace AdNoctem.Substrate.Tests.Fixtures
         }
     }
 
+    public class FakeAccounts
+    {
+        public readonly List<FakeAccount> Values = new List<FakeAccount>();
+        public int Count
+        {
+            get { return Values.Count; }
+        }
+
+        public FakeAccount Item(int index)
+        {
+            return Values[index - 1];
+        }
+    }
+
+    public class FakeAccount
+    {
+        public string DisplayName { get; set; }
+        public string SmtpAddress { get; set; }
+        public string UserName { get; set; }
+        public int AccountType { get; set; }
+        public FakeStore DeliveryStore { get; set; }
+
+        public FakeAccount(string name, int type, FakeStore delivery)
+        {
+            DisplayName = name;
+            SmtpAddress = name;
+            UserName = name;
+            AccountType = type;
+            DeliveryStore = delivery;
+        }
+    }
+
     public class FakeStore
     {
         public string FilePath { get; set; }
         public string StoreID { get; set; }
-        public string DisplayName
-        {
-            get { return "Synthetic"; }
-        }
+        public int ExchangeStoreType { get; set; }
+        public string DisplayName { get; set; }
         public bool IsDefault
         {
             get { return true; }
@@ -137,6 +176,8 @@ namespace AdNoctem.Substrate.Tests.Fixtures
         {
             FilePath = path;
             StoreID = id;
+            DisplayName = "Synthetic";
+            ExchangeStoreType = 3;
             Root = new FakeFolder(this, "root", "Synthetic", "\\\\Synthetic");
             var inbox = Root.Folders.Add("Posteingang");
             Standard[6] = inbox;

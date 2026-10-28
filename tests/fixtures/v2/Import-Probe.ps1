@@ -4,7 +4,7 @@ param ([Parameter(Mandatory = $true)][string]$ModulePath)
 $ErrorActionPreference = 'Stop'
 $module = Import-Module $ModulePath -Force -PassThru
 
-if ($module.Name -ne 'AdNoctem.Substrate.PowerShell' -or $module.ExportedCommands.Count -ne 192) { throw 'Incremental package lost exports or module identity.' }
+if ($module.Name -ne 'AdNoctem.Substrate.PowerShell' -or $module.ExportedCommands.Count -ne 194) { throw 'Incremental package lost exports or module identity.' }
 
 foreach ($name in @('ConvertTo-RegistryProviderPath', 'Resolve-RegistryPath', 'New-OperationResult')) {
   $commands = @(Get-Command -Name $name -Module AdNoctem.Substrate.PowerShell -All)

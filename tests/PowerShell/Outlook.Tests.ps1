@@ -58,3 +58,50 @@ Describe 'C# Outlook workflow compatibility' {
     $differences | Should -BeNullOrEmpty -Because "v1/v2 Outlook differences: $($differences -join ', '); reports: $reports"
   }
 }
+
+Describe 'C# Outlook profile inventory' {
+  BeforeAll { . (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'tools/probe.ps1') }
+
+  It 'classifies accounts and delivery stores without opening folders in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
+    $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+    $reports = Join-Path $root 'build/test-results/outlook'
+    $null = [IO.Directory]::CreateDirectory($reports)
+    $report = Join-Path $reports "$Engine-account.json"
+    $module = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
+    $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Outlook-Account-Probe.ps1'), '-ModulePath', $module, '-ReportPath', $report)
+    $result.ExitCode | Should -Be 0 -Because $result.Output
+    $observed = Get-Content $report -Raw | ConvertFrom-Json
+
+    $observed.AccountCount | Should -Be 4
+    ($observed.AccountFields -join ',') | Should -BeExactly 'DisplayName,SmtpAddress,UserName,AccountType,AccountTypeName,DeliveryStoreID,DeliveryStoreName,DeliveryFilePath,IsServerSynchronized,MayDeferItemBodies,Evidence'
+    ($observed.StoreFields -join ',') | Should -BeExactly 'DisplayName,StoreID,FilePath,DataFileFormat,ExchangeStoreType,ExchangeStoreName,IsExchangeBacked,IsSynchronized,MayContainHeaderOnlyItems,SizeBytes,DeliveredFrom,Evidence'
+    ($observed.TypeNames -join ',') | Should -BeExactly 'Exchange,POP3,IMAP,POP3'
+    ($observed.DeferBodies -join ',') | Should -BeExactly 'False,False,True,False'
+
+    # An extension cannot classify an Outlook 2007 IMAP store: it is a PST and
+    # reports olNotExchange, yet its items can still be header-only stubs.
+    $observed.ImapStore.DataFileFormat | Should -BeExactly 'PST'
+    $observed.ImapStore.ExchangeStoreType | Should -Be 3
+    $observed.ImapStore.IsExchangeBacked | Should -BeFalse
+    $observed.ImapStore.IsSynchronized | Should -BeTrue
+    $observed.ImapStore.MayContainHeaderOnlyItems | Should -BeTrue
+    $observed.ImapStore.Evidence | Should -Match "IMAP account 'imap@synthetic.test'"
+    $observed.ImapStore.SizeBytes | Should -Be 4096
+
+    $observed.LocalStore.IsSynchronized | Should -BeFalse
+    $observed.LocalStore.MayContainHeaderOnlyItems | Should -BeFalse
+    @($observed.LocalStore.DeliveredFrom).Count | Should -Be 0
+
+    # Delivery is correlated by StoreID, so a POP account landing in the
+    # Exchange mailbox is visible before anyone removes that account.
+    ($observed.ExchangeStore.DeliveredFrom -join ',') | Should -BeExactly 'mailbox@synthetic.test,pop@synthetic.test'
+    $observed.ExchangeStore.ExchangeStoreName | Should -BeExactly 'PrimaryMailbox'
+    $observed.ExchangeStore.MayContainHeaderOnlyItems | Should -BeTrue
+
+    $observed.Orphan.DeliveryStoreID | Should -BeExactly ''
+    $observed.Orphan.Evidence | Should -Match 'no delivery store'
+
+    $observed.ItemAccesses | Should -Be 0
+    $observed.FolderCreation | Should -BeTrue
+  }
+}

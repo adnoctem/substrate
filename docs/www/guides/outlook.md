@@ -16,6 +16,32 @@ For script-only unit tests, mock the exported cmdlet that the consuming script c
 `Get-OutlookStandardFolderIdentity` does not intercept discovery inside the compiled `Get-OutlookFolderPlan` command. Keep real-planner
 fixture tests alongside script-level mocks so folder exclusions, incomplete identities and preview behavior remain covered.
 
+## Profile inventory and store classification
+
+`Get-OutlookAccount` and `Get-OutlookStore` read the accounts and data files of a connected profile without opening a folder or touching an
+item. Both come from one correlated read, so a store can state which accounts deliver into it. Correlation uses StoreID: display names
+repeat across data files, and two profiles routinely hold several "Personal Folders".
+
+Use them where folder discovery is unavailable. Standard-folder identities are refused for Exchange and OST stores below Outlook 2010, so an
+inventory is the only thing that answers "what does this account deliver into" on an Outlook 2007 Exchange profile — which is also where the
+answer matters most, because a POP account delivering into an Exchange mailbox loses its mail when that mailbox's OST is removed.
+
+Two classifications carry the operational meaning:
+
+- `IsSynchronized` — changes here can reach a server and other clients. True for an OST, for any Exchange-backed store, and for a store that
+  an Exchange, IMAP, HTTP or EAS account delivers into.
+- `MayContainHeaderOnlyItems` — an item can still be a stub whose body is on the server, so a transfer must verify `DownloadState` first.
+  True for an OST, and for a store that an IMAP, HTTP or EAS account delivers into.
+
+Neither is decided from the file alone, because the file does not carry the answer. **Outlook 2007 backs an IMAP account with a PST**, and
+that store reports `olNotExchange`. Classifying by extension or by `ExchangeStoreType` marks it a plain local data file, skips the download
+check, and lets a Move-mode transfer delete a server copy whose body was never downloaded. The owning account's `AccountType` is the only
+reliable signal, which is why store classification is computed from the accounts rather than published as a property of the store.
+
+`ExchangeStoreType` is reported raw alongside its label, and `olNotExchange` (3) is the only value that proves a store is not served by
+Exchange. A store whose type the provider does not report counts as Exchange-backed, and `Evidence` records that it was unreadable rather
+than letting a missing value read as local.
+
 ## Folder discovery and incomplete plans
 
 `Get-OutlookFolderPlan` tolerates individual standard-folder lookup failures. For example, a provider error for

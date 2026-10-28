@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 Import-Module $ModulePath -Force
 $commands = @(Get-Command -Module AdNoctem.Substrate.PowerShell -CommandType Function, Cmdlet)
 
-if ($commands.Count -ne 188) { throw "Unexpected command count: $($commands.Count)" }
+if ($commands.Count -ne 190) { throw "Unexpected command count: $($commands.Count)" }
 
 foreach ($command in $commands) {
   $command = Get-Command ("AdNoctem.Substrate.PowerShell\" + $command.Name)

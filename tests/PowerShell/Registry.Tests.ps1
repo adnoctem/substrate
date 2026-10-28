@@ -21,8 +21,14 @@ Describe 'Compiled command contracts and registry compatibility' {
     $after = Get-Content (Join-Path $reportRoot "$Engine-contract-v2.json") -Raw | ConvertFrom-Json
     $differences = @()
 
-    for ($index = 0; $index -lt $before.Commands.Count; $index++) {
-      if (($before.Commands[$index] | ConvertTo-Json -Depth 35 -Compress) -cne ($after.Commands[$index] | ConvertTo-Json -Depth 35 -Compress)) { $differences += $before.Commands[$index].Name }
+    # Pair by name: v2 may add commands, and the pinned v1 contracts must stay
+    # comparable when it does. A removed command is a difference, not a shift.
+    $observed = @{}
+    foreach ($command in $after.Commands) { $observed[$command.Name] = $command }
+
+    foreach ($command in $before.Commands) {
+      if (-not $observed.ContainsKey($command.Name)) { $differences += $command.Name; continue }
+      if (($command | ConvertTo-Json -Depth 35 -Compress) -cne ($observed[$command.Name] | ConvertTo-Json -Depth 35 -Compress)) { $differences += $command.Name }
     }
 
     $differences | Should -BeNullOrEmpty -Because "parameter metadata differs: $($differences -join ', ')"

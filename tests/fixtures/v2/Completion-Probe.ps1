@@ -9,7 +9,7 @@ $null = [IO.Directory]::CreateDirectory($root)
 try {
   $exports = @(Get-Command -Module AdNoctem.Substrate.PowerShell)
 
-  if ($exports.Count -ne 192) { throw 'Incomplete module exports.' }
+  if ($exports.Count -ne 194) { throw 'Incomplete module exports.' }
 
   if (@(Get-ChildItem (Split-Path $ModulePath -Parent) -Filter *.ps1).Count -ne 1) { throw 'Legacy scripts remain staged.' }
 

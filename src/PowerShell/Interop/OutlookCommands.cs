@@ -139,6 +139,96 @@ public sealed class ConnectOutlookCommand : OutlookCommand
     }
 }
 
+[Cmdlet(VerbsCommon.Get, "OutlookAccount"), OutputType(typeof(PSObject[]))]
+public sealed class GetOutlookAccountCommand : OutlookCommand
+{
+    [Parameter(Mandatory = true, Position = 0), ValidateNotNull]
+    public object Namespace { get; set; } = null!;
+
+    protected override void ProcessRecord()
+    {
+        var inventory = Manager.GetProfileInventory(Unwrap(Namespace), Cancellation);
+
+        foreach (var value in inventory.Accounts)
+        {
+            if (!string.IsNullOrEmpty(value.Evidence))
+                WriteVerbose("Account '" + value.DisplayName + "': " + value.Evidence);
+
+            WriteObject(
+                SystemOutput.Object(
+                    "DisplayName",
+                    value.DisplayName,
+                    "SmtpAddress",
+                    value.SmtpAddress,
+                    "UserName",
+                    value.UserName,
+                    "AccountType",
+                    value.AccountType,
+                    "AccountTypeName",
+                    value.KindName,
+                    "DeliveryStoreID",
+                    value.DeliveryStoreId,
+                    "DeliveryStoreName",
+                    value.DeliveryStoreName,
+                    "DeliveryFilePath",
+                    value.DeliveryFilePath,
+                    "IsServerSynchronized",
+                    value.IsServerSynchronized,
+                    "MayDeferItemBodies",
+                    value.MayDeferItemBodies,
+                    "Evidence",
+                    value.Evidence
+                )
+            );
+        }
+    }
+}
+
+[Cmdlet(VerbsCommon.Get, "OutlookStore"), OutputType(typeof(PSObject[]))]
+public sealed class GetOutlookStoreCommand : OutlookCommand
+{
+    [Parameter(Mandatory = true, Position = 0), ValidateNotNull]
+    public object Namespace { get; set; } = null!;
+
+    protected override void ProcessRecord()
+    {
+        var inventory = Manager.GetProfileInventory(Unwrap(Namespace), Cancellation);
+
+        foreach (var value in inventory.Stores)
+        {
+            WriteVerbose("Store '" + value.DisplayName + "': " + value.Evidence);
+            WriteObject(
+                SystemOutput.Object(
+                    "DisplayName",
+                    value.DisplayName,
+                    "StoreID",
+                    value.StoreId,
+                    "FilePath",
+                    value.FilePath,
+                    "DataFileFormat",
+                    value.DataFileFormatName,
+                    "ExchangeStoreType",
+                    value.ExchangeStoreType,
+                    "ExchangeStoreName",
+                    value.ExchangeStoreName,
+                    "IsExchangeBacked",
+                    value.IsExchangeBacked,
+                    "IsSynchronized",
+                    value.IsSynchronized,
+                    "MayContainHeaderOnlyItems",
+                    value.MayContainHeaderOnlyItems,
+                    "SizeBytes",
+                    value.SizeBytes,
+                    "DeliveredFrom",
+                    value.DeliveredFrom.ToArray(),
+                    "Evidence",
+                    value.Evidence
+                )
+            );
+        }
+    }
+}
+
 [Cmdlet(VerbsCommon.Get, "OutlookStoreRoot")]
 public sealed class GetOutlookStoreRootCommand : OutlookCommand
 {
