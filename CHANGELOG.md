@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/adnoctem/substrate/compare/v0.2.0...v0.2.1) (2026-10-29)
+
+### Bug Fixes
+
+- **src:** resolve delivery stores on clients that cannot report them ([056bc18](https://github.com/adnoctem/substrate/commit/056bc186dfc86eae991bf4dc9b6e2d1f3a13fd95))
+- **tools:** drain probe output without the thread pool ([9ecfc0c](https://github.com/adnoctem/substrate/commit/9ecfc0c3febf74fe369604a414f0ac620776ea97))
+
 ## [0.2.0](https://github.com/adnoctem/substrate/compare/v0.1.1...v0.2.0) (2026-10-28)
 
 ### Features
