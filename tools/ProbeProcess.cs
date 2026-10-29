@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
 namespace AdNoctem.Substrate.DevTools
@@ -83,8 +83,8 @@ namespace AdNoctem.Substrate.DevTools
                     if (!AssignProcessToJobObject(job, process.Handle))
                         throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                    var output = Capture(process.StandardOutput);
-                    var error = Capture(process.StandardError);
+                    var output = new StreamDrain(process.StandardOutput);
+                    var error = new StreamDrain(process.StandardError);
 
                     if (!process.WaitForExit(timeoutMilliseconds))
                     {
@@ -98,10 +98,10 @@ namespace AdNoctem.Substrate.DevTools
 
                     job.Dispose();
 
-                    if (!Task.WaitAll(new Task[] { output, error }, 5000))
+                    if (!output.Wait(5000) || !error.Wait(5000))
                         throw new IOException("Probe output did not close.");
 
-                    return new Result(process.ExitCode, output.Result + error.Result);
+                    return new Result(process.ExitCode, output.Text + error.Text);
                 }
                 finally
                 {
@@ -116,19 +116,63 @@ namespace AdNoctem.Substrate.DevTools
             }
         }
 
-        private static async Task<string> Capture(StreamReader reader)
+        // Drains one redirected stream on a dedicated thread, bounding what it keeps.
+        //
+        // The thread pool cannot be used for this. Process redirects through synchronous
+        // pipes, so an async read there is a blocking read dispatched to a pool thread and
+        // it occupies that thread for the whole run, while the caller blocks on another one
+        // waiting for it. Several probes in parallel exhaust the pool, and it injects
+        // replacement threads about once a second, so the capture wait expired on loaded CI
+        // runners although the probe had already exited. A dedicated thread does not queue
+        // behind anything.
+        private sealed class StreamDrain
         {
-            var text = new StringBuilder();
-            var buffer = new char[4096];
-            int count;
+            private const int Limit = 131072;
 
-            while (
-                (count = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false))
-                != 0
-            )
-                text.Append(buffer, 0, Math.Min(count, 131072 - text.Length));
+            private readonly StreamReader reader;
+            private readonly Thread worker;
+            private string captured = "";
 
-            return text.ToString();
+            public StreamDrain(StreamReader streamReader)
+            {
+                reader = streamReader;
+                worker = new Thread(Drain);
+                worker.IsBackground = true;
+                worker.Name = "probe-stream-drain";
+                worker.Start();
+            }
+
+            /// <summary>Valid once Wait has returned true; the join publishes it to the caller.</summary>
+            public string Text
+            {
+                get { return captured; }
+            }
+
+            public bool Wait(int milliseconds)
+            {
+                return worker.Join(milliseconds);
+            }
+
+            private void Drain()
+            {
+                var text = new StringBuilder();
+
+                try
+                {
+                    var buffer = new char[4096];
+                    int count;
+
+                    while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+                        text.Append(buffer, 0, Math.Min(count, Limit - text.Length));
+                }
+                catch (Exception)
+                {
+                    // A broken pipe ends the capture. Whatever arrived stays reportable, and
+                    // an unhandled exception here would take the whole test host down.
+                }
+
+                captured = text.ToString();
+            }
         }
 
         private static string Quote(string value)
