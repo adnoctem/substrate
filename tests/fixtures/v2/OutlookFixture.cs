@@ -134,11 +134,29 @@ namespace AdNoctem.Substrate.Tests.Fixtures
 
     public class FakeAccount
     {
+        private FakeStore delivery;
+
         public string DisplayName { get; set; }
         public string SmtpAddress { get; set; }
         public string UserName { get; set; }
         public int AccountType { get; set; }
-        public FakeStore DeliveryStore { get; set; }
+
+        /// <summary>
+        /// Outlook 2007 exposes no DeliveryStore property, so the dispatch read fails with DISP_E_UNKNOWNNAME rather than
+        /// returning nothing. The two cases mean different things and the inventory treats them differently.
+        /// </summary>
+        public bool HideDeliveryStore;
+        public FakeStore DeliveryStore
+        {
+            get
+            {
+                if (HideDeliveryStore)
+                    throw new COMException("Unbekannter Name.", unchecked((int)0x80020006));
+
+                return delivery;
+            }
+            set { delivery = value; }
+        }
 
         public FakeAccount(string name, int type, FakeStore delivery)
         {

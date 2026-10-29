@@ -18,13 +18,31 @@ fixture tests alongside script-level mocks so folder exclusions, incomplete iden
 
 ## Profile inventory and store classification
 
-`Get-OutlookAccount` and `Get-OutlookStore` read the accounts and data files of a connected profile without opening a folder or touching an
-item. Both come from one correlated read, so a store can state which accounts deliver into it. Correlation uses StoreID: display names
+`Get-OutlookAccount` and `Get-OutlookStore` read the accounts and data files of a connected profile without enumerating a folder or touching
+an item. Both come from one correlated read, so a store can state which accounts deliver into it. Correlation uses StoreID: display names
 repeat across data files, and two profiles routinely hold several "Personal Folders".
 
 Use them where folder discovery is unavailable. Standard-folder identities are refused for Exchange and OST stores below Outlook 2010, so an
 inventory is the only thing that answers "what does this account deliver into" on an Outlook 2007 Exchange profile — which is also where the
 answer matters most, because a POP account delivering into an Exchange mailbox loses its mail when that mailbox's OST is removed.
+
+### Delivery on clients below Outlook 2010
+
+`Account.DeliveryStore` was added in Outlook 2010. On Outlook 2007 the property does not exist, the read fails with
+`DISP_E_UNKNOWNNAME`, and no account in the profile can state where its mail lands — on exactly the clients where a POP account sharing a
+profile with an Exchange mailbox is most likely.
+
+There the inventory resolves the **profile default delivery store** instead, through the StoreID of the Inbox that `GetDefaultFolder`
+returns. That property has been readable since Outlook 2000. New mail lands in the default store unless an account carries an override, and a
+client that cannot report delivery cannot report an override either, so:
+
+- `DeliveryStoreSource` is `ProfileDefault` and `IsDeliveryStoreInferred` is `$true`.
+- The store's `DeliveredFrom` lists the account, and the store's `Evidence` says the delivery was taken from the profile default.
+- An account re-pointed somewhere else would still be listed against the default store, so confirm the value in Account Settings before
+  removing an account or a data file.
+
+Where the default store cannot be read either, nothing is substituted: the delivery fields stay empty and `DeliveryStoreSource` is
+`Unresolved`.
 
 Two classifications carry the operational meaning:
 

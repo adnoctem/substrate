@@ -62,7 +62,7 @@ Describe 'C# Outlook workflow compatibility' {
 Describe 'C# Outlook profile inventory' {
   BeforeAll { . (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'tools/probe.ps1') }
 
-  It 'classifies accounts and delivery stores without opening folders in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
+  It 'classifies accounts and delivery stores without reaching an item in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     $reports = Join-Path $root 'build/test-results/outlook'
     $null = [IO.Directory]::CreateDirectory($reports)
@@ -73,7 +73,7 @@ Describe 'C# Outlook profile inventory' {
     $observed = Get-Content $report -Raw | ConvertFrom-Json
 
     $observed.AccountCount | Should -Be 4
-    ($observed.AccountFields -join ',') | Should -BeExactly 'DisplayName,SmtpAddress,UserName,AccountType,AccountTypeName,DeliveryStoreID,DeliveryStoreName,DeliveryFilePath,IsServerSynchronized,MayDeferItemBodies,Evidence'
+    ($observed.AccountFields -join ',') | Should -BeExactly 'DisplayName,SmtpAddress,UserName,AccountType,AccountTypeName,DeliveryStoreID,DeliveryStoreName,DeliveryFilePath,DeliveryStoreSource,IsDeliveryStoreInferred,IsServerSynchronized,MayDeferItemBodies,Evidence'
     ($observed.StoreFields -join ',') | Should -BeExactly 'DisplayName,StoreID,FilePath,DataFileFormat,ExchangeStoreType,ExchangeStoreName,IsExchangeBacked,IsSynchronized,MayContainHeaderOnlyItems,SizeBytes,DeliveredFrom,Evidence'
     ($observed.TypeNames -join ',') | Should -BeExactly 'Exchange,POP3,IMAP,POP3'
     ($observed.DeferBodies -join ',') | Should -BeExactly 'False,False,True,False'
@@ -100,8 +100,53 @@ Describe 'C# Outlook profile inventory' {
 
     $observed.Orphan.DeliveryStoreID | Should -BeExactly ''
     $observed.Orphan.Evidence | Should -Match 'no delivery store'
+    $observed.Orphan.DeliveryStoreSource | Should -BeExactly 'Unresolved'
+
+    # A store read from the account is reported as read, never as inferred.
+    $observed.Modern.DeliveryStoreSource | Should -BeExactly 'Account'
+    $observed.Modern.IsDeliveryStoreInferred | Should -BeFalse
 
     $observed.ItemAccesses | Should -Be 0
     $observed.FolderCreation | Should -BeTrue
+  }
+
+  It 'resolves delivery from the profile default where the account cannot report it in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
+    $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+    $reports = Join-Path $root 'build/test-results/outlook'
+    $null = [IO.Directory]::CreateDirectory($reports)
+    $report = Join-Path $reports "$Engine-delivery.json"
+    $module = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
+    $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Outlook-Account-Probe.ps1'), '-ModulePath', $module, '-ReportPath', $report)
+    $result.ExitCode | Should -Be 0 -Because $result.Output
+    $observed = Get-Content $report -Raw | ConvertFrom-Json
+
+    # Account.DeliveryStore arrived in Outlook 2010. Below it the read fails, and the
+    # profile default is the store new mail goes to unless an account overrides it.
+    $observed.LegacyPop.DeliveryStoreID | Should -BeExactly 'legacy-exchange'
+    $observed.LegacyPop.DeliveryStoreName | Should -BeExactly 'Postfach - Legacy'
+    $observed.LegacyPop.DeliveryFilePath | Should -Match 'legacy-outlook\.ost$'
+    $observed.LegacyPop.DeliveryStoreSource | Should -BeExactly 'ProfileDefault'
+    $observed.LegacyPop.IsDeliveryStoreInferred | Should -BeTrue
+    $observed.LegacyPop.Evidence | Should -Match 'DeliveryStore is unavailable'
+    $observed.LegacyPop.Evidence | Should -Match 'cannot report a per-account override'
+    $observed.LegacyMailbox.DeliveryStoreSource | Should -BeExactly 'ProfileDefault'
+
+    # This is the finding the survey exists for: a POP account delivering into the
+    # Exchange mailbox, now visible on the clients that could never report it.
+    ($observed.LegacyDefault.DeliveredFrom -join ',') | Should -BeExactly 'mailbox@legacy.test,pop@legacy.test'
+    $observed.LegacyDefault.IsExchangeBacked | Should -BeTrue
+    $observed.LegacyDefault.Evidence | Should -Match 'taken from the profile default'
+
+    # Only the default store collects the inference; the other store stays empty
+    # rather than claiming accounts that were never shown to deliver into it.
+    @($observed.LegacyOther.DeliveredFrom).Count | Should -Be 0
+    $observed.LegacyOther.Evidence | Should -Not -Match 'profile default'
+
+    # No readable default either: nothing is inferred and nothing is reported.
+    $observed.Blind.DeliveryStoreID | Should -BeExactly ''
+    $observed.Blind.DeliveryStoreName | Should -BeExactly ''
+    $observed.Blind.DeliveryStoreSource | Should -BeExactly 'Unresolved'
+    $observed.Blind.IsDeliveryStoreInferred | Should -BeFalse
+    $observed.Blind.Evidence | Should -Match 'profile default delivery store is unavailable'
   }
 }

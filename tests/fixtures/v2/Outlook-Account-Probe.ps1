@@ -29,6 +29,34 @@ $creations = $exchange.FolderCreations + $imap.FolderCreations + $local.FolderCr
 $accounts = @(Get-OutlookAccount -Namespace $session)
 $stores = @(Get-OutlookStore -Namespace $session)
 
+# The same profile on an Outlook 2007 client: no account exposes DeliveryStore, so
+# every read fails and the store each account delivers into has to come from the
+# profile default instead. The default store is listed first, as Outlook reports it.
+$legacy = New-Object AdNoctem.Substrate.Tests.Fixtures.OutlookFixture
+$legacyExchange = $legacy.AddExisting((Join-Path $directory 'legacy-outlook.ost'), 'legacy-exchange')
+$legacyExchange.DisplayName = 'Postfach - Legacy'
+$legacyExchange.ExchangeStoreType = 0
+$legacyLocal = $legacy.AddExisting((Join-Path $directory 'legacy-local.pst'), 'legacy-local')
+$legacyLocal.DisplayName = 'Archivordner'
+
+foreach ($pair in @(@('mailbox@legacy.test', 0), @('pop@legacy.test', 2))) {
+  $added = $legacy.AddAccount($pair[0], $pair[1], $null)
+  $added.HideDeliveryStore = $true
+}
+
+$legacyAccounts = @(Get-OutlookAccount -Namespace $legacy)
+$legacyStores = @(Get-OutlookStore -Namespace $legacy)
+
+# A client that cannot report delivery and has no readable default store either:
+# nothing may be inferred, and the account must stay unresolved.
+$blind = New-Object AdNoctem.Substrate.Tests.Fixtures.OutlookFixture
+$blindStore = $blind.AddExisting((Join-Path $directory 'blind-outlook.ost'), 'blind-exchange')
+$blindStore.ExchangeStoreType = 0
+$blindStore.StandardErrors[6] = New-Object InvalidOperationException 'Synthetic unreadable Inbox.'
+$blindAccount = $blind.AddAccount('pop@blind.test', 2, $null)
+$blindAccount.HideDeliveryStore = $true
+$blindAccounts = @(Get-OutlookAccount -Namespace $blind)
+
 try {
   $observations = [ordered]@{
     AccountCount   = $accounts.Count
@@ -43,6 +71,12 @@ try {
     LocalStore     = @($stores | Where-Object StoreID -EQ 'local-store')[0]
     ItemAccesses   = ($exchange.ItemAccesses + $imap.ItemAccesses + $local.ItemAccesses)
     FolderCreation = (($exchange.FolderCreations + $imap.FolderCreations + $local.FolderCreations) -eq $creations)
+    Modern         = @($accounts | Where-Object DisplayName -EQ 'pop@synthetic.test')[0]
+    LegacyPop      = @($legacyAccounts | Where-Object DisplayName -EQ 'pop@legacy.test')[0]
+    LegacyMailbox  = @($legacyAccounts | Where-Object DisplayName -EQ 'mailbox@legacy.test')[0]
+    LegacyDefault  = @($legacyStores | Where-Object StoreID -EQ 'legacy-exchange')[0]
+    LegacyOther    = @($legacyStores | Where-Object StoreID -EQ 'legacy-local')[0]
+    Blind          = $blindAccounts[0]
   }
 
   $observations | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $ReportPath -Encoding UTF8

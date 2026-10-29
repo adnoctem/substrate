@@ -29,6 +29,17 @@ public enum OutlookDataFileFormat
     Other = 3,
 }
 
+/// <summary>
+/// Where an account's delivery store came from. Account.DeliveryStore was added in Outlook 2010; below it the profile
+/// default is the only documented answer, so a report has to say which of the two it is holding.
+/// </summary>
+public enum OutlookDeliveryStoreSource
+{
+    Unresolved = 0,
+    Account = 1,
+    ProfileDefault = 2,
+}
+
 /// <summary>One account in the current profile and the store it delivers new mail into.</summary>
 public sealed class OutlookAccountInfo
 {
@@ -45,6 +56,17 @@ public sealed class OutlookAccountInfo
     public string DeliveryStoreId { get; }
     public string DeliveryStoreName { get; }
     public string DeliveryFilePath { get; }
+
+    /// <summary>Which route established the delivery store: the account, the profile default, or neither.</summary>
+    public OutlookDeliveryStoreSource DeliveryStoreSource { get; }
+    public string DeliveryStoreSourceName { get; }
+
+    /// <summary>
+    /// The store was not read from the account. It is the profile default, which is where an account delivers unless it
+    /// carries an override, and a client that cannot report delivery cannot report the override either.
+    /// </summary>
+    public bool IsDeliveryStoreInferred =>
+        DeliveryStoreSource == OutlookDeliveryStoreSource.ProfileDefault;
 
     /// <summary>Provider errors met while reading this account. Empty when every property was readable.</summary>
     public string Evidence { get; }
@@ -73,6 +95,7 @@ public sealed class OutlookAccountInfo
         string deliveryStoreId,
         string deliveryStoreName,
         string deliveryFilePath,
+        OutlookDeliveryStoreSource deliveryStoreSource,
         string evidence
     )
     {
@@ -87,6 +110,8 @@ public sealed class OutlookAccountInfo
         DeliveryStoreId = deliveryStoreId;
         DeliveryStoreName = deliveryStoreName;
         DeliveryFilePath = deliveryFilePath;
+        DeliveryStoreSource = deliveryStoreSource;
+        DeliveryStoreSourceName = deliveryStoreSource.ToString();
         Evidence = evidence;
     }
 
@@ -211,6 +236,9 @@ public sealed partial class OutlookManager
 {
     private const int NotExchange = 3;
 
+    /// <summary>olFolderInbox. The default Inbox belongs to the store new mail is delivered into.</summary>
+    private const int DefaultInboxFolder = 6;
+
     private static readonly Dictionary<int, string> ExchangeStoreTypeNames = new Dictionary<
         int,
         string
@@ -224,8 +252,9 @@ public sealed partial class OutlookManager
     };
 
     /// <summary>
-    /// Reads every account and data file of the connected profile without opening a folder or touching an item. Standard
-    /// folder discovery is unavailable for Exchange and OST stores below Outlook 2010; this stays readable where it is not.
+    /// Reads every account and data file of the connected profile without enumerating a folder or touching an item. The
+    /// default Inbox is obtained to identify the profile's delivery store and is not read any further. Standard folder
+    /// identity is unavailable for Exchange and OST stores below Outlook 2010; this stays readable where it is not.
     /// </summary>
     /// <returns>Plain records. No COM reference is retained and the namespace stays borrowed.</returns>
     public OutlookProfileInventory GetProfileInventory(
@@ -237,7 +266,8 @@ public sealed partial class OutlookManager
             throw new ArgumentNullException(nameof(session));
 
         var stores = ReadStores(session, cancellationToken);
-        var accounts = ReadAccounts(session, cancellationToken);
+        var fallback = ReadDefaultDelivery(session, stores);
+        var accounts = ReadAccounts(session, fallback, cancellationToken);
 
         return new OutlookProfileInventory(accounts, Classify(stores, accounts));
     }
@@ -249,6 +279,66 @@ public sealed partial class OutlookManager
         internal string FilePath = "";
         internal int ExchangeStoreType = -1;
         internal string Evidence = "";
+    }
+
+    /// <summary>The store new mail is delivered into by default, used where an account cannot report its own.</summary>
+    private sealed class DeliveryFacts
+    {
+        internal string StoreId = "";
+        internal string DisplayName = "";
+        internal string FilePath = "";
+        internal string Evidence = "";
+
+        internal bool IsKnown
+        {
+            get { return !string.IsNullOrEmpty(StoreId); }
+        }
+    }
+
+    /// <summary>
+    /// Resolves the profile's default delivery store through the Inbox it owns. MAPIFolder.StoreID has been readable since
+    /// Outlook 2000, so this answers on every client the fleet runs, including those with no Account.DeliveryStore.
+    /// </summary>
+    private static DeliveryFacts ReadDefaultDelivery(object session, List<StoreFacts> stores)
+    {
+        var facts = new DeliveryFacts();
+        object? inbox = null;
+
+        try
+        {
+            inbox = OutlookDispatch.Require(
+                OutlookDispatch.Call(session, "GetDefaultFolder", DefaultInboxFolder)
+            );
+            facts.StoreId = OutlookDispatch.Text(inbox, "StoreID");
+        }
+        catch (Exception error)
+        {
+            facts.StoreId = "";
+            facts.Evidence = "The profile default delivery store is unavailable: " + error.Message;
+
+            return facts;
+        }
+        finally
+        {
+            OutlookDispatch.Release(inbox);
+        }
+
+        // Name and path come from the store list, which is already read: a folder cannot
+        // reach Store.FilePath below Outlook 2010, and the identity is the StoreID anyway.
+        var match = stores.FirstOrDefault(store =>
+            OutlookDispatch.Equal(store.StoreId, facts.StoreId)
+        );
+
+        if (match == null)
+            facts.Evidence =
+                "The profile default delivery store is not among the profile's own stores.";
+        else
+        {
+            facts.DisplayName = match.DisplayName;
+            facts.FilePath = match.FilePath;
+        }
+
+        return facts;
     }
 
     private static List<StoreFacts> ReadStores(object session, CancellationToken cancellationToken)
@@ -321,6 +411,7 @@ public sealed partial class OutlookManager
 
     private static List<OutlookAccountInfo> ReadAccounts(
         object session,
+        DeliveryFacts fallback,
         CancellationToken cancellationToken
     )
     {
@@ -340,7 +431,7 @@ public sealed partial class OutlookManager
 
                 try
                 {
-                    result.Add(ReadAccount(account));
+                    result.Add(ReadAccount(account, fallback));
                 }
                 finally
                 {
@@ -356,7 +447,7 @@ public sealed partial class OutlookManager
         return result;
     }
 
-    private static OutlookAccountInfo ReadAccount(object account)
+    private static OutlookAccountInfo ReadAccount(object account, DeliveryFacts fallback)
     {
         var displayName = OutlookDispatch.Text(account, "DisplayName");
         var evidence = "";
@@ -398,6 +489,7 @@ public sealed partial class OutlookManager
         var deliveryStoreId = "";
         var deliveryStoreName = "";
         var deliveryFilePath = "";
+        var deliverySource = OutlookDeliveryStoreSource.Unresolved;
         object? deliveryStore = null;
 
         try
@@ -410,6 +502,7 @@ public sealed partial class OutlookManager
             {
                 deliveryStoreId = OutlookDispatch.Text(deliveryStore, "StoreID");
                 deliveryStoreName = OutlookDispatch.Text(deliveryStore, "DisplayName");
+                deliverySource = OutlookDeliveryStoreSource.Account;
 
                 try
                 {
@@ -427,6 +520,30 @@ public sealed partial class OutlookManager
         catch (Exception error)
         {
             evidence = Append(evidence, "DeliveryStore is unavailable: " + error.Message);
+
+            // A partial read establishes nothing. Below Outlook 2010 the property does not
+            // exist at all, and reporting an empty field there hid POP accounts delivering
+            // into an Exchange mailbox behind a store nobody could name.
+            deliveryStoreId = "";
+            deliveryStoreName = "";
+            deliveryFilePath = "";
+            deliverySource = OutlookDeliveryStoreSource.Unresolved;
+
+            if (fallback.IsKnown)
+            {
+                deliveryStoreId = fallback.StoreId;
+                deliveryStoreName = fallback.DisplayName;
+                deliveryFilePath = fallback.FilePath;
+                deliverySource = OutlookDeliveryStoreSource.ProfileDefault;
+                evidence = Append(
+                    evidence,
+                    "Delivery is taken from the profile default store '"
+                        + fallback.DisplayName
+                        + "'; this client cannot report a per-account override."
+                );
+            }
+            else if (!string.IsNullOrEmpty(fallback.Evidence))
+                evidence = Append(evidence, fallback.Evidence);
         }
         finally
         {
@@ -441,6 +558,7 @@ public sealed partial class OutlookManager
             deliveryStoreId,
             deliveryStoreName,
             deliveryFilePath,
+            deliverySource,
             evidence
         );
     }
@@ -492,6 +610,12 @@ public sealed partial class OutlookManager
                         + " account '"
                         + synchronizing.DisplayName
                         + "'."
+                );
+
+            if (delivering.Any(account => account.IsDeliveryStoreInferred))
+                evidence = Append(
+                    evidence,
+                    "Delivery is taken from the profile default; this client reports no per-account delivery store, so an account re-pointed elsewhere would still be listed here."
                 );
 
             if (!exchangeBacked && format != OutlookDataFileFormat.Ost && synchronizing == null)
