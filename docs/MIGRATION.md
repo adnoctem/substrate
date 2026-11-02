@@ -36,9 +36,9 @@ The original aim of compiling every exported name conflicted with some existing 
 extra arguments that compiled cmdlets reject. The accepted design retains one small `compat.ps1` for those boundaries and other
 host-specific presentation or confirmation. Domain logic remains in C#.
 
-The adapter preserves 188 commands and four aliases, with ownership recorded in `tools/compiled-commands.psd1` and
-`tools/compatibility-commands.psd1`. Public C# APIs follow coherent domain operations rather than reproducing every PowerShell quirk. For
-example, the reusable networking API validates strict address literals and contiguous masks, while compatibility commands retain legacy
+The rewrite preserved the original 188 commands and four aliases; later releases extend that surface. Current ownership is recorded in
+`tools/compiled-commands.psd1` and `tools/compatibility-commands.psd1`. Public C# APIs follow coherent domain operations rather than
+reproducing every PowerShell quirk. For example, the reusable networking API validates strict address literals and contiguous masks, while compatibility commands retain legacy
 acceptance rules. Show-Color gains common parameters and completion while continuing to accept unused arguments.
 
 Managers own domain behavior; tools integrate external executables such as LGPO and ODT. Discovery, preparation, validation and execution
@@ -58,14 +58,16 @@ access. Build orchestration uses `dotnet msbuild tools/tasks.proj`; the old Powe
 ## Independent identity, compatible state
 
 The successor repository is [adnoctem/substrate](https://github.com/adnoctem/substrate). Libraries use `AdNoctem.Substrate.*`; the module is
-`AdNoctem.Substrate.PowerShell`, with GUID `81c6e99d-6a1d-4fc0-b688-2b36c361df05` and an independent initial release planned as 0.1.0. The
+`AdNoctem.Substrate.PowerShell`, with GUID `81c6e99d-6a1d-4fc0-b688-2b36c361df05` and an independent release sequence that began at 0.1.0. The
 original 1.0.0 plan was revised to allow API development while reusable implementations move out of winkit. PSFoundation
 release tags were not imported. Ancestor history remains available; the predecessor repository is not replaced or rewritten by this
 migration.
 
 Importing the successor requires the new module identity. Command-name compatibility does not automatically migrate a consumer's dependency
 declaration. The reusable domain libraries have separate NuGet packages; the PowerShell module is distributed through PSGallery.
-Both use the same release version. Winkit's adoption remains a separate follow-up.
+Both are published and use the same release version. These 0.x packages are available to consumers while their APIs continue to evolve;
+stable compatibility guarantees begin at 1.0.0. Winkit has migrated to the published module; further extraction of reusable implementations
+from its scripts remains separate work.
 
 Some PSFoundation names intentionally remain because they identify persisted state or public compatibility objects:
 
@@ -83,7 +85,7 @@ inventory is generated under `build/baseline`; it is not a second maintained com
 
 Managed tests and packaged-module checks cover the implemented contracts on both runtime targets and both PowerShell hosts. Verification
 also builds documentation and packages the module. These checks are distinct from live administrative acceptance and from release
-publication. Ordinary pushes test the repository; publishing requires the separately gated release workflow.
+publication. Successful push validation dispatches the separately gated release workflow; ordinary verification does not publish packages.
 
 Historical PSFoundation Office pilots informed the design. An Enterprise 2007 x86 to Standard 2019 x64 migration on Windows 10 22H2
 completed with native success and operator acceptance, but automated compliance retained infrastructure/add-in and exclusion-evidence
@@ -91,6 +93,6 @@ limitations. A subsequent Standard 2019 x86 to x64 migration was accepted throug
 compliance, activation and an unchanged repeat. Those observations do not certify the C# rewrite, arbitrary interrupted-install replay or
 offline-only deployment.
 
-Substrate still needs the controlled Office/Outlook, servicing, package, remote-host and runtime-only validation recorded in
-[TODO.md](TODO.md). Historical pilot journals remain inspectable but do not authorize new execution. See the [Office workflow
-guide](www/guides/office.md) for current recovery boundaries.
+The [validation backlog](TODO.md) records additional Office/Outlook, servicing, package, remote-host and runtime-only scenarios.
+Publication does not establish acceptance for every native workflow. Historical pilot journals remain inspectable but do not authorize
+new execution. See the [Office workflow guide](www/guides/office.md) for current recovery boundaries.
