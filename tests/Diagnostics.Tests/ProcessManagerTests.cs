@@ -162,17 +162,33 @@ public sealed class ProcessManagerTests
     [Fact]
     public async Task WaitForExitRecordsCancellationWithoutInterruptingOwnedWork()
     {
+        var eventName = @"Local\Substrate.ProcessTests." + Guid.NewGuid().ToString("N");
+
+        using (var ready = new EventWaitHandle(false, EventResetMode.ManualReset, eventName))
         using (var cancellation = new CancellationTokenSource())
         {
-            cancellation.CancelAfter(200);
-            var result = await new ProcessManager().RunAsync(
+            var running = new ProcessManager().RunAsync(
                 new ProcessRequest(
                     Executable,
-                    new[] { "short-wait" },
+                    new[] { "short-wait", eventName },
                     stopBehavior: ProcessStopBehavior.WaitForExit
                 ),
                 cancellation.Token
             );
+
+            try
+            {
+                Assert.True(
+                    await Task.Run(() => ready.WaitOne(TimeSpan.FromSeconds(30))),
+                    "Process fixture did not signal readiness."
+                );
+            }
+            finally
+            {
+                cancellation.Cancel();
+            }
+
+            var result = await running;
             Assert.True(result.Cancelled);
             Assert.Equal(0, result.ExitCode);
             Assert.Contains("finished", result.StandardOutput);

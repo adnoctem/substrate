@@ -52,6 +52,7 @@ public static class NativeProcess
 
                 return 0;
             case "short-wait":
+                SignalReady(args);
                 Thread.Sleep(1000);
                 Console.WriteLine("finished");
 
