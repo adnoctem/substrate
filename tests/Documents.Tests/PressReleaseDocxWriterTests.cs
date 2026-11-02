@@ -124,6 +124,26 @@ public sealed class PressReleaseDocxWriterTests
     }
 
     [Fact]
+    public void UsesSpecificationBulletFromPack()
+    {
+        using var fixture = new TemplatePackFixture();
+        fixture.WriteManifest(
+            enBullet: "\u2022",
+            enBulletColor: "AA0000",
+            deBullet: "\u2022",
+            deBulletColor: "AA0000"
+        );
+        var bytes = Render(Complete(), fixture.Load());
+
+        using (var document = WordprocessingDocument.Open(new MemoryStream(bytes, false), false))
+        {
+            var xml = document.MainDocumentPart!.Document!.OuterXml;
+            Assert.Contains("\u2022", xml);
+            Assert.Contains("AA0000", xml);
+        }
+    }
+
+    [Fact]
     public void RemovesAbsentOptionalSections()
     {
         using var fixture = new TemplatePackFixture();

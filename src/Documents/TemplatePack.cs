@@ -30,6 +30,8 @@ public sealed class TemplateLanguage
     public string Masthead { get; }
     public string DatelineSeparator { get; }
     public string SpecificationSeparator { get; }
+    public string? SpecificationBullet { get; }
+    public string? SpecificationBulletColor { get; }
     public IReadOnlyList<PressReleaseSectionKind> Sections { get; }
 
     internal HtmlTemplate Html { get; }
@@ -41,6 +43,8 @@ public sealed class TemplateLanguage
         string masthead,
         string datelineSeparator,
         string specificationSeparator,
+        string? specificationBullet,
+        string? specificationBulletColor,
         IEnumerable<PressReleaseSectionKind> sections,
         HtmlTemplate html,
         byte[] docx,
@@ -51,6 +55,8 @@ public sealed class TemplateLanguage
         Masthead = masthead;
         DatelineSeparator = datelineSeparator;
         SpecificationSeparator = specificationSeparator;
+        SpecificationBullet = specificationBullet;
+        SpecificationBulletColor = specificationBulletColor;
         Sections = Array.AsReadOnly(sections.ToArray());
         Html = html;
         Docx = docx;
@@ -159,7 +165,9 @@ public sealed class TemplatePack
                     "docx",
                     "authoring",
                     "sections",
-                ]
+                ],
+                "specificationBullet",
+                "specificationBulletColor"
             );
             var code = Required(Text(language, "code"), "languages[].code");
 
@@ -201,7 +209,9 @@ public sealed class TemplatePack
                     "docx",
                     "authoring",
                     "sections",
-                ]
+                ],
+                "specificationBullet",
+                "specificationBulletColor"
             );
             var code = Required(Text(languageFields, "code"), "languages[].code");
             var sections = Sections(
@@ -247,6 +257,19 @@ public sealed class TemplatePack
                 authoringFile,
                 "Authoring template for \"" + code + "\""
             );
+            var bullet = OptionalText(languageFields, "specificationBullet");
+
+            if (string.IsNullOrEmpty(bullet))
+                bullet = null;
+
+            var bulletColor = OptionalText(languageFields, "specificationBulletColor");
+
+            if (bullet == null && bulletColor != null)
+                throw Invalid("\"specificationBulletColor\" requires \"specificationBullet\".");
+
+            if (bulletColor != null)
+                bulletColor = HexColor(bulletColor, "languages[].specificationBulletColor");
+
             var html = HtmlTemplate.Parse(Decode(htmlBytes, htmlSource), sections, htmlSource);
             languages.Add(
                 code,
@@ -261,6 +284,8 @@ public sealed class TemplatePack
                         Text(languageFields, "specificationSeparator"),
                         "languages[].specificationSeparator"
                     ),
+                    bullet,
+                    bulletColor,
                     sections,
                     html,
                     docxBytes,
@@ -384,6 +409,15 @@ public sealed class TemplatePack
 
         if (element.GetAttribute("type") == "null")
             throw Invalid("Member \"" + name + "\" cannot be null.");
+
+        RequireType(element, "string", "\"" + name + "\"");
+        return element.InnerText;
+    }
+
+    private static string? OptionalText(Dictionary<string, XmlElement> fields, string name)
+    {
+        if (!fields.TryGetValue(name, out var element) || element.GetAttribute("type") == "null")
+            return null;
 
         RequireType(element, "string", "\"" + name + "\"");
         return element.InnerText;
@@ -642,6 +676,11 @@ public sealed class TemplatePack
 
     private static string Separator(string value, string name) =>
         value.Length == 0 ? throw Invalid("\"" + name + "\" cannot be empty.") : value;
+
+    private static string HexColor(string value, string name) =>
+        value.Length == 6 && value.All(Uri.IsHexDigit)
+            ? value
+            : throw Invalid("\"" + name + "\" must be a six-digit hexadecimal colour.");
 
     private static DocumentException Invalid(string message) =>
         new DocumentException(DocumentFailureReason.InvalidTemplatePack, message);

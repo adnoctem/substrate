@@ -360,13 +360,23 @@ public sealed class PressReleaseDocxWriter
             if (style != null)
                 paragraph.AppendChild(style.CloneNode(true));
 
-            paragraph.AppendChild(
-                new Run(
-                    new RunProperties(new Color { Val = "00529C" }),
-                    new Text("\u25A0"),
-                    new TabChar()
-                )
-            );
+            if (language.SpecificationBullet is string bullet)
+            {
+                var properties = new RunProperties();
+
+                if (language.SpecificationBulletColor is string color)
+                    properties.AppendChild(new Color { Val = color });
+
+                var prefix = new Run();
+
+                if (properties.HasChildren)
+                    prefix.AppendChild(properties);
+
+                prefix.Append(new Text(bullet) { Space = SpaceProcessingModeValues.Preserve });
+                prefix.AppendChild(new TabChar());
+                paragraph.AppendChild(prefix);
+            }
+
             paragraph.Append(emitter.Inlines(row.Label, bold));
             paragraph.AppendChild(
                 WordContentEmitter.Run(

@@ -61,7 +61,11 @@ internal sealed class TemplatePackFixture : IDisposable
         string enSections = AllSections,
         string deSections = AllSections,
         string enMasthead = "PRESS RELEASE",
-        string deMasthead = "PRESSEMITTEILUNG"
+        string deMasthead = "PRESSEMITTEILUNG",
+        string? enBullet = "\u25A0",
+        string? enBulletColor = "00529C",
+        string? deBullet = "\u25A0",
+        string? deBulletColor = "00529C"
     ) =>
         Write(
             "pack.json",
@@ -78,9 +82,9 @@ internal sealed class TemplatePackFixture : IDisposable
                 + (companyDescriptions ?? "null")
                 + ","
                 + "\"languages\":["
-                + Language("en", enMasthead, enHtml, docx, enSections)
+                + Language("en", enMasthead, enHtml, docx, enSections, enBullet, enBulletColor)
                 + ","
-                + Language("de", deMasthead, deHtml, docx, deSections)
+                + Language("de", deMasthead, deHtml, docx, deSections, deBullet, deBulletColor)
                 + "]"
                 + "}"
         );
@@ -103,13 +107,20 @@ internal sealed class TemplatePackFixture : IDisposable
         string masthead,
         string html,
         string docx,
-        string sections
+        string sections,
+        string? bullet,
+        string? bulletColor
     ) =>
         "{\"code\":\""
         + Json(code)
         + "\",\"masthead\":\""
         + Json(masthead)
-        + "\",\"datelineSeparator\":\" – \",\"specificationSeparator\":\" \","
+        + "\",\"datelineSeparator\":\" - \",\"specificationSeparator\":\" \","
+        + "\"specificationBullet\":"
+        + (bullet == null ? "null" : "\"" + Json(bullet) + "\"")
+        + ",\"specificationBulletColor\":"
+        + (bulletColor == null ? "null" : "\"" + Json(bulletColor) + "\"")
+        + ","
         + "\"html\":{\"path\":\""
         + Json(html)
         + "\",\"sha256\":\""

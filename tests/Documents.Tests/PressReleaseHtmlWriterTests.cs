@@ -30,7 +30,7 @@ public sealed class PressReleaseHtmlWriterTests
             language,
             "1.0",
             "Headline & <tag>",
-            "Sampletown – May",
+            "Sampletown - May",
             [new ParagraphBlock([new TextInline("Lead & text.")])],
             new PressReleaseSection(
                 "Media Contact:",
@@ -75,7 +75,7 @@ public sealed class PressReleaseHtmlWriterTests
             "en",
             "1.0",
             "Headline & <tag>",
-            "Sampletown – May",
+            "Sampletown - May",
             body,
             new PressReleaseSection(
                 "Media Contact:",
@@ -116,7 +116,7 @@ public sealed class PressReleaseHtmlWriterTests
         Assert.Contains("<title>Headline &amp; &lt;tag&gt;</title>", html);
         Assert.Contains("<h1>Headline &amp; &lt;tag&gt;</h1>", html);
         Assert.Contains(
-            "<span class=\"dateline\"><strong>Sampletown – May</strong></span> – Lead ",
+            "<span class=\"dateline\"><strong>Sampletown - May</strong></span> - Lead ",
             html
         );
         Assert.Contains("<strong>bold</strong>", html);
