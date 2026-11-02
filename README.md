@@ -26,7 +26,9 @@
 Windows administration, configuration management, and automation. Applications can use the domain libraries without loading PowerShell.
 
 The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Its first release
-is planned as 0.1.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
+is planned as 0.1.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts. Document
+generation is a PowerShell 7 (`Core`) capability: the `Documents` domain and its Open XML dependency are staged only in that edition.
+Windows PowerShell 5.1 keeps the existing command surface but cannot load the document-generation types.
 
 PSGallery distributes the complete module as `AdNoctem.Substrate.PowerShell`. NuGet distributes twelve separate domain packages:
 `AdNoctem.Substrate.Core`, `.Diagnostics`, `.Documents`, `.IO`, `.Interop`, `.Networking`, `.Office`, `.Packages`, `.Policies`, `.Registry`, `.Security`,

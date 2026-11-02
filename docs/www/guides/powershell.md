@@ -2,6 +2,37 @@
 
 Import the staged module in a fresh host. The [command reference](../../../build/docs/commands/toc.yml) documents each command's parameters and examples.
 
+## Document generation types
+
+Document generation is available only in the PowerShell 7 (`Core`) edition. The module preloads the `Documents` and `IO` assemblies so their
+types can be used directly after `Import-Module`; Windows PowerShell 5.1 does not ship the Open XML dependency. A pack path must be explicit.
+
+```pwsh
+$pack = [AdNoctem.Substrate.Documents.TemplatePack]::Load(
+  [AdNoctem.Substrate.IO.FileSystemPath]::Parse($PackPath)
+)
+$read = [AdNoctem.Substrate.Documents.PressReleaseReader]::new().Read(
+  [AdNoctem.Substrate.IO.FileSystemPath]::Parse($InputPath),
+  $pack.Schema
+)
+
+if (-not $read.Succeeded) {
+  $read.Diagnostics | Format-Table Severity, Code, Field, Message
+  return
+}
+
+$read.Release | ForEach-Object {
+  [AdNoctem.Substrate.Documents.PressReleaseHtmlWriter]::new().Write(
+    $_, $pack, [AdNoctem.Substrate.IO.FileSystemPath]::Parse($HtmlPath)
+  )
+  [AdNoctem.Substrate.Documents.PressReleaseDocxWriter]::new().Write(
+    $_, $pack, [AdNoctem.Substrate.IO.FileSystemPath]::Parse($DocxPath)
+  )
+}
+```
+
+Writers require an explicit overwrite flag when the destination exists. The input document is read-only and is never modified.
+
 ## Registry policy files
 
 Read or create `registry.pol` files without LGPO.exe. Conversion preserves record order and duplicate instructions; it does not apply

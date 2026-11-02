@@ -14,6 +14,8 @@ The twelve NuGet packages are `AdNoctem.Substrate.Core`, `AdNoctem.Substrate.Dia
 `AdNoctem.Substrate.Interop`, `AdNoctem.Substrate.Networking`, `AdNoctem.Substrate.Office`, `AdNoctem.Substrate.Packages`,
 `AdNoctem.Substrate.Policies`, `AdNoctem.Substrate.Registry`, `AdNoctem.Substrate.Security`, and `AdNoctem.Substrate.Windows`.
 There is no umbrella `AdNoctem.Substrate` package. The PowerShell adapter and Windows Runtime helper are not separate NuGet packages.
+`AdNoctem.Substrate.Documents` targets `netstandard2.0` and depends on `DocumentFormat.OpenXml` 3.5.1. In the PowerShell module it is
+staged only in the PowerShell 7 (`Core`) edition; the Windows PowerShell 5.1 edition does not include the Open XML dependency.
 
 For example, an application using the registry library can add a reference with:
 

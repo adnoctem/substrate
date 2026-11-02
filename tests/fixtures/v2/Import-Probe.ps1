@@ -34,4 +34,12 @@ if ($failures.Count -ne 1 -or $failures[0].Exception.GetType().FullName -ne 'Mic
 
 if (Test-Path (Join-Path (Split-Path $ModulePath -Parent) 'System.Management.Automation.dll')) { throw 'Package contains a competing PowerShell runtime.' }
 
+if ($PSVersionTable.PSEdition -eq 'Core') {
+  if ([AdNoctem.Substrate.Documents.PressReleaseTags]::SchemaId -cne 'press-release/1') { throw 'Documents types are not directly usable in PowerShell 7.' }
+  if (-not [AdNoctem.Substrate.Documents.TemplatePack]) { throw 'TemplatePack type is unavailable in PowerShell 7.' }
+}
+elseif ($null -ne ('AdNoctem.Substrate.Documents.PressReleaseTags' -as [type])) {
+  throw 'Documents types must stay out of the Windows PowerShell edition.'
+}
+
 Write-Output "Import and compiled-command smoke tests passed: $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
