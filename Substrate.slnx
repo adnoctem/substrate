@@ -8,6 +8,7 @@
     <Project Path="src/Windows/Windows.csproj" />
     <Project Path="src/Interop/Interop.csproj" />
     <Project Path="src/Diagnostics/Diagnostics.csproj" />
+    <Project Path="src/Documents/Documents.csproj" />
     <Project Path="src/IO/IO.csproj" />
     <Project Path="src/Policies/Policies.csproj" />
     <Project Path="src/Networking/Networking.csproj" />
@@ -21,6 +22,7 @@
     <Project Path="tests/Packages.Tests/Packages.Tests.csproj" />
     <Project Path="tests/Windows.Tests/Windows.Tests.csproj" />
     <Project Path="tests/Diagnostics.Tests/Diagnostics.Tests.csproj" />
+    <Project Path="tests/Documents.Tests/Documents.Tests.csproj" />
     <Project Path="tests/IO.Tests/IO.Tests.csproj" />
     <Project Path="tests/Policies.Tests/Policies.Tests.csproj" />
     <Project Path="tests/Networking.Tests/Networking.Tests.csproj" />

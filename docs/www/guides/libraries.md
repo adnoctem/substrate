@@ -10,7 +10,7 @@ Substrate provides reusable C# libraries under the `AdNoctem.Substrate.*` packag
 NuGet resolves its dependencies. All domain packages share the release version. The PowerShell adapter is distributed separately as
 `AdNoctem.Substrate.PowerShell` on PSGallery.
 
-The eleven NuGet packages are `AdNoctem.Substrate.Core`, `AdNoctem.Substrate.Diagnostics`, `AdNoctem.Substrate.IO`,
+The twelve NuGet packages are `AdNoctem.Substrate.Core`, `AdNoctem.Substrate.Diagnostics`, `AdNoctem.Substrate.Documents`, `AdNoctem.Substrate.IO`,
 `AdNoctem.Substrate.Interop`, `AdNoctem.Substrate.Networking`, `AdNoctem.Substrate.Office`, `AdNoctem.Substrate.Packages`,
 `AdNoctem.Substrate.Policies`, `AdNoctem.Substrate.Registry`, `AdNoctem.Substrate.Security`, and `AdNoctem.Substrate.Windows`.
 There is no umbrella `AdNoctem.Substrate` package. The PowerShell adapter and Windows Runtime helper are not separate NuGet packages.

@@ -13,7 +13,7 @@ $root = Split-Path $PSScriptRoot -Parent
 
 $version = if ($env:SUBSTRATE_VERSION) { $env:SUBSTRATE_VERSION } else { '0.1.0' }
 
-$domains = @('Core', 'Diagnostics', 'IO', 'Interop', 'Networking', 'Office', 'Packages', 'Policies', 'Registry', 'Security', 'Windows')
+$domains = @('Core', 'Diagnostics', 'Documents', 'IO', 'Interop', 'Networking', 'Office', 'Packages', 'Policies', 'Registry', 'Security', 'Windows')
 $work = Join-Path $root ('build/package-tests/' + [guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path "$work/library", "$work/app" -Force
 # Keep consumer projects independent of the repository's assembly names, output paths and packing metadata.
@@ -41,11 +41,11 @@ class Program
     static void Main()
     {
         if (ConsumerLibrary.Name != "AdNoctem.Substrate.Registry") throw new Exception("Wrong library identity.");
-        foreach (var domain in "Core Diagnostics IO Interop Networking Office Packages Policies Registry Security Windows".Split(' '))
+        foreach (var domain in "Core Diagnostics Documents IO Interop Networking Office Packages Policies Registry Security Windows".Split(' '))
             Assembly.Load("AdNoctem.Substrate." + domain);
         foreach (var file in new[] { "AdNoctem.Substrate.WinRtHost.exe", "AdNoctem.Substrate.WinRtHost.exe.config" })
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file))) throw new Exception("Missing transitive runtime asset: " + file);
-        Console.WriteLine("Loaded eleven packaged libraries and found the Windows Runtime helper.");
+        Console.WriteLine("Loaded twelve packaged libraries and found the Windows Runtime helper.");
     }
 }
 '@

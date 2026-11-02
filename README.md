@@ -28,8 +28,8 @@ Windows administration, configuration management, and automation. Applications c
 The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Its first release
 is planned as 0.1.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
 
-PSGallery distributes the complete module as `AdNoctem.Substrate.PowerShell`. NuGet distributes eleven separate domain packages:
-`AdNoctem.Substrate.Core`, `.Diagnostics`, `.IO`, `.Interop`, `.Networking`, `.Office`, `.Packages`, `.Policies`, `.Registry`, `.Security`,
+PSGallery distributes the complete module as `AdNoctem.Substrate.PowerShell`. NuGet distributes twelve separate domain packages:
+`AdNoctem.Substrate.Core`, `.Diagnostics`, `.Documents`, `.IO`, `.Interop`, `.Networking`, `.Office`, `.Packages`, `.Policies`, `.Registry`, `.Security`,
 and `.Windows` (each with the `AdNoctem.Substrate` prefix). There is no umbrella `AdNoctem.Substrate` package; reference the domains you use.
 All packages share the same release version.
 

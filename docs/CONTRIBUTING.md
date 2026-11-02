@@ -82,7 +82,7 @@ Get-Help Get-OfficeInventory -Full
 A rebuild cannot unload assemblies already imported by an existing PowerShell process. Keep the loader, both binary directories, helper
 executable, configuration, data, and help together when copying the package.
 
-Pack writes module archives under `dist/` and eleven `AdNoctem.Substrate.<domain>` NuGet packages under `dist/nuget/`, with SHA256 checksums
+Pack writes module archives under `dist/` and twelve `AdNoctem.Substrate.<domain>` NuGet packages under `dist/nuget/`, with SHA256 checksums
 for both. The PowerShell adapter and Windows Runtime helper are not separate NuGet packages. The Packages library carries its helper and
 transitive build targets; see the [.NET libraries guide](www/guides/libraries.md).
 Verify restores the packages into isolated .NET Framework and modern .NET consumers, then publishes and runs those consumers locally

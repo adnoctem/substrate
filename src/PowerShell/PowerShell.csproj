@@ -24,6 +24,10 @@
     <ProjectReference Include="../Networking/Networking.csproj" />
     <ProjectReference Include="../Registry/Registry.csproj" />
   </ItemGroup>
+  <!-- Document generation requires PowerShell 7; Windows PowerShell 5.1 does not carry the Open XML dependency. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <ProjectReference Include="../Documents/Documents.csproj" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <Reference Include="System.Net.Http" />
     <PackageReference
