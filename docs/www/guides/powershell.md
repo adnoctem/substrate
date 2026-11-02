@@ -1,6 +1,48 @@
 # PowerShell workflows
 
-Import the staged module in a fresh host. The [command reference](../../../build/docs/commands/toc.yml) documents each command's parameters and examples.
+Install the published module from [PSGallery](https://www.powershellgallery.com/packages/AdNoctem.Substrate.PowerShell) and import your
+chosen version in a fresh host. This example pins 0.2.1:
+
+```powershell
+Install-Module -Name AdNoctem.Substrate.PowerShell -RequiredVersion 0.2.1 -Repository PSGallery -Scope CurrentUser
+Import-Module AdNoctem.Substrate.PowerShell -RequiredVersion 0.2.1
+```
+
+The 0.x APIs are still evolving. Review the [release notes](https://github.com/adnoctem/substrate/releases) before updating the pin.
+For local development, import the staged module instead; see
+[Contributing](https://github.com/adnoctem/substrate/blob/main/docs/CONTRIBUTING.md). The
+[command reference](../../../build/docs/commands/toc.yml) documents each command's parameters and examples.
+
+## Document generation types
+
+Document generation is available only in the PowerShell 7 (`Core`) edition. The module preloads the `Documents` and `IO` assemblies so their
+types can be used directly after `Import-Module`; Windows PowerShell 5.1 does not ship the Open XML dependency. A pack path must be explicit.
+
+```pwsh
+$pack = [AdNoctem.Substrate.Documents.TemplatePack]::Load(
+  [AdNoctem.Substrate.IO.FileSystemPath]::Parse($PackPath)
+)
+$read = [AdNoctem.Substrate.Documents.PressReleaseReader]::new().Read(
+  [AdNoctem.Substrate.IO.FileSystemPath]::Parse($InputPath),
+  $pack.Schema
+)
+
+if (-not $read.Succeeded) {
+  $read.Diagnostics | Format-Table Severity, Code, Field, Message
+  return
+}
+
+$read.Release | ForEach-Object {
+  [AdNoctem.Substrate.Documents.PressReleaseHtmlWriter]::new().Write(
+    $_, $pack, [AdNoctem.Substrate.IO.FileSystemPath]::Parse($HtmlPath)
+  )
+  [AdNoctem.Substrate.Documents.PressReleaseDocxWriter]::new().Write(
+    $_, $pack, [AdNoctem.Substrate.IO.FileSystemPath]::Parse($DocxPath)
+  )
+}
+```
+
+Writers require an explicit overwrite flag when the destination exists. The input document is read-only and is never modified.
 
 ## Registry policy files
 

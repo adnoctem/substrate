@@ -36,7 +36,7 @@ if ($LASTEXITCODE) { throw 'NuGet packaging failed.' }
 
 $packages = @(Get-ChildItem -LiteralPath $nuget -Filter '*.nupkg' -File | Sort-Object Name)
 
-if ($packages.Count -ne 11) { throw 'Expected exactly the eleven reusable domain packages.' }
+if ($packages.Count -ne 12) { throw 'Expected exactly the twelve reusable domain packages.' }
 
 # Release asset globs must never include archives left by an earlier package version.
 Get-ChildItem -LiteralPath $dist -File | Where-Object { $_.Name -match '^AdNoctem.Substrate.PowerShell-[0-9].*\.(zip|tar\.gz)$' } | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force }

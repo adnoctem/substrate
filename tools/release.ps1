@@ -115,7 +115,7 @@ try {
 
   $packages = @(Get-ChildItem -LiteralPath (Join-Path $dist 'nuget') -Filter '*.nupkg' -File | Sort-Object Name)
 
-  if ($packages.Count -ne 11) { throw 'Expected eleven prepared NuGet libraries.' }
+  if ($packages.Count -ne 12) { throw 'Expected twelve prepared NuGet libraries.' }
 
   if ($PackageId) {
     $selected = foreach ($id in $PackageId | Sort-Object -Unique) {

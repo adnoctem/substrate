@@ -25,20 +25,37 @@
 `substrate` is an open-source [MIT][license]-licensed library of reusable C# APIs, maintained by the [Ad Noctem Collective][org], for
 Windows administration, configuration management, and automation. Applications can use the domain libraries without loading PowerShell.
 
-The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. Its first release
-is planned as 0.1.0; it has not been published. The predecessor, PSFoundation 1.8.7, remains available for existing scripts.
+The PowerShell adapter, `AdNoctem.Substrate.PowerShell`, supports Windows PowerShell 5.1 and PowerShell 7 on x64 Windows. The module and
+all twelve domain libraries are published and available to use as 0.x releases. Their APIs are still evolving; stable compatibility
+guarantees begin at 1.0.0. The predecessor, PSFoundation 1.8.7, remains available for existing scripts. Document generation is a
+PowerShell 7 (`Core`) capability: the `Documents` domain and its Open XML dependency are staged only in that edition. Windows PowerShell
+5.1 keeps the existing command surface but cannot load the document-generation types.
 
-PSGallery distributes the complete module as `AdNoctem.Substrate.PowerShell`. NuGet distributes eleven separate domain packages:
-`AdNoctem.Substrate.Core`, `.Diagnostics`, `.IO`, `.Interop`, `.Networking`, `.Office`, `.Packages`, `.Policies`, `.Registry`, `.Security`,
+PSGallery distributes the complete module as `AdNoctem.Substrate.PowerShell`. NuGet distributes twelve separate domain packages:
+`AdNoctem.Substrate.Core`, `.Diagnostics`, `.Documents`, `.IO`, `.Interop`, `.Networking`, `.Office`, `.Packages`, `.Policies`, `.Registry`, `.Security`,
 and `.Windows` (each with the `AdNoctem.Substrate` prefix). There is no umbrella `AdNoctem.Substrate` package; reference the domains you use.
 All packages share the same release version.
 
-The implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter preserves 188 commands and four aliases,
-using compiled cmdlets and a small compatibility script. Comparison tests retrieve the frozen PSFoundation v1 scripts from Git history.
+The implementation consists of reusable C# domain libraries and a PowerShell adapter. The adapter retains the original 188 commands and
+four aliases and adds new commands as the libraries evolve, using compiled cmdlets and a small compatibility script. Comparison tests
+retrieve the frozen PSFoundation v1 scripts from Git history.
 
 See the [documentation sources](docs/www/index.md), [architecture](docs/www/architecture.md), [migration history](docs/MIGRATION.md), and
 [contributor guide](docs/CONTRIBUTING.md). Build the searchable .NET and PowerShell reference with the `Docs` target; open
 `build/docs/site/index.html`.
+
+## Installation
+
+Install the published [PowerShell module][psgallery_package] from PSGallery. Pin a reviewed release for reproducible automation; this
+example uses 0.2.1:
+
+```powershell
+Install-Module -Name AdNoctem.Substrate.PowerShell -RequiredVersion 0.2.1 -Repository PSGallery -Scope CurrentUser
+Import-Module AdNoctem.Substrate.PowerShell -RequiredVersion 0.2.1
+```
+
+For .NET applications, reference the domain packages you need from NuGet; see [Using the .NET libraries](docs/www/guides/libraries.md).
+Review the [release notes][github_releases] before changing a pinned version. Published packages do not require building this repository.
 
 ## Development
 

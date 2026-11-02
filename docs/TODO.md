@@ -1,7 +1,9 @@
 # Outstanding work
 
-Implementation ownership has moved to C#. Passing automated tests establishes the covered contracts, not production readiness for every
-native Windows workflow. Keep evidence specific to the package, host, identity and scenario tested.
+The PowerShell module and all twelve NuGet libraries are published as 0.x releases, and winkit has adopted the published module. This
+backlog tracks further validation and improvements, not prerequisites for the first release. Passing automated tests establishes the
+covered contracts, not production readiness for every native Windows workflow. Keep evidence specific to the package, host, identity and
+scenario tested.
 
 ## Controlled live validation
 
@@ -37,9 +39,8 @@ Use explicitly scoped disposable or recoverable environments. Ordinary verificat
 
 - Validate hosted vendor and PowerShell dependency proposal workflows independently of ordinary green CI. Inspect downloaded candidates
   without executing them; review changes before merging.
-- Configure NuGet ownership and trusted publishing, then validate the first authorized PSGallery/NuGet release and hosted Super-Linter run.
-  Local packaging and verification do not establish successful publication.
-- Coordinate winkit's module-identity migration with its maintainer and agent; keep that work separate from this repository.
-- Make the release decision after reviewing the remaining evidence. Publishing remains an explicit, gated operation.
+
+Publishing remains an explicit, gated operation. Review release-specific evidence when changing the pipeline or expanding supported
+scenarios; local packaging and verification alone do not establish successful publication.
 
 See [MIGRATION.md](MIGRATION.md) for project history and accepted design decisions, and [CONTRIBUTING.md](CONTRIBUTING.md) for the verification workflow.

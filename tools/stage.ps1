@@ -1,4 +1,4 @@
-﻿#Requires -Version 7.0
+#Requires -Version 7.0
 <#
 .SYNOPSIS
   Stages built assemblies, compatibility functions and the v2 module manifest.
@@ -58,7 +58,11 @@ $aliases = (Import-PowerShellDataFile $manifestPath).AliasesToExport
 $quotedNames = ($compiled | ForEach-Object { "'$_'" }) -join ', '
 $quotedFunctions = ($compatibility | ForEach-Object { "'$_'" }) -join ', '
 $quotedAliases = ($aliases | ForEach-Object { "'$_'" }) -join ', '
-$loader = 'Import-Module (Join-Path $PSScriptRoot (''lib/'' + $PSEdition + ''/AdNoctem.Substrate.PowerShell.dll'')) -Scope Local -ErrorAction Stop' + "`n"
+$loader = 'if ($PSEdition -eq ''Core'') {' + "`n"
+$loader += '  [Reflection.Assembly]::LoadFrom((Join-Path $PSScriptRoot ''lib/Core/AdNoctem.Substrate.IO.dll'')) | Out-Null' + "`n"
+$loader += '  [Reflection.Assembly]::LoadFrom((Join-Path $PSScriptRoot ''lib/Core/AdNoctem.Substrate.Documents.dll'')) | Out-Null' + "`n"
+$loader += '}' + "`n"
+$loader += 'Import-Module (Join-Path $PSScriptRoot (''lib/'' + $PSEdition + ''/AdNoctem.Substrate.PowerShell.dll'')) -Scope Local -ErrorAction Stop' + "`n"
 $loader += '. (Join-Path $PSScriptRoot ''compat.ps1'')' + "`n"
 $loader += "Export-ModuleMember -Cmdlet @($quotedNames) -Function @($quotedFunctions) -Alias @($quotedAliases)`n"
 [IO.File]::WriteAllText((Join-Path $stage 'AdNoctem.Substrate.PowerShell.psm1'), $loader, [Text.UTF8Encoding]::new($true))

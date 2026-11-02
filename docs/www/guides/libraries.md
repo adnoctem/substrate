@@ -6,19 +6,23 @@
 > Public APIs, file layouts, and command-line interfaces may change between releases. Pin a release for reproducible builds
 > and review its release notes before updating. Stable compatibility guarantees will begin with version `1.0.0`.
 
-Substrate provides reusable C# libraries under the `AdNoctem.Substrate.*` package IDs. Install the domain package your application uses;
+Substrate's reusable C# libraries are published on NuGet under the `AdNoctem.Substrate.*` package IDs. Install the domain package your application uses;
 NuGet resolves its dependencies. All domain packages share the release version. The PowerShell adapter is distributed separately as
 `AdNoctem.Substrate.PowerShell` on PSGallery.
 
-The eleven NuGet packages are `AdNoctem.Substrate.Core`, `AdNoctem.Substrate.Diagnostics`, `AdNoctem.Substrate.IO`,
+The twelve NuGet packages are `AdNoctem.Substrate.Core`, `AdNoctem.Substrate.Diagnostics`, `AdNoctem.Substrate.Documents`, `AdNoctem.Substrate.IO`,
 `AdNoctem.Substrate.Interop`, `AdNoctem.Substrate.Networking`, `AdNoctem.Substrate.Office`, `AdNoctem.Substrate.Packages`,
 `AdNoctem.Substrate.Policies`, `AdNoctem.Substrate.Registry`, `AdNoctem.Substrate.Security`, and `AdNoctem.Substrate.Windows`.
 There is no umbrella `AdNoctem.Substrate` package. The PowerShell adapter and Windows Runtime helper are not separate NuGet packages.
+`AdNoctem.Substrate.Documents` targets `netstandard2.0` and depends on `DocumentFormat.OpenXml` 3.5.1. In the PowerShell module it is
+staged only in the PowerShell 7 (`Core`) edition; the Windows PowerShell 5.1 edition does not include the Open XML dependency.
 
-For example, an application using the registry library can add a reference with:
+For example, an application using the [registry library](https://www.nuget.org/packages/AdNoctem.Substrate.Registry) can pin a reviewed
+release with the following command. This example uses 0.2.1; review the [release notes](https://github.com/adnoctem/substrate/releases)
+before selecting a different version:
 
 ```shell
-dotnet add package AdNoctem.Substrate.Registry --version 0.1.0
+dotnet add package AdNoctem.Substrate.Registry --version 0.2.1
 ```
 
 The libraries expose typed operations without loading PowerShell. Applications supply credentials, cancellation, logging and user

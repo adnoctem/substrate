@@ -60,9 +60,9 @@
       "adnoctem.substrate.networking": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "AdNoctem.Substrate.IO": "[0.1.0, )",
-          "AdNoctem.Substrate.Interop": "[0.1.0, )"
+          "AdNoctem.Substrate.Interop": "[0.1.0, )",
+          "Microsoft.Management.Infrastructure": "[3.0.0, )"
         }
       },
       "adnoctem.substrate.office": {
@@ -107,11 +107,11 @@
       "adnoctem.substrate.windows": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
           "AdNoctem.Substrate.IO": "[0.1.0, )",
           "AdNoctem.Substrate.Interop": "[0.1.0, )",
-          "AdNoctem.Substrate.Registry": "[0.1.0, )"
+          "AdNoctem.Substrate.Registry": "[0.1.0, )",
+          "Microsoft.Management.Infrastructure": "[3.0.0, )"
         }
       }
     },
@@ -142,6 +142,22 @@
         "requested": "[5.1.1, )",
         "resolved": "5.1.1",
         "contentHash": "e31xJjG+Kjbv6YF3Yq6D4Dl3or8v7LrNF41k3CXrWozW6hR1zcOe5KYuZJaGSiAgLnwP8wcW+I3+IWEzMPZKXQ=="
+      },
+      "DocumentFormat.OpenXml": {
+        "type": "Transitive",
+        "resolved": "3.5.1",
+        "contentHash": "zxdOf5VVCe/uNklbRhj8dVBzQGj3DoqkUuqOp9cAZVuN8mNYDjof1lvSQA2OQNr8Ptc9d7pbA7Azq/ReaI3FpA==",
+        "dependencies": {
+          "DocumentFormat.OpenXml.Framework": "3.5.1"
+        }
+      },
+      "DocumentFormat.OpenXml.Framework": {
+        "type": "Transitive",
+        "resolved": "3.5.1",
+        "contentHash": "U5txtc3ORno73xQx9Lf2gWzfaSZnZwKHfLkTAslhlew9lxe5XbUiCt0dY1fHeAf8yRqszUAe5i/+xLC9R/Xfsw==",
+        "dependencies": {
+          "System.IO.Packaging": "8.0.1"
+        }
       },
       "Microsoft.Management.Infrastructure": {
         "type": "Transitive",
@@ -218,10 +234,18 @@
           "System.Security.Principal.Windows": "5.0.0"
         }
       },
+      "System.IO.Packaging": {
+        "type": "Transitive",
+        "resolved": "8.0.1",
+        "contentHash": "KYkIOAvPexQOLDxPO2g0BVoWInnQhPpkFzRqvNrNrMhVT6kqhVr0zEb6KCHlptLFukxnZrjuMVAnxK7pOGUYrw==",
+        "dependencies": {
+          "System.Memory": "4.5.5"
+        }
+      },
       "System.Memory": {
         "type": "Transitive",
-        "resolved": "4.5.4",
-        "contentHash": "1MbJTHS1lZ4bS4FmsJjnuGJOu88ZzTT2rLvrhW7Ygic+pC0NWA+3hgAen0HRdsocuQXCkUTdFn9yHJJhsijDXw==",
+        "resolved": "4.5.5",
+        "contentHash": "XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw==",
         "dependencies": {
           "System.Buffers": "4.5.1",
           "System.Numerics.Vectors": "4.4.0",
@@ -265,6 +289,13 @@
       "adnoctem.substrate.diagnostics": {
         "type": "Project"
       },
+      "adnoctem.substrate.documents": {
+        "type": "Project",
+        "dependencies": {
+          "AdNoctem.Substrate.IO": "[0.1.0, )",
+          "DocumentFormat.OpenXml": "[3.5.1, )"
+        }
+      },
       "adnoctem.substrate.interop": {
         "type": "Project",
         "dependencies": {
@@ -278,9 +309,9 @@
       "adnoctem.substrate.networking": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "AdNoctem.Substrate.IO": "[0.1.0, )",
-          "AdNoctem.Substrate.Interop": "[0.1.0, )"
+          "AdNoctem.Substrate.Interop": "[0.1.0, )",
+          "Microsoft.Management.Infrastructure": "[3.0.0, )"
         }
       },
       "adnoctem.substrate.office": {
@@ -311,9 +342,9 @@
       "adnoctem.substrate.registry": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Win32.Registry": "[5.0.0, )",
           "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
-          "AdNoctem.Substrate.IO": "[0.1.0, )"
+          "AdNoctem.Substrate.IO": "[0.1.0, )",
+          "Microsoft.Win32.Registry": "[5.0.0, )"
         }
       },
       "adnoctem.substrate.security": {
@@ -329,11 +360,11 @@
       "adnoctem.substrate.windows": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "AdNoctem.Substrate.Diagnostics": "[0.1.0, )",
           "AdNoctem.Substrate.IO": "[0.1.0, )",
           "AdNoctem.Substrate.Interop": "[0.1.0, )",
           "AdNoctem.Substrate.Registry": "[0.1.0, )",
+          "Microsoft.Management.Infrastructure": "[3.0.0, )",
           "System.Security.Principal.Windows": "[5.0.0, )"
         }
       }
