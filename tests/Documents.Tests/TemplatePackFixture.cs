@@ -36,6 +36,8 @@ internal sealed class TemplatePackFixture : IDisposable
         );
         Directory.CreateDirectory(Root);
         WriteBytes("base.docx", DocxTemplateFixture.Create());
+        WriteBytes("authoring.en.dotx", DocxTemplateFixture.CreateTemplate("en"));
+        WriteBytes("authoring.de.dotx", DocxTemplateFixture.CreateTemplate("de"));
         Write("release.en.html", DefaultHtml);
         Write("release.de.html", DefaultHtml);
         WriteManifest();
@@ -117,6 +119,11 @@ internal sealed class TemplatePackFixture : IDisposable
         + Json(docx)
         + "\",\"sha256\":\""
         + Hash(docx)
+        + "\"},"
+        + "\"authoring\":{\"path\":\"authoring."
+        + Json(code)
+        + ".dotx\",\"sha256\":\""
+        + Hash("authoring." + code + ".dotx")
         + "\"},"
         + "\"sections\":"
         + sections

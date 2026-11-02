@@ -34,6 +34,7 @@ public sealed class TemplateLanguage
 
     internal HtmlTemplate Html { get; }
     internal byte[] Docx { get; }
+    internal byte[] Authoring { get; }
 
     internal TemplateLanguage(
         string code,
@@ -42,7 +43,8 @@ public sealed class TemplateLanguage
         string specificationSeparator,
         IEnumerable<PressReleaseSectionKind> sections,
         HtmlTemplate html,
-        byte[] docx
+        byte[] docx,
+        byte[] authoring
     )
     {
         Code = code;
@@ -52,6 +54,7 @@ public sealed class TemplateLanguage
         Sections = Array.AsReadOnly(sections.ToArray());
         Html = html;
         Docx = docx;
+        Authoring = authoring;
     }
 }
 
@@ -154,6 +157,7 @@ public sealed class TemplatePack
                     "specificationSeparator",
                     "html",
                     "docx",
+                    "authoring",
                     "sections",
                 ]
             );
@@ -195,6 +199,7 @@ public sealed class TemplatePack
                     "specificationSeparator",
                     "html",
                     "docx",
+                    "authoring",
                     "sections",
                 ]
             );
@@ -230,8 +235,18 @@ public sealed class TemplatePack
                 "languages[].docx",
                 ["path", "sha256"]
             );
+            var authoringFile = Fields(
+                Object(languageFields, "authoring", "languages[].authoring"),
+                "languages[].authoring",
+                ["path", "sha256"]
+            );
             var htmlBytes = Asset(directory, htmlFile, htmlSource);
             var docxBytes = Asset(directory, docxFile, "DOCX base for \"" + code + "\"");
+            var authoringBytes = Asset(
+                directory,
+                authoringFile,
+                "Authoring template for \"" + code + "\""
+            );
             var html = HtmlTemplate.Parse(Decode(htmlBytes, htmlSource), sections, htmlSource);
             languages.Add(
                 code,
@@ -248,7 +263,8 @@ public sealed class TemplatePack
                     ),
                     sections,
                     html,
-                    docxBytes
+                    docxBytes,
+                    authoringBytes
                 )
             );
         }

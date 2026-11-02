@@ -164,7 +164,7 @@ public sealed class PressReleaseDocxWriter
 
         Replace(
             contactHeading,
-            Plain(emitter, release.Contact.Heading, contactHeading, bold: false)
+            Plain(emitter, release.Contact.Heading, contactHeading, bold: true)
         );
         Replace(
             contactDetails,
@@ -360,6 +360,13 @@ public sealed class PressReleaseDocxWriter
             if (style != null)
                 paragraph.AppendChild(style.CloneNode(true));
 
+            paragraph.AppendChild(
+                new Run(
+                    new RunProperties(new Color { Val = "00529C" }),
+                    new Text("\u25A0"),
+                    new TabChar()
+                )
+            );
             paragraph.Append(emitter.Inlines(row.Label, bold));
             paragraph.AppendChild(
                 WordContentEmitter.Run(
@@ -404,15 +411,16 @@ public sealed class PressReleaseDocxWriter
             normal.Italic = null;
         }
 
-        var strong = Clone(placeholder.Run) ?? new RunProperties();
+        var strong = Clone(placeholder.Strong) ?? Clone(placeholder.Run) ?? new RunProperties();
         strong.Bold = new Bold();
         strong.Italic = null;
-        return new RunFormat(normal, strong, normal);
+        var link = Clone(placeholder.Link) ?? normal;
+        return new RunFormat(normal, strong, link);
     }
 
     private static RunFormat BoldFormat(Placeholder placeholder)
     {
-        var bold = Clone(placeholder.Run) ?? new RunProperties();
+        var bold = Clone(placeholder.Strong) ?? Clone(placeholder.Run) ?? new RunProperties();
         bold.Bold = new Bold();
         bold.Italic = null;
         return new RunFormat(bold, bold, bold);
@@ -500,13 +508,26 @@ public sealed class PressReleaseDocxWriter
         internal SdtBlock Element { get; }
         internal ParagraphProperties? ParagraphStyle { get; }
         internal RunProperties? Run { get; }
+        internal RunProperties? Strong { get; }
+        internal RunProperties? Link { get; }
 
         internal Placeholder(SdtBlock element)
         {
             Element = element;
             var paragraph = element.Descendants<Paragraph>().FirstOrDefault();
             ParagraphStyle = Clone(paragraph?.ParagraphProperties);
-            Run = Clone(paragraph?.Descendants<RunProperties>().FirstOrDefault());
+            var runs = paragraph?.Descendants<RunProperties>().ToArray() ?? [];
+            Run = Clone(runs.FirstOrDefault());
+            Strong = Clone(runs.FirstOrDefault(IsBold));
+            Link = Clone(
+                paragraph
+                    ?.Descendants<Hyperlink>()
+                    .SelectMany(item => item.Descendants<RunProperties>())
+                    .FirstOrDefault()
+            );
         }
+
+        private static bool IsBold(RunProperties properties) =>
+            properties.Bold != null && (properties.Bold.Val == null || properties.Bold.Val.Value);
     }
 }

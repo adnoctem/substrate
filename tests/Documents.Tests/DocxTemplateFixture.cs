@@ -6,7 +6,11 @@ namespace AdNoctem.Substrate.Documents.Tests;
 
 internal static class DocxTemplateFixture
 {
-    internal static byte[] Create(string language = "en")
+    internal static byte[] Create(string language = "en") => Build(language, false);
+
+    internal static byte[] CreateTemplate(string language = "en") => Build(language, true);
+
+    private static byte[] Build(string language, bool asTemplate)
     {
         var template = new AuthoringTemplate(
             [
@@ -118,7 +122,7 @@ internal static class DocxTemplateFixture
 
         using (var stream = new MemoryStream())
         {
-            new AuthoringTemplateBuilder().Write(template, stream, asTemplate: false);
+            new AuthoringTemplateBuilder().Write(template, stream, asTemplate);
             return stream.ToArray();
         }
     }

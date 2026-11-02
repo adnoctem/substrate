@@ -29,6 +29,7 @@ public sealed class TemplatePackTests
         Assert.Equal("PRESSEMITTEILUNG", pack.Languages["de"].Masthead);
         Assert.Contains(PressReleaseSectionKind.Contact, pack.Languages["en"].Sections);
         Assert.NotEmpty(pack.Languages["en"].Docx);
+        Assert.NotEmpty(pack.Languages["en"].Authoring);
     }
 
     [Fact]
