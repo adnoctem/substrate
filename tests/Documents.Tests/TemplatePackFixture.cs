@@ -35,7 +35,7 @@ internal sealed class TemplatePackFixture : IDisposable
             "substrate-pack-" + Guid.NewGuid().ToString("N")
         );
         Directory.CreateDirectory(Root);
-        WriteBytes("base.docx", WordFixture.Release());
+        WriteBytes("base.docx", DocxTemplateFixture.Create());
         Write("release.en.html", DefaultHtml);
         Write("release.de.html", DefaultHtml);
         WriteManifest();

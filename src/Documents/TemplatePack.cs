@@ -256,6 +256,29 @@ public sealed class TemplatePack
         return new TemplatePack(version, outputLayoutVersion, schema, languages);
     }
 
+    internal static TemplateLanguage SelectLanguage(PressRelease release, TemplatePack pack)
+    {
+        if (!pack.Languages.TryGetValue(release.Language, out var language))
+            throw new DocumentException(
+                DocumentFailureReason.UnsupportedLanguage,
+                "The template pack does not support language \"" + release.Language + "\"."
+            );
+
+        if (
+            !pack.Schema.TemplateVersions.Any(version =>
+                string.Equals(version, release.TemplateVersion, StringComparison.Ordinal)
+            )
+        )
+            throw new DocumentException(
+                DocumentFailureReason.UnsupportedTemplateVersion,
+                "The template pack does not support authoring template version \""
+                    + release.TemplateVersion
+                    + "\"."
+            );
+
+        return language;
+    }
+
     private static XmlElement ReadManifest(string path)
     {
         byte[] bytes;

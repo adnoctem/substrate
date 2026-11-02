@@ -32,7 +32,7 @@ public sealed class PressReleaseHtmlWriter
             throw new ArgumentNullException(nameof(destination));
 
         cancellationToken.ThrowIfCancellationRequested();
-        var language = Language(release, pack);
+        var language = TemplatePack.SelectLanguage(release, pack);
         var values = Values(release, pack, language);
         var present = Present(release, language);
         var html = language.Html.Render(values, present);
@@ -58,29 +58,6 @@ public sealed class PressReleaseHtmlWriter
             buffer.Position = 0;
             new FileManager().WriteAtomically(destination, buffer, overwrite, cancellationToken);
         }
-    }
-
-    private static TemplateLanguage Language(PressRelease release, TemplatePack pack)
-    {
-        if (!pack.Languages.TryGetValue(release.Language, out var language))
-            throw new DocumentException(
-                DocumentFailureReason.UnsupportedLanguage,
-                "The template pack does not support language \"" + release.Language + "\"."
-            );
-
-        if (
-            !pack.Schema.TemplateVersions.Any(version =>
-                string.Equals(version, release.TemplateVersion, StringComparison.Ordinal)
-            )
-        )
-            throw new DocumentException(
-                DocumentFailureReason.UnsupportedTemplateVersion,
-                "The template pack does not support authoring template version \""
-                    + release.TemplateVersion
-                    + "\"."
-            );
-
-        return language;
     }
 
     private static IReadOnlyDictionary<string, string> Values(
