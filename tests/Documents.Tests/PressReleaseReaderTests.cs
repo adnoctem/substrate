@@ -669,6 +669,32 @@ public sealed class PressReleaseReaderTests
     }
 
     [Fact]
+    public void ManualListIndentationWarnsBecauseOnlyLevelsArePublished()
+    {
+        var indented = Item(Bullets, 0, Run("Looks nested"));
+        indented.ParagraphProperties!.Indentation = new Indentation { Left = "1080" };
+        var result = Read(
+            Release(
+                replace: new()
+                {
+                    [PressReleaseTags.Body] = fixture =>
+                        fixture.Block(
+                            PressReleaseTags.Body,
+                            Item(Bullets, 0, Run("Top")),
+                            indented
+                        ),
+                }
+            )
+        );
+
+        Assert.True(result.Succeeded);
+        var warning = Assert.Single(result.Diagnostics);
+        Assert.Equal(DocumentDiagnosticCode.IgnoredFormatting, warning.Code);
+        Assert.Equal("paragraph 2", warning.Location);
+        Assert.Equal(2, ((ListBlock)result.Release!.Body[0]).Items.Count);
+    }
+
+    [Fact]
     public void UnsupportedListsAreDiagnosed()
     {
         Single(
@@ -779,6 +805,17 @@ public sealed class PressReleaseReaderTests
             new[] { "", "" }
         );
         header.GetFirstChild<TableRow>()!.PrependChild(new TableRowProperties(new TableHeader()));
+
+        // Word writes cell-margin exceptions on every row; they are formatting, not shape.
+        foreach (var row in header.Elements<TableRow>())
+            row.PrependChild(
+                new TablePropertyExceptions(
+                    new TableCellMarginDefault(
+                        new TopMargin { Width = "0", Type = TableWidthUnitValues.Dxa }
+                    )
+                )
+            );
+
         var release = Valid(
             Release(
                 replace: new()

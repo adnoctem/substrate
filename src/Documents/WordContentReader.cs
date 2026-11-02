@@ -673,6 +673,16 @@ public sealed class WordContentReader
                     continue;
                 }
 
+                // Direct indentation looks like nesting in Word but does not change the list level.
+                if (paragraph.ParagraphProperties?.Indentation != null)
+                    diagnostics.Warning(
+                        DocumentDiagnosticCode.IgnoredFormatting,
+                        field.Tag,
+                        context.Location,
+                        "The list item's manual indentation is ignored; only its list level is published.",
+                        "To nest the item, press Tab at its start or use the second-level list style; otherwise remove the indentation."
+                    );
+
                 if (!lists.Add(number.Value.Level, item, inlines))
                     diagnostics.Error(
                         DocumentDiagnosticCode.UnsupportedList,
@@ -753,9 +763,9 @@ public sealed class WordContentReader
                     continue;
 
                 var cells = Flatten<TableCell>(row).ToArray();
+                // Property exceptions (w:tblPrEx), which Word writes on ordinary rows, are formatting only.
                 var irregular =
-                    row.TablePropertyExceptions != null
-                    || row.TableRowProperties?.GetFirstChild<GridBefore>() != null
+                    row.TableRowProperties?.GetFirstChild<GridBefore>() != null
                     || row.TableRowProperties?.GetFirstChild<GridAfter>() != null
                     || cells.Any(cell =>
                         cell.TableCellProperties?.GridSpan?.Val?.Value > 1

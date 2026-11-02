@@ -74,7 +74,13 @@ public sealed class PressReleaseReader
         )
             return new PressReleaseReadResult(null, diagnostics.Items);
 
-        var metadata = Metadata(extraction.Properties, schema, expectedLanguage, diagnostics);
+        // An empty expectation means none, so PowerShell callers can pass $null.
+        var metadata = Metadata(
+            extraction.Properties,
+            schema,
+            string.IsNullOrEmpty(expectedLanguage) ? null : expectedLanguage,
+            diagnostics
+        );
 
         if (diagnostics.HasErrors || metadata == null)
             return new PressReleaseReadResult(null, diagnostics.Items);
