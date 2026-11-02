@@ -98,7 +98,7 @@ jobs:
             build/docs/site/**
           if-no-files-found: error
 
-  # Enable this job when automatic release dispatch is wanted. The release gate still applies.
+  # Dispatch only after successful push validation. The release gate still applies.
   dispatch:
     name: Dispatch release
     needs: [check, test]

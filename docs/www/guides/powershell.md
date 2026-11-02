@@ -1,6 +1,17 @@
 # PowerShell workflows
 
-Import the staged module in a fresh host. The [command reference](../../../build/docs/commands/toc.yml) documents each command's parameters and examples.
+Install the published module from [PSGallery](https://www.powershellgallery.com/packages/AdNoctem.Substrate.PowerShell) and import your
+chosen version in a fresh host. This example pins 0.2.1:
+
+```powershell
+Install-Module -Name AdNoctem.Substrate.PowerShell -RequiredVersion 0.2.1 -Repository PSGallery -Scope CurrentUser
+Import-Module AdNoctem.Substrate.PowerShell -RequiredVersion 0.2.1
+```
+
+The 0.x APIs are still evolving. Review the [release notes](https://github.com/adnoctem/substrate/releases) before updating the pin.
+For local development, import the staged module instead; see
+[Contributing](https://github.com/adnoctem/substrate/blob/main/docs/CONTRIBUTING.md). The
+[command reference](../../../build/docs/commands/toc.yml) documents each command's parameters and examples.
 
 ## Registry policy files
 
