@@ -541,6 +541,95 @@ public sealed class PressReleaseReaderTests
     }
 
     [Fact]
+    public void PlainHttpUrlsBecomeLinksInEveryWriter()
+    {
+        const string Video = "https://www.youtube.com/watch?v=abc&t=30s";
+        const string Specs = "https://example.com/specs";
+        const string Listed = "http://example.com/list";
+        var release = Valid(
+            Release(
+                replace: new Dictionary<string, Func<WordFixture, OpenXmlElement>>
+                {
+                    [PressReleaseTags.Media] = fixture =>
+                        fixture.Block(
+                            PressReleaseTags.Media,
+                            Paragraph(
+                                Run("Video:", bold: true),
+                                new Run(new Break()),
+                                Run(Video, bold: true)
+                            )
+                        ),
+                    [PressReleaseTags.Specifications] = fixture =>
+                        fixture.Block(
+                            PressReleaseTags.Specifications,
+                            fixture.Block(
+                                PressReleaseTags.SpecificationsHeading,
+                                Paragraph(Run("Technical data"))
+                            ),
+                            fixture.Block(
+                                PressReleaseTags.SpecificationsTable,
+                                Table(new[] { "Sheet:", Specs + "." })
+                            )
+                        ),
+                    [PressReleaseTags.Body] = fixture =>
+                        fixture.Block(
+                            PressReleaseTags.Body,
+                            Item(Bullets, 0, Run("Images: " + Listed))
+                        ),
+                }
+            )
+        );
+
+        var media = Assert.IsType<ParagraphBlock>(Assert.Single(release.Media!));
+        var video = Assert.IsType<HyperlinkInline>(media.Content.Last());
+        Assert.Equal(Video, video.Destination.OriginalString);
+        Assert.Equal(TextMarks.Bold, ((TextInline)video.Content.Single()).Marks);
+        var row = Assert.Single(release.Specifications!.Rows);
+        Assert.Equal(
+            Specs,
+            row.Value.OfType<HyperlinkInline>().Single().Destination.OriginalString
+        );
+        Assert.Equal(Specs + ".", Plain(row.Value));
+        var item = Assert.Single(Assert.IsType<ListBlock>(Assert.Single(release.Body)).Items);
+        Assert.Equal(
+            Listed,
+            item.Content.OfType<HyperlinkInline>().Single().Destination.OriginalString
+        );
+
+        using var pack = new TemplatePackFixture();
+        var loaded = pack.Load();
+
+        using (var stream = new MemoryStream())
+        {
+            new PressReleaseHtmlWriter().Write(release, loaded, stream);
+            var html = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+            Assert.Contains(
+                "<a href=\"https://www.youtube.com/watch?v=abc&amp;t=30s\"><strong>",
+                html
+            );
+            Assert.Contains("<a href=\"" + Specs + "\">" + Specs + "</a>.", html);
+            Assert.Contains("<a href=\"" + Listed + "\">", html);
+        }
+
+        using (var stream = new MemoryStream())
+        {
+            new PressReleaseDocxWriter().Write(release, loaded, stream);
+            stream.Position = 0;
+
+            using (var document = WordprocessingDocument.Open(stream, false))
+                Assert.Equal(
+                    new[] { Listed, Specs, Video }.OrderBy(value => value),
+                    document
+                        .MainDocumentPart!.HyperlinkRelationships.Select(item =>
+                            item.Uri.OriginalString
+                        )
+                        .Where(value => value.StartsWith("http", StringComparison.Ordinal))
+                        .OrderBy(value => value)
+                );
+        }
+    }
+
+    [Fact]
     public void HyperlinksKeepDestinationsAndRejectBrokenUnsafeOrInternalLinks()
     {
         var release = Valid(
