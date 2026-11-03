@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AdNoctem.Substrate.Documents;
 
@@ -163,6 +164,11 @@ public sealed class ListItem
 /// <summary>Helpers for canonical inline sequences.</summary>
 public static class Inlines
 {
+    private static readonly Regex HttpUrl = new Regex(
+        @"https?://[^\s<>""']+",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
+    );
+
     /// <summary>Concatenates the visible text, using a line feed for line breaks.</summary>
     public static string ToPlainText(IEnumerable<DocumentInline> content)
     {
@@ -195,6 +201,105 @@ public static class Inlines
         }
 
         return result.AsReadOnly();
+    }
+
+    /// <summary>Makes plain HTTP(S) text linkable without changing its visible text or marks.</summary>
+    internal static IReadOnlyList<DocumentInline> Linkify(IEnumerable<DocumentInline> content)
+    {
+        var result = new List<DocumentInline>();
+
+        foreach (var item in content ?? throw new ArgumentNullException(nameof(content)))
+        {
+            if (item is not TextInline text)
+            {
+                result.Add(item ?? throw new ArgumentException("Null inline.", nameof(content)));
+                continue;
+            }
+
+            var position = 0;
+
+            foreach (Match match in HttpUrl.Matches(text.Text))
+            {
+                var length = LinkLength(match.Value);
+
+                if (length == 0)
+                    continue;
+
+                var value = match.Value.Substring(0, length);
+
+                if (
+                    !Uri.TryCreate(value, UriKind.Absolute, out var destination)
+                    || (
+                        destination.Scheme != Uri.UriSchemeHttp
+                        && destination.Scheme != Uri.UriSchemeHttps
+                    )
+                )
+                    continue;
+
+                if (match.Index > position)
+                    result.Add(
+                        new TextInline(
+                            text.Text.Substring(position, match.Index - position),
+                            text.Marks
+                        )
+                    );
+
+                result.Add(new HyperlinkInline(destination, [new TextInline(value, text.Marks)]));
+
+                var trailing = match.Value.Substring(length);
+
+                if (trailing.Length != 0)
+                    result.Add(new TextInline(trailing, text.Marks));
+
+                position = match.Index + match.Length;
+            }
+
+            if (position < text.Text.Length)
+                result.Add(new TextInline(text.Text.Substring(position), text.Marks));
+        }
+
+        return result.AsReadOnly();
+    }
+
+    private static int LinkLength(string value)
+    {
+        var length = value.Length;
+
+        while (length != 0)
+        {
+            var character = value[length - 1];
+
+            if (character is '.' or ',' or ';' or ':' or '!' or '?')
+            {
+                length--;
+                continue;
+            }
+
+            if (
+                (character == ')' && Count(value, '(', length) < Count(value, ')', length))
+                || (character == ']' && Count(value, '[', length) < Count(value, ']', length))
+                || (character == '}' && Count(value, '{', length) < Count(value, '}', length))
+            )
+            {
+                length--;
+                continue;
+            }
+
+            break;
+        }
+
+        return length;
+    }
+
+    private static int Count(string value, char target, int length)
+    {
+        var count = 0;
+
+        for (var index = 0; index < length; index++)
+            if (value[index] == target)
+                count++;
+
+        return count;
     }
 
     internal static IReadOnlyList<DocumentInline> Freeze(

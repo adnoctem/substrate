@@ -201,7 +201,26 @@ public sealed class PressReleaseReader
     private static IReadOnlyList<DocumentBlock>? Blocks(
         IReadOnlyDictionary<string, FieldContent> fields,
         string tag
-    ) => Find(fields, tag) is RichFieldContent rich ? rich.Blocks : null;
+    ) => Find(fields, tag) is RichFieldContent rich ? rich.Blocks.Select(Linkify).ToArray() : null;
+
+    // Authors paste plain URLs; linking them here gives every writer the same clickable destinations.
+    private static DocumentBlock Linkify(DocumentBlock block) =>
+        block switch
+        {
+            ParagraphBlock paragraph => new ParagraphBlock(Inlines.Linkify(paragraph.Content)),
+            ListBlock list => Linkify(list),
+            _ => block,
+        };
+
+    private static ListBlock Linkify(ListBlock list) =>
+        new ListBlock(
+            list.Kind,
+            list.Start,
+            list.Items.Select(item => new ListItem(
+                Inlines.Linkify(item.Content),
+                item.Sublist == null ? null : Linkify(item.Sublist)
+            ))
+        );
 
     private static PressReleaseSection? Section(
         IReadOnlyDictionary<string, FieldContent> fields,
@@ -222,7 +241,10 @@ public sealed class PressReleaseReader
                 Text(group.Children, PressReleaseTags.SpecificationsHeading)!,
                 (
                     (TableFieldContent)group.Children[PressReleaseTags.SpecificationsTable]
-                ).Rows.Select(row => new SpecificationRow(row[0], row[1]))
+                ).Rows.Select(row => new SpecificationRow(
+                    Inlines.Linkify(row[0]),
+                    Inlines.Linkify(row[1])
+                ))
             )
             : null;
 
