@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/adnoctem/substrate/compare/v0.3.0...v0.3.1) (2026-11-03)
+
+### Bug Fixes
+
+- **src:** link plain HTTP URLs in generated releases ([5ccbf9b](https://github.com/adnoctem/substrate/commit/5ccbf9b9769598721e2931007ea69615e4c049e8))
+- **tests:** cover plain URL auto-linking ([29d8922](https://github.com/adnoctem/substrate/commit/29d892283d17ef15ad33614b36f2c86baef6c16e))
+
 ## [0.3.0](https://github.com/adnoctem/substrate/compare/v0.2.1...v0.3.0) (2026-11-02)
 
 ### Features
