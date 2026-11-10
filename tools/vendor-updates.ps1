@@ -42,6 +42,10 @@ foreach ($tool in @('LGPO', 'ODT')) {
   if ($candidates.Count -ne 1) { throw "Official $tool page did not expose one unambiguous candidate. Review the download page manually." }
 
   $uri = [uri]$candidates[0]
+
+  # Microsoft download paths are case-insensitive; a recased link is the reviewed source, not a candidate.
+  if ([string]::Equals($uri.AbsoluteUri, $current, [StringComparison]::OrdinalIgnoreCase)) { $uri = [uri]$current }
+
   $download = Join-Path $work ([IO.Path]::GetFileName($uri.AbsolutePath))
   Save-MicrosoftDownload -Uri $uri -Destination $download
   $downloadHash = (Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash
