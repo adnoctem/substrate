@@ -23,6 +23,7 @@ jobs:
       matrix:
         kind: [powershell, vendor]
     runs-on: windows-2022
+    timeout-minutes: 30
     permissions:
       contents: write
       pull-requests: write
@@ -55,6 +56,11 @@ jobs:
       - name: Restore candidate dependencies
         run: dotnet msbuild tools/tasks.proj -t:Restore
 
+      # New PlatyPS versions can render command syntax differently; regenerate tracked help for review in the same PR.
+      - name: Refresh command help
+        if: matrix.kind == 'powershell'
+        run: dotnet msbuild tools/tasks.proj -t:UpdateHelp
+
       - name: Validate candidates
         run: dotnet msbuild tools/tasks.proj -t:Verify
 
@@ -62,22 +68,26 @@ jobs:
         if: matrix.kind == 'powershell'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ANC_GITHUB_TOKEN }}
           branch: automation/powershell-tools
+          delete-branch: true
           commit-message: |
             build(tools): update PowerShell development tools
 
-            Restore exact candidate versions and verify the repository before proposing updates.
+            Restore exact candidate versions, refresh command help and verify the repository before proposing updates.
           title: "build(tools): update PowerShell development tools"
-          body: "Updates exact PowerShell tool pins after restoring and running Verify. Review before merging."
-          add-paths: tools/dev-dependencies.json
+          body: "Updates exact PowerShell tool pins and any command help they regenerate, after restoring and running Verify. Review before merging."
+          add-paths: |
+            tools/dev-dependencies.json
+            docs/www/commands/AdNoctem.Substrate.PowerShell/*.md
 
       - name: Propose verified vendor pins
         if: matrix.kind == 'vendor'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ANC_GITHUB_TOKEN }}
           branch: automation/vendor-tools
+          delete-branch: true
           commit-message: |
             build(tools): refresh verified Microsoft tool sources
 
