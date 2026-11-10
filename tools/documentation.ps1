@@ -91,8 +91,9 @@ if ($Mode -in @('Help', 'Update')) {
     if ($help.Examples.Count -eq 0) { throw "Missing examples: $($file.Name)" }
 
     $actual = New-CommandHelp -CommandInfo (Get-Command -Name ("AdNoctem.Substrate.PowerShell\" + $help.Title))
-    $expectedSyntax = @($help.Syntax | ForEach-Object { $_.ToString() }) -join "`n"
-    $actualSyntax = @($actual.Syntax | ForEach-Object { $_.ToString() }) -join "`n"
+    # PlatyPS 1.0.3 omits [<CommonParameters>] when generating syntax but restores it on import. Parameters are compared below.
+    $expectedSyntax = @($help.Syntax | ForEach-Object { $_.ToString() -replace ' \[<CommonParameters>\]$', '' }) -join "`n"
+    $actualSyntax = @($actual.Syntax | ForEach-Object { $_.ToString() -replace ' \[<CommonParameters>\]$', '' }) -join "`n"
 
     if ($expectedSyntax -cne $actualSyntax) { throw "Command syntax changed: $($help.Title). Expected: $expectedSyntax. Actual: $actualSyntax. Run UpdateHelp and review the result." }
 
