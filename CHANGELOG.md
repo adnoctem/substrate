@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/adnoctem/substrate/compare/v0.3.1...v0.3.2) (2026-11-10)
+
+### Bug Fixes
+
+- **tools:** ignore recased Microsoft download links ([641d683](https://github.com/adnoctem/substrate/commit/641d6835af4b1e48f46bc8b35ca0df41196ceeac))
+- **tools:** tolerate PlatyPS CommonParameters syntax drift ([bb663e2](https://github.com/adnoctem/substrate/commit/bb663e2e47523e8557b7886b6181d0c628627adf))
+
 ## [0.3.1](https://github.com/adnoctem/substrate/compare/v0.3.0...v0.3.1) (2026-11-03)
 
 ### Bug Fixes
