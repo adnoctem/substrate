@@ -133,7 +133,7 @@ the assessment under optional `Media` metadata. Preparation, plan revalidation, 
 validation failure; a valid assessment with only a changed fingerprint does not become an ACL/JSON error. Older plans and journals without
 `Media` remain readable. Recorded assessments are informational; execution and recovery always validate media afresh.
 
-Recovery journals are written atomically under `%ProgramData%\PSFoundation-Office` by default. They contain no product keys. A key is
+Recovery journals are written atomically under `%ProgramData%\winkit-Office` by default. They contain no product keys. A key is
 accepted only as `SecureString` and materialized in protected temporary XML for ODT; it is never placed on a process command line. Secure
 erasure of storage and redaction of ODT's own logs cannot be guaranteed. Cleanup failures retain the original error and report protected
 residue.

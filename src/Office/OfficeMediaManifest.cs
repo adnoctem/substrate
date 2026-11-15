@@ -40,7 +40,7 @@ public sealed class OfficeMediaFile
 /// <summary>An immutable schema-2 media manifest. File records are assertions until compared with protected on-disk content.</summary>
 public sealed class OfficeMediaManifest
 {
-    public const string FileName = "psfoundation-office-media.json";
+    public const string FileName = "winkit-office-media.json";
     public const int MaximumJsonBytes = 16 * 1024 * 1024;
     public OfficeConfiguration Configuration { get; }
     public string VersionText { get; }

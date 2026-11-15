@@ -65,7 +65,7 @@ HelpMessage: ""
 
 ### -SourcePath
 
-Absolute package directory containing psfoundation-office-media.json.
+Absolute package directory containing winkit-office-media.json.
 
 ```yaml
 Type: System.String
