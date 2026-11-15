@@ -53,9 +53,7 @@ public sealed class OfficeExclusionTests
         );
         Assert.Contains(
             "ExcludeApp",
-            new OfficeDeploymentValidator()
-                .Evaluate(Target(), inventory)
-                .Unknowns
+            new OfficeDeploymentValidator().Evaluate(Target(), inventory).Unknowns
         );
     }
 
@@ -104,8 +102,7 @@ public sealed class OfficeExclusionTests
             target.ExcludedApplications
         );
         var xml = new OdtConfigurationBuilder().Install(target, @"C:\Synthetic\Media");
-        var ids = xml
-            .SelectNodes("/Configuration/Add/Product/ExcludeApp")!
+        var ids = xml.SelectNodes("/Configuration/Add/Product/ExcludeApp")!
             .Cast<System.Xml.XmlNode>()
             .Select(node => node.Attributes!["ID"]!.Value)
             .ToArray();
