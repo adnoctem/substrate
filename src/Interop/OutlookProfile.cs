@@ -29,6 +29,13 @@ public enum OutlookDataFileFormat
     Other = 3,
 }
 
+/// <summary>Whether the profile store's identity and registration could be read. Unavailable never implies a local store.</summary>
+public enum OutlookStoreAvailability
+{
+    Available = 0,
+    Unavailable = 1,
+}
+
 /// <summary>
 /// Where an account's delivery store came from. Account.DeliveryStore was added in Outlook 2010; below it the profile
 /// default is the only documented answer, so a report has to say which of the two it is holding.
@@ -150,6 +157,12 @@ public sealed class OutlookStoreInfo
     /// <summary>Backing file shape as the Outlook data file dialog names it: PST, OST, None, or Other.</summary>
     public string DataFileFormatName { get; }
 
+    /// <summary>Available when the store identity was readable; Unavailable when the provider refused the store.</summary>
+    public OutlookStoreAvailability Availability { get; }
+
+    /// <summary>False means callers must not treat the placeholder as a readable or local store.</summary>
+    public bool IsAvailable => Availability == OutlookStoreAvailability.Available;
+
     /// <summary>Raw OlExchangeStoreType, or -1 when the provider did not report one.</summary>
     public int ExchangeStoreType { get; }
     public string ExchangeStoreName { get; }
@@ -177,6 +190,7 @@ public sealed class OutlookStoreInfo
         string storeId,
         string filePath,
         OutlookDataFileFormat dataFileFormat,
+        OutlookStoreAvailability availability,
         int exchangeStoreType,
         string exchangeStoreName,
         long? sizeBytes,
@@ -191,6 +205,7 @@ public sealed class OutlookStoreInfo
         FilePath = filePath;
         DataFileFormat = dataFileFormat;
         DataFileFormatName = Label(dataFileFormat);
+        Availability = availability;
         ExchangeStoreType = exchangeStoreType;
         ExchangeStoreName = exchangeStoreName;
         SizeBytes = sizeBytes;
@@ -279,6 +294,7 @@ public sealed partial class OutlookManager
         internal string FilePath = "";
         internal int ExchangeStoreType = -1;
         internal string Evidence = "";
+        internal bool Available = true;
     }
 
     /// <summary>The store new mail is delivered into by default, used where an account cannot report its own.</summary>
@@ -353,11 +369,16 @@ public sealed partial class OutlookManager
             for (var index = 1; index <= count; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var store = OutlookDispatch.Require(OutlookDispatch.Call(stores, "Item", index));
+                object? store = null;
 
                 try
                 {
+                    store = OutlookDispatch.Require(OutlookDispatch.Call(stores, "Item", index));
                     result.Add(ReadStore(store));
+                }
+                catch (Exception error) when (!(error is OperationCanceledException))
+                {
+                    result.Add(UnavailableStore(index, error));
                 }
                 finally
                 {
@@ -373,13 +394,40 @@ public sealed partial class OutlookManager
         return result;
     }
 
+    private static StoreFacts UnavailableStore(int index, Exception error) =>
+        new StoreFacts
+        {
+            Evidence =
+                "Store at profile index "
+                + index.ToString(CultureInfo.InvariantCulture)
+                + " is unavailable: "
+                + error.Message,
+            Available = false,
+        };
+
     private static StoreFacts ReadStore(object store)
     {
-        var facts = new StoreFacts
+        var facts = new StoreFacts();
+
+        try
         {
-            DisplayName = OutlookDispatch.Text(store, "DisplayName"),
-            StoreId = OutlookDispatch.Text(store, "StoreID"),
-        };
+            facts.DisplayName = OutlookDispatch.Text(store, "DisplayName");
+        }
+        catch (Exception error)
+        {
+            facts.Available = false;
+            facts.Evidence = Append(facts.Evidence, "DisplayName is unavailable: " + error.Message);
+        }
+
+        try
+        {
+            facts.StoreId = OutlookDispatch.Text(store, "StoreID");
+        }
+        catch (Exception error)
+        {
+            facts.Available = false;
+            facts.Evidence = Append(facts.Evidence, "StoreID is unavailable: " + error.Message);
+        }
 
         // A provider may expose neither a file path nor an Exchange classification.
         // Record what failed; never substitute a value that would read as local.
@@ -425,13 +473,18 @@ public sealed partial class OutlookManager
             for (var index = 1; index <= count; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var account = OutlookDispatch.Require(
-                    OutlookDispatch.Call(accounts, "Item", index)
-                );
+                object? account = null;
 
                 try
                 {
+                    account = OutlookDispatch.Require(
+                        OutlookDispatch.Call(accounts, "Item", index)
+                    );
                     result.Add(ReadAccount(account, fallback));
+                }
+                catch (Exception error) when (!(error is OperationCanceledException))
+                {
+                    result.Add(UnavailableAccount(index, error));
                 }
                 finally
                 {
@@ -447,10 +500,36 @@ public sealed partial class OutlookManager
         return result;
     }
 
+    private static OutlookAccountInfo UnavailableAccount(int index, Exception error) =>
+        new OutlookAccountInfo(
+            "",
+            "",
+            "",
+            -1,
+            "",
+            "",
+            "",
+            OutlookDeliveryStoreSource.Unresolved,
+            "Account at profile index "
+                + index.ToString(CultureInfo.InvariantCulture)
+                + " is unavailable: "
+                + error.Message
+        );
+
     private static OutlookAccountInfo ReadAccount(object account, DeliveryFacts fallback)
     {
-        var displayName = OutlookDispatch.Text(account, "DisplayName");
+        var displayName = "";
         var evidence = "";
+
+        try
+        {
+            displayName = OutlookDispatch.Text(account, "DisplayName");
+        }
+        catch (Exception error)
+        {
+            evidence = Append(evidence, "DisplayName is unavailable: " + error.Message);
+        }
+
         var accountType = -1;
 
         try
@@ -580,49 +659,64 @@ public sealed partial class OutlookManager
                     .ToList();
 
             var format = FormatOf(facts.FilePath);
-            var exchangeBacked = facts.ExchangeStoreType != NotExchange;
-            var synchronizing = delivering.FirstOrDefault(account => account.IsServerSynchronized);
-            var deferring = delivering.FirstOrDefault(account => account.MayDeferItemBodies);
+            var exchangeBacked = facts.Available && facts.ExchangeStoreType != NotExchange;
+            var synchronizing = facts.Available
+                ? delivering.FirstOrDefault(account => account.IsServerSynchronized)
+                : null;
+            var deferring = facts.Available
+                ? delivering.FirstOrDefault(account => account.MayDeferItemBodies)
+                : null;
             var evidence = facts.Evidence;
+            var availability = facts.Available
+                ? OutlookStoreAvailability.Available
+                : OutlookStoreAvailability.Unavailable;
 
-            if (facts.ExchangeStoreType < 0)
+            if (!facts.Available)
                 evidence = Append(
                     evidence,
-                    "No Exchange store type was reported; the store is treated as server-backed."
+                    "Store availability is unknown; do not treat the placeholder as a readable or local store."
                 );
-            else if (exchangeBacked)
-                evidence = Append(
-                    evidence,
-                    "Exchange-backed store (" + NameOf(facts.ExchangeStoreType) + ")."
-                );
+            else
+            {
+                if (facts.ExchangeStoreType < 0)
+                    evidence = Append(
+                        evidence,
+                        "No Exchange store type was reported; the store is treated as server-backed."
+                    );
+                else if (exchangeBacked)
+                    evidence = Append(
+                        evidence,
+                        "Exchange-backed store (" + NameOf(facts.ExchangeStoreType) + ")."
+                    );
 
-            if (format == OutlookDataFileFormat.Ost)
-                evidence = Append(
-                    evidence,
-                    "Offline data file: its contents are a cache of server state."
-                );
+                if (format == OutlookDataFileFormat.Ost)
+                    evidence = Append(
+                        evidence,
+                        "Offline data file: its contents are a cache of server state."
+                    );
 
-            if (synchronizing != null)
-                evidence = Append(
-                    evidence,
-                    "Delivery target of the "
-                        + synchronizing.KindName
-                        + " account '"
-                        + synchronizing.DisplayName
-                        + "'."
-                );
+                if (synchronizing != null)
+                    evidence = Append(
+                        evidence,
+                        "Delivery target of the "
+                            + synchronizing.KindName
+                            + " account '"
+                            + synchronizing.DisplayName
+                            + "'."
+                    );
 
-            if (delivering.Any(account => account.IsDeliveryStoreInferred))
-                evidence = Append(
-                    evidence,
-                    "Delivery is taken from the profile default; this client reports no per-account delivery store, so an account re-pointed elsewhere would still be listed here."
-                );
+                if (delivering.Any(account => account.IsDeliveryStoreInferred))
+                    evidence = Append(
+                        evidence,
+                        "Delivery is taken from the profile default; this client reports no per-account delivery store, so an account re-pointed elsewhere would still be listed here."
+                    );
 
-            if (!exchangeBacked && format != OutlookDataFileFormat.Ost && synchronizing == null)
-                evidence = Append(
-                    evidence,
-                    "Local data file with no account that synchronizes to a server."
-                );
+                if (!exchangeBacked && format != OutlookDataFileFormat.Ost && synchronizing == null)
+                    evidence = Append(
+                        evidence,
+                        "Local data file with no account that synchronizes to a server."
+                    );
+            }
 
             result.Add(
                 new OutlookStoreInfo(
@@ -630,12 +724,18 @@ public sealed partial class OutlookManager
                     facts.StoreId,
                     facts.FilePath,
                     format,
+                    availability,
                     facts.ExchangeStoreType,
                     NameOf(facts.ExchangeStoreType),
-                    SizeOf(facts.FilePath),
+                    facts.Available ? SizeOf(facts.FilePath) : null,
                     delivering.Select(account => account.DisplayName).ToList(),
-                    format == OutlookDataFileFormat.Ost || exchangeBacked || synchronizing != null,
-                    format == OutlookDataFileFormat.Ost || deferring != null,
+                    facts.Available
+                        && (
+                            format == OutlookDataFileFormat.Ost
+                            || exchangeBacked
+                            || synchronizing != null
+                        ),
+                    facts.Available && (format == OutlookDataFileFormat.Ost || deferring != null),
                     evidence
                 )
             );

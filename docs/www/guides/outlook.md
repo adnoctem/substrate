@@ -60,6 +60,12 @@ reliable signal, which is why store classification is computed from the accounts
 Exchange. A store whose type the provider does not report counts as Exchange-backed, and `Evidence` records that it was unreadable rather
 than letting a missing value read as local.
 
+`Get-OutlookStore` reports `Availability` (`Available` or `Unavailable`) and `IsAvailable`. When one store or account cannot be read, the
+remaining stores and accounts are still returned. An unavailable store keeps any readable evidence, leaves unreadable identity fields
+empty, and never claims synchronization or local-file status; callers must skip its root instead of parsing `Evidence` text. Delivery
+correlation by StoreID remains intact for every readable store. A failure of the profile-wide `Stores` or `Accounts` collection itself is
+still an error, because there is no partial enumeration to continue.
+
 ## Folder discovery and incomplete plans
 
 `Get-OutlookFolderPlan` tolerates individual standard-folder lookup failures. For example, a provider error for
