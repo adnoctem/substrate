@@ -220,9 +220,17 @@ public sealed class OfficeInventoryManager
             .ToArray();
         OfficeChannel? channel = channels.Length == 1 ? channels[0] : (OfficeChannel?)null;
         string[]? excluded = null;
-        var exclusionEvidence = "ExcludeApp unknown: registration is missing or not a string";
+        var excludedValue = record.GetValue(id + ".ExcludedApps");
+        var exclusionEvidence =
+            "ExcludeApp unknown: "
+            + record.View
+            + ":"
+            + record.Path.SubKey
+            + " value "
+            + id
+            + ".ExcludedApps is not a string";
 
-        if (record.GetValue(id + ".ExcludedApps") is string excludedText)
+        if (excludedValue is string excludedText)
         {
             excluded = Sorted(
                 OfficeVersionResolver
@@ -237,6 +245,19 @@ public sealed class OfficeInventoryManager
                 + " value "
                 + id
                 + ".ExcludedApps";
+        }
+        else if (excludedValue == null)
+        {
+            // Click-to-Run omits the product value when no applications are excluded.
+            excluded = Array.Empty<string>();
+            exclusionEvidence =
+                "ExcludeApp none: "
+                + record.View
+                + ":"
+                + record.Path.SubKey
+                + " value "
+                + id
+                + ".ExcludedApps absent";
         }
 
         var registered = Array.Empty<string>();
