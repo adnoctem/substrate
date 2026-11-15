@@ -6,6 +6,69 @@ namespace AdNoctem.Substrate.Office.Tests;
 public sealed class OfficeRecoveryTests
 {
     [Fact]
+    public void InformationalRecoveryBlocksDoNotClaimRecoveryIsRequired()
+    {
+        var request = new OfficeDeploymentRequest(
+            OfficeDeploymentAction.Migrate,
+            new OfficeConfiguration(
+                OfficeProduct.Standard2019Volume,
+                version: new Version("16.0.10417.20095")
+            ),
+            @"C:\Media",
+            new[] { "Standard2019Volume" }
+        );
+        var checkpoint = new OfficeRecoveryCheckpoint(
+            1,
+            request,
+            "StageMedia",
+            false,
+            new[] { "Standard2019Volume" },
+            Array.Empty<string>()
+        );
+        var policy = new OfficeRecoveryPolicy();
+        var busy = policy.Evaluate(
+            checkpoint,
+            request.Action,
+            new[] { "Standard2019Volume" },
+            Array.Empty<string>(),
+            false,
+            false,
+            true,
+            false,
+            true
+        );
+        Assert.Equal("DeploymentBusy", busy.ReasonCode);
+        Assert.False(busy.RecoveryRequired);
+        var reboot = policy.Evaluate(
+            checkpoint,
+            request.Action,
+            new[] { "Standard2019Volume" },
+            Array.Empty<string>(),
+            false,
+            false,
+            false,
+            true,
+            true
+        );
+        Assert.Equal("RebootRequired", reboot.ReasonCode);
+        Assert.Equal(3010, reboot.WrapperExitCode);
+        Assert.False(reboot.RecoveryRequired);
+        var conflict = policy.Evaluate(
+            checkpoint,
+            request.Action,
+            new[] { "VisioPro2019Volume" },
+            Array.Empty<string>(),
+            false,
+            false,
+            false,
+            false,
+            true
+        );
+        Assert.Equal("Conflict", conflict.ReasonCode);
+        Assert.False(conflict.RecoveryRequired);
+    }
+
+    [Fact]
     public void ContinuationRequiresKnownScopeAndAnAcceptedCheckpoint()
     {
         var target = new OfficeConfiguration(

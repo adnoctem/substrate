@@ -116,6 +116,11 @@ installer fails. Installation verification and activation are independent. Wrapp
 retaining native exit codes. Use `ConvertTo-Json -Depth 30` for the complete nested result. Do not flatten unknowns into successful
 compliance.
 
+An `Incomplete` plan means the target product is installed but verification cannot establish one or more fields. It is blocked as
+`VerificationUnknown`, and its `Warnings` name those fields. That state does not claim recovery: `RecoveryRequired` is reserved for
+unsettled native execution or a validated recovery journal that cannot continue safely. Busy, reboot, and conflict observations remain
+informational through `Status` and `ReasonCode`.
+
 Workflow results also include `Execution` (`ModuleVersion`, `ModulePath`, `PowerShellVersion`, `PowerShellEdition`, `ProcessBitness`) from
 the executing module and process. Journal result/log metadata retains this context; an earlier preparation report does not establish the
 version used for a later execution. This is additive within schema 1 and does not rewrite historical inventory or journal fingerprints.

@@ -338,6 +338,11 @@ public sealed partial class OfficeDeploymentManager
         {
             result.Status = OfficeDeploymentStatus.Blocked;
             result.ReasonCode = fresh.Blockers.FirstOrDefault() ?? "InvalidConfiguration";
+            result.RecoveryRequired = string.Equals(
+                result.ReasonCode,
+                "RecoveryRequired",
+                StringComparison.Ordinal
+            );
             result.WrapperExitCode = 1;
 
             return result;

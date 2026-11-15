@@ -208,27 +208,57 @@ public sealed class OfficeDeploymentTests
         }
     }
 
-    private static OfficeInventory Inventory(string? architecture)
+    [Fact]
+    public void VerificationUnknownsNameFieldsAndDoNotClaimRecovery()
+    {
+        var runtime = new Runtime { Current = Inventory("x64", RegistryValue.DWord(1)) };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        Assert.Equal(OfficeDeploymentState.Incomplete, plan.State);
+        Assert.Contains("VerificationUnknown", plan.Blockers);
+        Assert.DoesNotContain("RecoveryRequired", plan.Blockers);
+        Assert.Contains(
+            plan.Warnings,
+            warning => warning == "Verification cannot establish: ExcludeApp"
+        );
+        var blocked = manager.Preview(plan, OfficeDeploymentAction.Install, Options);
+        Assert.Equal(OfficeDeploymentStatus.Blocked, blocked.Status);
+        Assert.Equal("VerificationUnknown", blocked.ReasonCode);
+        Assert.False(blocked.RecoveryRequired);
+    }
+
+    private static OfficeInventory Inventory(
+        string? architecture,
+        RegistryValue? exclusionValue = null
+    )
     {
         var records = new List<OfficeRegistryRecord>();
 
         if (architecture != null)
         {
             var root = @"HKLM\SOFTWARE\Microsoft\Office\ClickToRun\";
+            var configuration = new Dictionary<string, RegistryValue>
+            {
+                ["ProductReleaseIds"] = RegistryValue.String(Product),
+                ["Platform"] = RegistryValue.String(architecture),
+                ["CDNBaseUrl"] = RegistryValue.String(
+                    "https://officecdn.microsoft.com/pr/f2e724c1-748f-4b47-8fb8-8e0d210e9208"
+                ),
+                ["ClientCulture"] = RegistryValue.String("de-de"),
+                [Product + ".ExcludedApps"] = exclusionValue ?? RegistryValue.String(""),
+            };
+
             records.Add(
                 new OfficeRegistryRecord(
                     RegistryView.Registry64,
                     RegistryPath.Parse(root + "Configuration"),
-                    new Dictionary<string, RegistryValue>
-                    {
-                        ["ProductReleaseIds"] = RegistryValue.String(Product),
-                        ["Platform"] = RegistryValue.String(architecture),
-                        ["CDNBaseUrl"] = RegistryValue.String(
-                            "https://officecdn.microsoft.com/pr/f2e724c1-748f-4b47-8fb8-8e0d210e9208"
-                        ),
-                        ["ClientCulture"] = RegistryValue.String("de-de"),
-                        [Product + ".ExcludedApps"] = RegistryValue.String(""),
-                    }
+                    configuration
                 )
             );
             records.Add(

@@ -77,12 +77,18 @@ public sealed class OfficeDeploymentPlanner
                 && verification.Discrepancies.Count == 0
             )
                 state = OfficeDeploymentState.Incomplete;
+
+            if (state == OfficeDeploymentState.Incomplete)
+                warnings.Add(
+                    "Verification cannot establish: "
+                        + string.Join(", ", Sorted(verification.Unknowns))
+                );
         }
 
         if (action == OfficeDeploymentAction.Install)
         {
             if (state == OfficeDeploymentState.Incomplete)
-                blockers.Add("RecoveryRequired");
+                blockers.Add("VerificationUnknown");
             else if (
                 state != OfficeDeploymentState.Clean
                 && state != OfficeDeploymentState.Compliant
