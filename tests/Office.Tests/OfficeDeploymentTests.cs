@@ -233,9 +233,166 @@ public sealed class OfficeDeploymentTests
         Assert.False(blocked.RecoveryRequired);
     }
 
+    [Fact]
+    public void SafeRecoveryDivergenceContinuesAndRecordsEvidence()
+    {
+        var runId = "11111111111111111111111111111111";
+        var runtime = new Runtime { Current = Inventory("x86") };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        runtime.Record = RecoveryRecord(
+            plan,
+            runId,
+            "StageMedia",
+            false,
+            OfficeDocument.Create("After", OfficeInventorySerializer.Document(Inventory("x86")))
+        );
+        runtime.Current = Inventory(null);
+        var preview = manager.PreviewRecovery(runId, OfficeDeploymentAction.Install, Options);
+        Assert.Equal(OfficeDeploymentStatus.Preview, preview.Status);
+        Assert.NotNull(preview.RecoveryDivergence);
+        Assert.True(preview.RecoveryDivergence!.DiffersFromBefore);
+        Assert.True(preview.RecoveryDivergence.HasRecordedAfter);
+        Assert.True(preview.RecoveryDivergence.DiffersFromAfter);
+        Assert.Contains("Products", preview.RecoveryDivergence.ChangedFieldsSinceBefore);
+        Assert.Contains("Products", preview.RecoveryDivergence.ChangedFieldsSinceAfter);
+        Assert.Empty(runtime.Phases);
+        var resumed = manager.ResumeInstallation(runId, Options);
+        Assert.Equal(OfficeDeploymentStatus.Completed, resumed.Status);
+        Assert.Equal(OfficeDeploymentAction.Install, Assert.Single(runtime.Phases));
+        Assert.NotNull(resumed.RecoveryDivergence);
+        Assert.True(resumed.RecoveryDivergence!.DiffersFromBefore);
+    }
+
+    [Fact]
+    public void IneligibleRefreshedRecoveryPlanBlocksAsStaleRecoveryState()
+    {
+        var runId = "22222222222222222222222222222222";
+        var runtime = new Runtime { Current = Inventory("x86") };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        runtime.Record = RecoveryRecord(plan, runId, "StageMedia", false);
+        runtime.Current = Inventory("x64", RegistryValue.DWord(1));
+        var result = manager.ResumeInstallation(runId, Options);
+        Assert.Equal(OfficeDeploymentStatus.Blocked, result.Status);
+        Assert.Equal("StaleRecoveryState", result.ReasonCode);
+        Assert.False(result.RecoveryRequired);
+        Assert.NotNull(result.RecoveryDivergence);
+        Assert.True(result.RecoveryDivergence!.DiffersFromBefore);
+        Assert.Contains("Products", result.RecoveryDivergence.ChangedFieldsSinceBefore);
+        Assert.Contains("VerificationUnknown", result.Error);
+        Assert.Empty(runtime.Phases);
+    }
+
+    [Fact]
+    public void VerifyPhaseRecoveryRemainsBlockedWithoutExecution()
+    {
+        var runId = "33333333333333333333333333333333";
+        var runtime = new Runtime { Current = Inventory("x86") };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        runtime.Record = RecoveryRecord(plan, runId, "Verify", false);
+        runtime.Current = Inventory("x64", RegistryValue.DWord(1));
+        var result = manager.ResumeInstallation(runId, Options);
+        Assert.Equal(OfficeDeploymentStatus.Blocked, result.Status);
+        Assert.Equal("UnsupportedRecoveryState", result.ReasonCode);
+        Assert.True(result.RecoveryRequired);
+        Assert.NotNull(result.RecoveryDivergence);
+        Assert.Empty(runtime.Phases);
+    }
+
+    [Fact]
+    public void RetirementValidatesAndArchivesJournalEvidence()
+    {
+        var runId = "44444444444444444444444444444444";
+        var runtime = new Runtime { Current = Inventory("x64") };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        runtime.Record = RecoveryRecord(plan, runId, "StageMedia", false);
+        var result = manager.RetireRecovery(
+            runId,
+            "Synthetic stale journal",
+            Options.LogRoot,
+            executionMetadataJson: "{\"Caller\":\"synthetic\"}"
+        );
+        Assert.Equal(runId, result.RunId);
+        Assert.Equal(Options.LogRoot.Combine(runId + ".abandoned.json").Value, result.AuditPath);
+        Assert.Equal(Options.LogRoot.Combine("Abandoned").Value, result.ArchivePath);
+        Assert.Equal(
+            Options.LogRoot.Combine("Abandoned").Combine(runId + ".json").Value,
+            Assert.Single(result.ArchivedPaths)
+        );
+        Assert.Equal(
+            OfficeInventorySerializer.GetFingerprint(runtime.Current),
+            result.CurrentInventoryFingerprint
+        );
+        var audit = OfficeDocument.Parse(Assert.Single(runtime.RetirementAuditJson));
+        Assert.Equal(runId, audit.Text("RunId"));
+        Assert.Equal(Machine, audit.Text("MachineId"));
+        Assert.Equal("Synthetic stale journal", audit.Text("Reason"));
+        Assert.Equal(result.CurrentInventoryFingerprint, audit.Text("InventoryFingerprint"));
+        Assert.Equal("synthetic", audit.Object("Execution").Text("Caller"));
+        Assert.Equal(runId, Assert.Single(runtime.ArchivedRuns));
+        Assert.Empty(runtime.Phases);
+    }
+
+    [Fact]
+    public void RetirementRejectsInvalidAuthorityBeforeWriting()
+    {
+        var runId = "55555555555555555555555555555555";
+        var runtime = new Runtime { Current = Inventory("x86") };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        runtime.Record = RecoveryRecord(plan, runId, "StageMedia", false);
+        runtime.Current = Inventory("x64", machineId: "66666666-7777-8888-9999-000000000000");
+        var error = Assert.Throws<OfficeException>(() =>
+            manager.RetireRecovery(runId, "Synthetic reason", Options.LogRoot)
+        );
+        Assert.Equal(OfficeFailureReason.InvalidRecoveryRecord, error.Reason);
+        Assert.Empty(runtime.RetirementAuditJson);
+        Assert.Empty(runtime.ArchivedRuns);
+        Assert.Throws<ArgumentException>(() => manager.RetireRecovery(runId, " ", Options.LogRoot));
+        Assert.Throws<ArgumentException>(() =>
+            manager.RetireRecovery("not-a-run", "reason", Options.LogRoot)
+        );
+        Assert.Empty(runtime.RetirementAuditJson);
+        Assert.Empty(runtime.ArchivedRuns);
+    }
+
     private static OfficeInventory Inventory(
         string? architecture,
-        RegistryValue? exclusionValue = null
+        RegistryValue? exclusionValue = null,
+        string machineId = Machine
     )
     {
         var records = new List<OfficeRegistryRecord>();
@@ -306,7 +463,50 @@ public sealed class OfficeDeploymentTests
                 );
         }
 
-        return new OfficeInventoryManager().Analyze(Machine, records);
+        return new OfficeInventoryManager().Analyze(machineId, records);
+    }
+
+    private static OfficeRecoveryRecord RecoveryRecord(
+        OfficeDeploymentPlanDocument plan,
+        string runId,
+        string phase,
+        bool phaseCompleted,
+        OfficeDocument? result = null
+    )
+    {
+        var now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+        var journal = OfficeDocument.Create(
+            "SchemaVersion",
+            1,
+            "RunId",
+            runId,
+            "MachineId",
+            Machine,
+            "Action",
+            plan.Request.Action.ToString(),
+            "Plan",
+            plan.Data,
+            "ConfigurationFingerprint",
+            OfficeDocument.Fingerprint(plan.Data["Configuration"]),
+            "MediaFingerprint",
+            plan.MediaFingerprint,
+            "Phase",
+            phase,
+            "PhaseCompleted",
+            phaseCompleted,
+            "NativeResults",
+            Array.Empty<object>(),
+            "RebootRequired",
+            false,
+            "CreatedAt",
+            now,
+            "UpdatedAt",
+            now,
+            "Result",
+            result
+        );
+
+        return OfficeRecoveryRecord.Parse(journal.ToJson(), runId, Machine);
     }
 
     private sealed class Runtime : OfficeDeploymentRuntime
@@ -315,6 +515,9 @@ public sealed class OfficeDeploymentTests
         internal readonly List<string> Journals = new List<string>();
         internal readonly List<OfficeDeploymentAction> Phases = new List<OfficeDeploymentAction>();
         internal readonly List<bool> Keys = new List<bool>();
+        internal readonly List<FileSystemPath> RetirementAuditPaths = new List<FileSystemPath>();
+        internal readonly List<string> RetirementAuditJson = new List<string>();
+        internal readonly List<string> ArchivedRuns = new List<string>();
         internal int RemoveExit,
             FinalExit;
         internal bool Cleaned,
@@ -383,6 +586,27 @@ public sealed class OfficeDeploymentTests
         internal override void WriteLog(FileSystemPath path, string json)
         {
             Assert.NotNull(OfficeDocument.Parse(json).Object("Execution"));
+        }
+
+        internal override void WriteRecoveryRetirement(
+            FileSystemPath path,
+            string json,
+            CancellationToken cancellation
+        )
+        {
+            RetirementAuditPaths.Add(path);
+            RetirementAuditJson.Add(json);
+        }
+
+        internal override IReadOnlyList<string> ArchiveRecoveryArtifacts(
+            FileSystemPath logRoot,
+            string runId,
+            CancellationToken cancellation
+        )
+        {
+            ArchivedRuns.Add(runId);
+
+            return new[] { logRoot.Combine("Abandoned").Combine(runId + ".json").Value };
         }
 
         internal override void Stage(

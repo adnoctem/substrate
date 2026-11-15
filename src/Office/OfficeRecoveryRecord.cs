@@ -281,6 +281,16 @@ public sealed class OfficeRecoveryManager
             );
 
         var path = logRoot.Combine(runId + ".json");
+        var auditPath = logRoot.Combine(runId + ".abandoned.json");
+
+        if (File.Exists(auditPath.Value))
+            throw new OfficeException(
+                OfficeFailureReason.RetiredRecoveryRecord,
+                "This recovery journal was retired and cannot be resumed. Audit record: '"
+                    + auditPath.Value
+                    + "'."
+            );
+
         string json;
 
         try

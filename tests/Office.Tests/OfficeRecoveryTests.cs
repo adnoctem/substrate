@@ -1,10 +1,37 @@
 using System;
+using System.IO;
+using AdNoctem.Substrate.IO;
 using Xunit;
 
 namespace AdNoctem.Substrate.Office.Tests;
 
 public sealed class OfficeRecoveryTests
 {
+    [Fact]
+    public void RetiredJournalIsRefusedBeforeReadingEvidence()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "substrate-retired-" + Guid.NewGuid().ToString("N")
+        );
+        var runId = "77777777777777777777777777777777";
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            File.WriteAllText(Path.Combine(root, runId + ".abandoned.json"), "{}");
+            var error = Assert.Throws<OfficeException>(() =>
+                new OfficeRecoveryManager().Read(runId, FileSystemPath.Parse(root))
+            );
+            Assert.Equal(OfficeFailureReason.RetiredRecoveryRecord, error.Reason);
+            Assert.Contains(runId, error.Message);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
     [Fact]
     public void InformationalRecoveryBlocksDoNotClaimRecoveryIsRequired()
     {

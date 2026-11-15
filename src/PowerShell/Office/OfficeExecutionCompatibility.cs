@@ -142,6 +142,30 @@ public static partial class OfficeCompatibility
         return Windows.SystemOutput.Object("Json", json, "Failure", failure);
     }
 
+    public static PSObject RetireRecovery(
+        string runId,
+        string reason,
+        string logRoot,
+        string executionMetadata
+    )
+    {
+        string? json = null;
+        var failure = PathFailure(
+            () =>
+                json = new OfficeDeploymentManager()
+                    .RetireRecovery(
+                        runId,
+                        reason,
+                        IO.FileSystemPath.Parse(logRoot),
+                        executionMetadata
+                    )
+                    .ToJson(),
+            "OperationFailed"
+        );
+
+        return Windows.SystemOutput.Object("Json", json, "Failure", failure);
+    }
+
     public static PSObject? WriteJournal(string path, string json) =>
         PathFailure(
             () =>

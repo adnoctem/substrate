@@ -233,6 +233,41 @@ function Get-OfficeDeploymentRecovery {
   [PSCustomObject]@{ RunId = $RunId; LogRoot = $LogRoot; Path = Join-Path $LogRoot ($RunId + '.json'); Record = ConvertFrom-Json -InputObject $outcome.Json }
 }
 
+function Move-OfficeRecovery {
+  <#
+  .EXTERNALHELP AdNoctem.Substrate.PowerShell-help.xml
+  #>
+  [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+  [OutputType([PSCustomObject])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [ValidatePattern('^[a-fA-F0-9]{32}$')]
+    [string]
+    $RunId,
+
+    [Parameter(Mandatory = $true, Position = 1)]
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $Reason,
+
+    [Parameter(Position = 2)]
+    [string]
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office')
+  )
+
+  process {
+    $metadata = Get-SubstrateOfficeExecutionContext | ConvertTo-Json -Depth 30 -Compress
+
+    if (-not $PSCmdlet.ShouldProcess($RunId, "Retire Office recovery journal under $LogRoot. Reason: $Reason")) { return }
+
+    $response = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::RetireRecovery($RunId, $Reason, $LogRoot, $metadata)
+
+    if ($response.Failure) { Stop-SubstrateOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }
+
+    $response.Json | ConvertFrom-Json
+  }
+}
+
 function Get-TransportMessageId {
   [CmdletBinding()]
   [OutputType([string])]
