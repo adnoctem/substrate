@@ -223,7 +223,7 @@ function Get-OfficeDeploymentRecovery {
   [OutputType([PSCustomObject])]
   param (
     [Parameter(Mandatory = $true)][ValidatePattern('^[a-fA-F0-9]{32}$')][string]$RunId,
-    [string]$LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office')
+    [string]$LogRoot = (Join-Path $env:ProgramData 'winkit-Office')
   )
 
   $outcome = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::ReadRecovery($RunId, $LogRoot)
@@ -1413,7 +1413,7 @@ function Install-Office {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1457,7 +1457,7 @@ function Uninstall-Office {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1497,7 +1497,7 @@ function Switch-OfficeDeployment {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1541,7 +1541,7 @@ function Update-Office {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1581,7 +1581,7 @@ function Set-OfficeUpdateConfiguration {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1621,7 +1621,7 @@ function Add-OfficeLanguage {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1661,7 +1661,7 @@ function Remove-OfficeLanguage {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1701,7 +1701,7 @@ function Set-OfficeApplicationSelection {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,
@@ -1741,7 +1741,7 @@ function Set-OfficeApplicationPreference {
     $OdtPath,
 
     [string]
-    $LogRoot = (Join-Path $env:ProgramData 'PSFoundation-Office'),
+    $LogRoot = (Join-Path $env:ProgramData 'winkit-Office'),
 
     [switch]
     $ForceCloseApps,

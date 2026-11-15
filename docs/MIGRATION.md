@@ -72,8 +72,8 @@ from its scripts remains separate work.
 Some PSFoundation names intentionally remain because they identify persisted state or public compatibility objects:
 
 - `PSFoundation.RegistryPolicy.Entry` and `PSFoundation.RegistryPolicy.RawEntry`, plus Outlook context type tags.
-- The `Global\PSFoundation.OfficeDeployment` mutex and `PSFoundation-Office` storage.
-- Existing log/tool defaults, Office journal schemas and fingerprints.
+- The `Global\PSFoundation.OfficeDeployment` mutex.
+- Existing tool defaults, Office journal schemas and fingerprints.
 
 Changing those names would require a deliberate state migration. Their presence is not an incomplete namespace rename.
 

@@ -47,7 +47,7 @@ Protected local recovery directory.
 
 ```yaml
 Type: System.String
-DefaultValue: (Join-Path $env:ProgramData 'PSFoundation-Office')
+DefaultValue: (Join-Path $env:ProgramData 'winkit-Office')
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

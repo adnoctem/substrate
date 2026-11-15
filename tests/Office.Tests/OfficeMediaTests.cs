@@ -10,6 +10,7 @@ public sealed class OfficeMediaTests
     [Fact]
     public void ManifestRoundTripAndPayloadValidationKeepPinnedMediaAndLanguagesBound()
     {
+        Assert.Equal("winkit-office-media.json", OfficeMediaManifest.FileName);
         var target = new OfficeConfiguration(
             OfficeProduct.Standard2019Volume,
             languages: new[] { "de-de" },
