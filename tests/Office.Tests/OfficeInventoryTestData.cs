@@ -67,17 +67,11 @@ internal static class OfficeInventoryTestData
             Record(productPath, children: new[] { "de-de", "x-none" }),
             Record(
                 productPath + "\\de-de",
-                new Dictionary<string, RegistryValue>
-                {
-                    ["Version"] = RegistryValue.String(Build),
-                }
+                new Dictionary<string, RegistryValue> { ["Version"] = RegistryValue.String(Build) }
             ),
             Record(
                 productPath + "\\x-none",
-                new Dictionary<string, RegistryValue>
-                {
-                    ["Version"] = RegistryValue.String(Build),
-                }
+                new Dictionary<string, RegistryValue> { ["Version"] = RegistryValue.String(Build) }
             ),
         };
     }
