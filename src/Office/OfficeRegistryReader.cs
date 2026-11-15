@@ -222,10 +222,42 @@ public sealed class OfficeRegistryReader
                 "The machine installation language is unavailable."
             );
 
-        return CultureInfo
-            .GetCultureInfo(int.Parse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture))
-            .Name.ToLowerInvariant();
+        return ParseOperatingSystemLanguage(text);
     }
+
+    internal static string ParseOperatingSystemLanguage(string text)
+    {
+        int language;
+
+        try
+        {
+            language = int.Parse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        }
+        catch (Exception error) when (error is FormatException || error is OverflowException)
+        {
+            throw InvalidLanguage(error);
+        }
+
+        if (language <= 0)
+            throw InvalidLanguage(null);
+
+        try
+        {
+            return CultureInfo.GetCultureInfo(language).Name.ToLowerInvariant();
+        }
+        catch (Exception error)
+            when (error is CultureNotFoundException || error is ArgumentOutOfRangeException)
+        {
+            throw InvalidLanguage(error);
+        }
+    }
+
+    private static OfficeException InvalidLanguage(Exception? inner) =>
+        new OfficeException(
+            OfficeFailureReason.LocaleDiscoveryFailed,
+            "The machine installation language is neutral, malformed, or unsupported.",
+            inner
+        );
 
     private static IEnumerable<OfficeRegistryRecord> ReadView(
         RegistryManager manager,
