@@ -95,6 +95,7 @@ public enum OfficeFailureReason
     NativeFailure,
     OperationFailed,
     Cancelled,
+    RetiredRecoveryRecord,
 }
 
 /// <summary>An Office operation failure with a stable reason classification and optional underlying exception.</summary>

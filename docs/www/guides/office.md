@@ -11,7 +11,7 @@ snapshot; execution rechecks the machine and media. These APIs are intended for 
 | Media preparation      | `Save-OfficeDeploymentMedia`                                                                                                                                                     |
 | Product lifecycle      | `Install-Office`, `Uninstall-Office`, `Switch-OfficeDeployment`                                                                                                                  |
 | Maintenance            | `Update-Office`, `Set-OfficeUpdateConfiguration`, `Add-OfficeLanguage`, `Remove-OfficeLanguage`, `Set-OfficeApplicationSelection`, `Set-OfficeApplicationPreference`             |
-| Recovery               | `Get-OfficeDeploymentRecovery`, `Resume-OfficeInstallation`, `Resume-OfficeMigration`                                                                                            |
+| Recovery               | `Get-OfficeDeploymentRecovery`, `Resume-OfficeInstallation`, `Resume-OfficeMigration`, `Move-OfficeRecovery`                                                                     |
 
 ```powershell
 $configuration = New-OfficeDeploymentConfiguration `
@@ -111,7 +111,7 @@ deployment flows; see
 
 Operation results have `SchemaVersion = 1` and include `RunId`, `Action`, `Phase`, `Status`, `ReasonCode`, `Before`, `After`,
 `Verification`, `Configuration`, `LanguageTransition`, `Activation`, `NativeResults`, `RebootRequired`, `RecoveryRequired`, `RecoveryPath`,
-`LogPaths`, and cleanup details. `Changed = $null` with `ChangeKnown = $false` means the outcome is uncertain, including after an invoked
+`RecoveryDivergence`, `LogPaths`, and cleanup details. `Changed = $null` with `ChangeKnown = $false` means the outcome is uncertain, including after an invoked
 installer fails. Installation verification and activation are independent. Wrappers can use `WrapperExitCode` (`0`, `1`, or `3010`) while
 retaining native exit codes. Use `ConvertTo-Json -Depth 30` for the complete nested result. Do not flatten unknowns into successful
 compliance.
@@ -162,9 +162,21 @@ closure requires explicit consent. A held deployment lock or a changed inventory
 | Supported pre-launch checkpoint                                           | Revalidate authority, host, media and state; preview/continue the original operation      |
 | Migration checkpoint after confirmed completed C2R removal                | Continue installation of the recorded destination without repeating removal               |
 | Busy deployment or pending reboot                                         | Stop and wait/resolve the reported prerequisite                                           |
+| Changed machine makes the refreshed plan ineligible                       | `StaleRecoveryState`; inspect divergence evidence and create a new plan                   |
 | Uncertain partial installation or unverified unsupported checkpoint       | `UnsupportedRecoveryState`; inspect native state/logs before a separately reviewed action |
 
 These are decisions constrained by the recorded action and current gates, not permission to replay any failed journal.
+
+Recovery observations compare current inventory with the journal's recorded `Before` and, when present, its recorded `After`. Inventory
+differences are evidence, not a block by themselves: `RecoveryDivergence` reports the recorded and current fingerprints plus the changed
+top-level fields, and safe pre-launch continuation may proceed. If the refreshed plan is not eligible, recovery blocks with
+`StaleRecoveryState` and explains the changed fields and blockers. `RecoveryRequired` remains false for that divergence case and for the
+informational busy, reboot, and conflict observations.
+
+A stale journal can be retired with `Move-OfficeRecovery`. Retirement validates the run, machine, schema, and recorded fingerprints,
+writes `RunId.abandoned.json`, and moves the journal `.json`, its `.jsonl` log, and related run artifacts into `Abandoned` under the same
+log root. The audit remains at the log root. A retired journal cannot be resumed; recovery reports `RetiredRecoveryRecord` and never falls
+back to the archived file.
 
 Inventory resolves installed builds in evidence order:
 

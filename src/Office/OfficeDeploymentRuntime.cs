@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -85,6 +86,78 @@ internal class OfficeDeploymentRuntime
 
     internal virtual void WriteJournal(FileSystemPath path, string json) =>
         new OfficeJournalStore().Write(path, json, true);
+
+    /// <summary>Writes the protected retirement audit record before any journal file is moved.</summary>
+    internal virtual void WriteRecoveryRetirement(
+        FileSystemPath path,
+        string json,
+        CancellationToken cancellation
+    ) => new OfficeJournalStore().Write(path, json, false, cancellation);
+
+    /// <summary>Moves the run's journal files and work directory into the protected Abandoned archive.</summary>
+    internal virtual IReadOnlyList<string> ArchiveRecoveryArtifacts(
+        FileSystemPath logRoot,
+        string runId,
+        CancellationToken cancellation
+    )
+    {
+        var guard = new OfficePathGuard();
+        guard.RequireProtected(logRoot.Value, "RecoveryDirectory", cancellation);
+        var archive = guard.EnsureProtectedDirectory(
+            logRoot.Combine("Abandoned").Value,
+            cancellation
+        );
+        var auditName = runId + ".abandoned.json";
+        var artifacts = Directory
+            .EnumerateFiles(logRoot.Value)
+            .Select(path => FileSystemPath.Parse(path))
+            .Where(path =>
+            {
+                var name = Path.GetFileName(path.Value);
+                return name.StartsWith(runId + ".", StringComparison.OrdinalIgnoreCase)
+                    && !name.Equals(auditName, StringComparison.OrdinalIgnoreCase);
+            })
+            .OrderBy(path => path.Value, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var work = logRoot.Combine("Work-" + runId);
+
+        if (Directory.Exists(work.Value))
+            artifacts.Add(work);
+
+        foreach (var artifact in artifacts)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            guard.RequireProtected(
+                artifact.Value,
+                artifact == work ? "RecoveryWorkDirectory" : "RecoveryJournal",
+                cancellation
+            );
+            var target = archive.Combine(Path.GetFileName(artifact.Value));
+
+            if (File.Exists(target.Value) || Directory.Exists(target.Value))
+                throw new OfficeException(
+                    OfficeFailureReason.InvalidRecoveryRecord,
+                    "The retirement archive already contains '" + target.Value + "'."
+                );
+        }
+
+        var moved = new List<string>();
+
+        foreach (var artifact in artifacts)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            var target = archive.Combine(Path.GetFileName(artifact.Value));
+
+            if (Directory.Exists(artifact.Value))
+                Directory.Move(artifact.Value, target.Value);
+            else
+                File.Move(artifact.Value, target.Value);
+
+            moved.Add(target.Value);
+        }
+
+        return moved.AsReadOnly();
+    }
 
     internal virtual void WriteLog(FileSystemPath path, string json)
     {

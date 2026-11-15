@@ -37,18 +37,20 @@ public sealed class OfficeDeploymentOptions
         OdtPath = odtPath ?? throw new ArgumentNullException(nameof(odtPath));
         LogRoot = logRoot ?? throw new ArgumentNullException(nameof(logRoot));
         ForceCloseApplications = forceCloseApplications;
-        ExecutionMetadata =
-            executionMetadataJson == null
-                ? OfficeDocument.Create(
-                    "ComponentVersion",
-                    typeof(OfficeDeploymentManager).Assembly.GetName().Version!.ToString(),
-                    "RuntimeVersion",
-                    System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
-                    "ProcessBitness",
-                    IntPtr.Size * 8
-                )
-                : OfficeDocument.Parse(executionMetadataJson);
+        ExecutionMetadata = BuildExecutionMetadata(executionMetadataJson);
     }
+
+    internal static OfficeDocument BuildExecutionMetadata(string? executionMetadataJson) =>
+        executionMetadataJson == null
+            ? OfficeDocument.Create(
+                "ComponentVersion",
+                typeof(OfficeDeploymentManager).Assembly.GetName().Version!.ToString(),
+                "RuntimeVersion",
+                System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+                "ProcessBitness",
+                IntPtr.Size * 8
+            )
+            : OfficeDocument.Parse(executionMetadataJson);
 }
 
 /// <summary>Exit evidence for one native phase; a successful exit alone does not prove final configuration compliance.</summary>
@@ -87,6 +89,7 @@ public sealed class OfficeDeploymentResult
     public int? ExitCode { get; internal set; }
     public int WrapperExitCode { get; internal set; }
     public string? RecoveryPath { get; internal set; }
+    public OfficeRecoveryDivergence? RecoveryDivergence { get; internal set; }
     public string? Error { get; internal set; }
     public object? Diagnostic { get; internal set; }
     public OfficeInventory? After { get; internal set; }
@@ -191,6 +194,8 @@ public sealed class OfficeDeploymentResult
             RecoveryRequired,
             "RecoveryPath",
             RecoveryPath,
+            "RecoveryDivergence",
+            RecoveryDivergence?.Document(),
             "LogPaths",
             Logs,
             "Residue",

@@ -3,7 +3,7 @@
   Packages    = @('Install-Win32Program', 'Install-UPFAppxPackage', 'Update-UPFAppxPackage', 'Install-UPFAppxPackageSet', 'Uninstall-UPFAppxPackageSet')
   Office      = @('Test-OfficeDeployment', 'Get-OfficeDeploymentPlan', 'Test-OfficeDeploymentMedia', 'Save-OfficeDeploymentMedia', 'Get-OfficeDeploymentRecovery',
     'Install-Office', 'Uninstall-Office', 'Switch-OfficeDeployment', 'Update-Office', 'Set-OfficeUpdateConfiguration', 'Add-OfficeLanguage', 'Remove-OfficeLanguage',
-    'Set-OfficeApplicationSelection', 'Set-OfficeApplicationPreference', 'Resume-OfficeInstallation', 'Resume-OfficeMigration')
+    'Set-OfficeApplicationSelection', 'Set-OfficeApplicationPreference', 'Resume-OfficeInstallation', 'Resume-OfficeMigration', 'Move-OfficeRecovery')
   Windows     = @('Set-ServiceStartupState', 'New-DriveMapping', 'Remove-DriveMapping')
   Data        = @('Convert-Quote', 'Merge-ObjectArrays', 'Get-DefaultApp')
   Credentials = @('New-EncryptedCredentialFile', 'Request-AdministratorPrivilege')
