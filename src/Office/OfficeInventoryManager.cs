@@ -464,19 +464,21 @@ public sealed class OfficeInventoryManager
             );
 
             if (officeCode && match.Success)
-                try
-                {
-                    language = CultureInfo
-                        .GetCultureInfo(
-                            int.Parse(
-                                match.Groups[1].Value,
-                                NumberStyles.HexNumber,
-                                CultureInfo.InvariantCulture
-                            )
-                        )
-                        .Name.ToLowerInvariant();
-                }
-                catch (CultureNotFoundException) { }
+            {
+                var lcid = int.Parse(
+                    match.Groups[1].Value,
+                    NumberStyles.HexNumber,
+                    CultureInfo.InvariantCulture
+                );
+
+                if (lcid > 0)
+                    try
+                    {
+                        language = CultureInfo.GetCultureInfo(lcid).Name.ToLowerInvariant();
+                    }
+                    catch (CultureNotFoundException) { }
+                    catch (ArgumentOutOfRangeException) { }
+            }
 
             msi.Add(new OfficeMsiRegistration(code, record, language, kind));
         }
