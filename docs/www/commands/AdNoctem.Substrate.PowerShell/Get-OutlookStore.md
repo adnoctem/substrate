@@ -28,9 +28,14 @@ None.
 
 ## DESCRIPTION
 
-Returns one plain record per store: display name, StoreID, file path, backing file format, raw
+Returns one plain record per store: display name, StoreID, file path, backing file format, Availability, raw
 OlExchangeStoreType with its label, file size, and the display names of the accounts that deliver new mail there.
 Delivery is correlated by StoreID, because two data files can share a display name.
+
+Availability is Available or Unavailable. When one store or account cannot be read, the remaining ones are still
+returned. An unavailable store keeps any readable evidence, leaves unreadable identity fields empty, and never
+claims synchronization or local-file status; skip its root instead of parsing Evidence text. A failure of the
+profile-wide Stores or Accounts collection itself remains an error.
 
 IsSynchronized states that changes here can reach a server and other clients. MayContainHeaderOnlyItems states
 that an item can still be a stub, so a transfer must verify each body first. Both are decided from the owning

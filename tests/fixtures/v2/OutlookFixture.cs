@@ -135,8 +135,23 @@ namespace AdNoctem.Substrate.Tests.Fixtures
     public class FakeAccount
     {
         private FakeStore delivery;
+        private string displayName;
 
-        public string DisplayName { get; set; }
+        public bool HideDisplayName;
+        public string DisplayName
+        {
+            get
+            {
+                if (HideDisplayName)
+                    throw new COMException(
+                        "Synthetic account is unavailable.",
+                        unchecked((int)0x8004011D)
+                    );
+
+                return displayName;
+            }
+            set { displayName = value; }
+        }
         public string SmtpAddress { get; set; }
         public string UserName { get; set; }
         public int AccountType { get; set; }
@@ -170,10 +185,45 @@ namespace AdNoctem.Substrate.Tests.Fixtures
 
     public class FakeStore
     {
-        public string FilePath { get; set; }
-        public string StoreID { get; set; }
+        private string filePath;
+        private string storeId;
+        private string displayName;
+
+        public bool HideIdentity;
+        public string FilePath
+        {
+            get { return filePath; }
+            set { filePath = value; }
+        }
+        public string StoreID
+        {
+            get
+            {
+                if (HideIdentity)
+                    throw new COMException(
+                        "Synthetic store is unavailable.",
+                        unchecked((int)0x8004011D)
+                    );
+
+                return storeId;
+            }
+            set { storeId = value; }
+        }
         public int ExchangeStoreType { get; set; }
-        public string DisplayName { get; set; }
+        public string DisplayName
+        {
+            get
+            {
+                if (HideIdentity)
+                    throw new COMException(
+                        "Synthetic store is unavailable.",
+                        unchecked((int)0x8004011D)
+                    );
+
+                return displayName;
+            }
+            set { displayName = value; }
+        }
         public bool IsDefault
         {
             get { return true; }

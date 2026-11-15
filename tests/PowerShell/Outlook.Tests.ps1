@@ -74,7 +74,7 @@ Describe 'C# Outlook profile inventory' {
 
     $observed.AccountCount | Should -Be 4
     ($observed.AccountFields -join ',') | Should -BeExactly 'DisplayName,SmtpAddress,UserName,AccountType,AccountTypeName,DeliveryStoreID,DeliveryStoreName,DeliveryFilePath,DeliveryStoreSource,IsDeliveryStoreInferred,IsServerSynchronized,MayDeferItemBodies,Evidence'
-    ($observed.StoreFields -join ',') | Should -BeExactly 'DisplayName,StoreID,FilePath,DataFileFormat,ExchangeStoreType,ExchangeStoreName,IsExchangeBacked,IsSynchronized,MayContainHeaderOnlyItems,SizeBytes,DeliveredFrom,Evidence'
+    ($observed.StoreFields -join ',') | Should -BeExactly 'DisplayName,StoreID,FilePath,DataFileFormat,Availability,IsAvailable,ExchangeStoreType,ExchangeStoreName,IsExchangeBacked,IsSynchronized,MayContainHeaderOnlyItems,SizeBytes,DeliveredFrom,Evidence'
     ($observed.TypeNames -join ',') | Should -BeExactly 'Exchange,POP3,IMAP,POP3'
     ($observed.DeferBodies -join ',') | Should -BeExactly 'False,False,True,False'
 
@@ -148,5 +148,40 @@ Describe 'C# Outlook profile inventory' {
     $observed.Blind.DeliveryStoreSource | Should -BeExactly 'Unresolved'
     $observed.Blind.IsDeliveryStoreInferred | Should -BeFalse
     $observed.Blind.Evidence | Should -Match 'profile default delivery store is unavailable'
+  }
+
+  It 'keeps readable stores and accounts when a provider refuses one in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
+    $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+    $reports = Join-Path $root 'build/test-results/outlook'
+    $null = [IO.Directory]::CreateDirectory($reports)
+    $report = Join-Path $reports "$Engine-unavailable.json"
+    $module = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
+    $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Outlook-Unavailable-Probe.ps1'), '-ModulePath', $module, '-ReportPath', $report)
+    $result.ExitCode | Should -Be 0 -Because $result.Output
+    $observed = Get-Content $report -Raw | ConvertFrom-Json
+
+    $observed.StoreCount | Should -Be 2
+    $observed.AccountCount | Should -Be 2
+    $observed.ReadableStore.Availability | Should -BeExactly 'Available'
+    $observed.ReadableStore.IsAvailable | Should -BeTrue
+    $observed.UnavailableStore.Availability | Should -BeExactly 'Unavailable'
+    $observed.UnavailableStore.IsAvailable | Should -BeFalse
+    $observed.UnavailableStore.StoreID | Should -BeExactly ''
+    $observed.UnavailableStore.DisplayName | Should -BeExactly ''
+    $observed.UnavailableStore.FilePath | Should -Match 'unavailable-outlook\.ost$'
+    $observed.UnavailableStore.IsExchangeBacked | Should -BeTrue
+    $observed.UnavailableStore.IsSynchronized | Should -BeFalse
+    $observed.UnavailableStore.MayContainHeaderOnlyItems | Should -BeFalse
+    $observed.UnavailableStore.SizeBytes | Should -BeNullOrEmpty
+    @($observed.UnavailableStore.DeliveredFrom).Count | Should -Be 0
+    $observed.UnavailableStore.Evidence | Should -Match 'DisplayName is unavailable'
+    $observed.UnavailableStore.Evidence | Should -Match 'StoreID is unavailable'
+    $observed.UnavailableStore.Evidence | Should -Match 'do not treat the placeholder'
+    ($observed.ReadableDelivered -join ',') | Should -BeExactly 'mailbox@synthetic.test'
+    $observed.ReadableAccount.Evidence | Should -BeExactly ''
+    $observed.UnavailableAccount.DisplayName | Should -BeExactly ''
+    $observed.UnavailableAccount.Evidence | Should -Match 'DisplayName is unavailable'
+    $observed.ItemAccesses | Should -Be 0
+    $observed.FolderCreations | Should -Be 0
   }
 }
