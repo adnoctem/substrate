@@ -203,10 +203,12 @@ preferences.
 These inventory fields are additive within schema 1. Existing plans must be recreated after inventory changes; execution revalidates current
 observations. Existing recovery journals remain subject to their original authority and the current verification gates.
 
-Per-product `ExcludedApps` registration is observed separately from requested configuration: an explicitly empty string yields an empty
-`ExcludeApp` list; an absent, null or malformed value stays unknown. Valid strings are normalized for whitespace, case, order and
-duplicates, with the selected registry value recorded in `Evidence`. Missing data does not prove every application is installed, and shared
-executable presence alone cannot establish a SKU's application selection. No unsupported fallback is inferred from the requested XML.
+Per-product `ExcludedApps` registration is observed separately from requested configuration. Click-to-Run omits the value when no
+applications are excluded, so an absent value against an existing configuration record yields an empty `ExcludeApp` list, as does an
+explicitly empty string. A present non-string value, or a missing configuration record, stays unknown. Valid strings are normalized for
+whitespace, case, order and duplicates, with the selected registry value recorded in `Evidence`. Missing data does not prove every
+application is installed, and shared executable presence alone cannot establish a SKU's application selection. No unsupported fallback is
+inferred from the requested XML.
 
 ## Migration and historical pilot records
 
