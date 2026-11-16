@@ -9,24 +9,31 @@ using AdNoctem.Substrate.IO;
 
 namespace AdNoctem.Substrate.Office;
 
-/// <summary>Evidence that the machine changed since a recovery journal was recorded. A difference alone does not authorize or block continuation.</summary>
+/// <summary>Evidence that the machine changed since a recovery journal was recorded. Installed product divergence blocks continuation.</summary>
 public sealed class OfficeRecoveryDivergence
 {
     public bool DiffersFromBefore { get; }
     public bool HasRecordedAfter { get; }
     public bool DiffersFromAfter { get; }
+    public bool InstalledStateMatchesBefore { get; }
+    public bool InstalledStateMatchesAfter { get; }
+    public bool InstalledStateDiverged { get; }
     public string RecordedBeforeFingerprint { get; }
     public string? RecordedAfterFingerprint { get; }
     public string CurrentFingerprint { get; }
     public IReadOnlyList<string> ChangedFieldsSinceBefore { get; }
     public IReadOnlyList<string> ChangedFieldsSinceAfter { get; }
+    public IReadOnlyList<string> InstalledStateDifferences { get; }
 
     internal OfficeRecoveryDivergence(
         string recordedBeforeFingerprint,
         string? recordedAfterFingerprint,
         string currentFingerprint,
         IEnumerable<string> changedFieldsSinceBefore,
-        IEnumerable<string> changedFieldsSinceAfter
+        IEnumerable<string> changedFieldsSinceAfter,
+        bool installedStateMatchesBefore,
+        bool installedStateMatchesAfter,
+        IEnumerable<string> installedStateDifferences
     )
     {
         RecordedBeforeFingerprint = recordedBeforeFingerprint;
@@ -36,8 +43,14 @@ public sealed class OfficeRecoveryDivergence
         HasRecordedAfter = recordedAfterFingerprint != null;
         DiffersFromAfter =
             HasRecordedAfter && !OfficeDocument.Equal(recordedAfterFingerprint, currentFingerprint);
+        InstalledStateMatchesBefore = installedStateMatchesBefore;
+        InstalledStateMatchesAfter = installedStateMatchesAfter;
+        InstalledStateDiverged = !(
+            installedStateMatchesBefore || (HasRecordedAfter && installedStateMatchesAfter)
+        );
         ChangedFieldsSinceBefore = Array.AsReadOnly(changedFieldsSinceBefore.ToArray());
         ChangedFieldsSinceAfter = Array.AsReadOnly(changedFieldsSinceAfter.ToArray());
+        InstalledStateDifferences = Array.AsReadOnly(installedStateDifferences.ToArray());
     }
 
     internal static OfficeRecoveryDivergence Create(
@@ -50,13 +63,21 @@ public sealed class OfficeRecoveryDivergence
         var afterFingerprint =
             recordedAfter == null ? null : OfficeDocument.Fingerprint(recordedAfter);
         var currentFingerprint = OfficeDocument.Fingerprint(current);
+        var beforeState = CompareInstalledState(recordedBefore, current);
+        var afterState =
+            recordedAfter == null
+                ? Array.Empty<string>()
+                : CompareInstalledState(recordedAfter, current);
 
         return new OfficeRecoveryDivergence(
             beforeFingerprint,
             afterFingerprint,
             currentFingerprint,
             ChangedFields(recordedBefore, current),
-            recordedAfter == null ? Array.Empty<string>() : ChangedFields(recordedAfter, current)
+            recordedAfter == null ? Array.Empty<string>() : ChangedFields(recordedAfter, current),
+            beforeState.Length == 0,
+            recordedAfter != null && afterState.Length == 0,
+            beforeState.Concat(afterState).Distinct(StringComparer.OrdinalIgnoreCase)
         );
     }
 
@@ -68,6 +89,12 @@ public sealed class OfficeRecoveryDivergence
             HasRecordedAfter,
             "DiffersFromAfter",
             DiffersFromAfter,
+            "InstalledStateMatchesBefore",
+            InstalledStateMatchesBefore,
+            "InstalledStateMatchesAfter",
+            InstalledStateMatchesAfter,
+            "InstalledStateDiverged",
+            InstalledStateDiverged,
             "RecordedBeforeFingerprint",
             RecordedBeforeFingerprint,
             "RecordedAfterFingerprint",
@@ -77,8 +104,86 @@ public sealed class OfficeRecoveryDivergence
             "ChangedFieldsSinceBefore",
             ChangedFieldsSinceBefore.Cast<object?>().ToArray(),
             "ChangedFieldsSinceAfter",
-            ChangedFieldsSinceAfter.Cast<object?>().ToArray()
+            ChangedFieldsSinceAfter.Cast<object?>().ToArray(),
+            "InstalledStateDifferences",
+            InstalledStateDifferences.Cast<object?>().ToArray()
         );
+
+    private static string[] CompareInstalledState(OfficeDocument recorded, OfficeDocument current)
+    {
+        var expected = Products(recorded);
+        var actual = Products(current);
+        var result = new List<string>();
+
+        foreach (
+            var id in expected
+                .Keys.Concat(actual.Keys)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+        )
+        {
+            if (
+                !expected.TryGetValue(id, out var expectedProduct)
+                || !actual.TryGetValue(id, out var actualProduct)
+            )
+            {
+                result.Add("Product:" + id);
+
+                continue;
+            }
+
+            if (
+                !OfficeDocument.Equal(
+                    expectedProduct.Text("Version"),
+                    actualProduct.Text("Version")
+                )
+            )
+                result.Add("Version:" + id);
+
+            if (
+                !SameValues(
+                    Values(expectedProduct, "Languages"),
+                    Values(actualProduct, "Languages")
+                )
+            )
+                result.Add("Languages:" + id);
+
+            if (
+                !SameValues(
+                    Values(expectedProduct, "ExcludeApp"),
+                    Values(actualProduct, "ExcludeApp")
+                )
+            )
+                result.Add("ExcludeApp:" + id);
+        }
+
+        return result.ToArray();
+    }
+
+    private static Dictionary<string, OfficeDocument> Products(OfficeDocument inventory) =>
+        inventory
+            .Array("Products")
+            .Select(value => value as OfficeDocument ?? throw OfficeDocument.Invalid())
+            .ToDictionary(
+                product => product.Text("ProductId")!,
+                product => product,
+                StringComparer.OrdinalIgnoreCase
+            );
+
+    private static string[]? Values(OfficeDocument product, string name) =>
+        product[name] == null ? null : product.Strings(name);
+
+    private static bool SameValues(string[]? left, string[]? right)
+    {
+        if (left == null || right == null)
+            return left == null && right == null;
+
+        return left.OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+            .SequenceEqual(
+                right.OrderBy(value => value, StringComparer.OrdinalIgnoreCase),
+                StringComparer.OrdinalIgnoreCase
+            );
+    }
 
     private static string[] ChangedFields(OfficeDocument recorded, OfficeDocument current) =>
         recorded
@@ -420,6 +525,17 @@ public sealed partial class OfficeDeploymentManager
             return result;
         }
 
+        if (divergence.InstalledStateDiverged)
+        {
+            result.Status = OfficeDeploymentStatus.Blocked;
+            result.ReasonCode = "StaleRecoveryState";
+            result.Error = InstalledStateError(divergence);
+            result.WrapperExitCode = 1;
+            result.RecoveryRequired = false;
+
+            return result;
+        }
+
         var media = runtime.Media(plan, cancellation);
 
         if (media == null || !media.Valid)
@@ -507,6 +623,18 @@ public sealed partial class OfficeDeploymentManager
         return result is OfficeDocument document && document["After"] is OfficeDocument after
             ? after
             : null;
+    }
+
+    private static string InstalledStateError(OfficeRecoveryDivergence divergence)
+    {
+        var differences =
+            divergence.InstalledStateDifferences.Count == 0
+                ? "the recorded installed state could not be matched"
+                : string.Join(", ", divergence.InstalledStateDifferences);
+
+        return "The installed Office product, version, languages, or excluded apps differ from the journal's recorded state: "
+            + differences
+            + ". Recovery cannot safely replay the stale target.";
     }
 
     private static string DivergenceError(

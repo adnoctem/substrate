@@ -234,9 +234,37 @@ public sealed class OfficeDeploymentTests
     }
 
     [Fact]
-    public void SafeRecoveryDivergenceContinuesAndRecordsEvidence()
+    public void NormalRecoveryWithoutDivergenceContinues()
     {
         var runId = "11111111111111111111111111111111";
+        var runtime = new Runtime { Current = Inventory(null) };
+        var manager = new OfficeDeploymentManager(runtime);
+        var plan = manager.GetPlan(
+            new OfficeDeploymentRequest(
+                OfficeDeploymentAction.Install,
+                Target,
+                @"C:\Synthetic\Media"
+            )
+        );
+        runtime.Record = RecoveryRecord(plan, runId, "StageMedia", false);
+        var preview = manager.PreviewRecovery(runId, OfficeDeploymentAction.Install, Options);
+        Assert.Equal(OfficeDeploymentStatus.Preview, preview.Status);
+        Assert.NotNull(preview.RecoveryDivergence);
+        Assert.False(preview.RecoveryDivergence!.InstalledStateDiverged);
+        Assert.True(preview.RecoveryDivergence.InstalledStateMatchesBefore);
+        Assert.Empty(preview.RecoveryDivergence.InstalledStateDifferences);
+        Assert.Empty(runtime.Phases);
+        var resumed = manager.ResumeInstallation(runId, Options);
+        Assert.Equal(OfficeDeploymentStatus.Completed, resumed.Status);
+        Assert.Equal(OfficeDeploymentAction.Install, Assert.Single(runtime.Phases));
+        Assert.NotNull(resumed.RecoveryDivergence);
+        Assert.False(resumed.RecoveryDivergence!.InstalledStateDiverged);
+    }
+
+    [Fact]
+    public void DivergedRecoveryBlocksAsStaleRecoveryState()
+    {
+        var runId = "22222222222222222222222222222222";
         var runtime = new Runtime { Current = Inventory("x86") };
         var manager = new OfficeDeploymentManager(runtime);
         var plan = manager.GetPlan(
@@ -253,46 +281,18 @@ public sealed class OfficeDeploymentTests
             false,
             OfficeDocument.Create("After", OfficeInventorySerializer.Document(Inventory("x86")))
         );
-        runtime.Current = Inventory(null);
-        var preview = manager.PreviewRecovery(runId, OfficeDeploymentAction.Install, Options);
-        Assert.Equal(OfficeDeploymentStatus.Preview, preview.Status);
-        Assert.NotNull(preview.RecoveryDivergence);
-        Assert.True(preview.RecoveryDivergence!.DiffersFromBefore);
-        Assert.True(preview.RecoveryDivergence.HasRecordedAfter);
-        Assert.True(preview.RecoveryDivergence.DiffersFromAfter);
-        Assert.Contains("Products", preview.RecoveryDivergence.ChangedFieldsSinceBefore);
-        Assert.Contains("Products", preview.RecoveryDivergence.ChangedFieldsSinceAfter);
-        Assert.Empty(runtime.Phases);
-        var resumed = manager.ResumeInstallation(runId, Options);
-        Assert.Equal(OfficeDeploymentStatus.Completed, resumed.Status);
-        Assert.Equal(OfficeDeploymentAction.Install, Assert.Single(runtime.Phases));
-        Assert.NotNull(resumed.RecoveryDivergence);
-        Assert.True(resumed.RecoveryDivergence!.DiffersFromBefore);
-    }
-
-    [Fact]
-    public void IneligibleRefreshedRecoveryPlanBlocksAsStaleRecoveryState()
-    {
-        var runId = "22222222222222222222222222222222";
-        var runtime = new Runtime { Current = Inventory("x86") };
-        var manager = new OfficeDeploymentManager(runtime);
-        var plan = manager.GetPlan(
-            new OfficeDeploymentRequest(
-                OfficeDeploymentAction.Install,
-                Target,
-                @"C:\Synthetic\Media"
-            )
-        );
-        runtime.Record = RecoveryRecord(plan, runId, "StageMedia", false);
-        runtime.Current = Inventory("x64", RegistryValue.DWord(1));
+        runtime.Current = Inventory("x64", RegistryValue.String("OneDrive"));
         var result = manager.ResumeInstallation(runId, Options);
         Assert.Equal(OfficeDeploymentStatus.Blocked, result.Status);
         Assert.Equal("StaleRecoveryState", result.ReasonCode);
         Assert.False(result.RecoveryRequired);
         Assert.NotNull(result.RecoveryDivergence);
-        Assert.True(result.RecoveryDivergence!.DiffersFromBefore);
-        Assert.Contains("Products", result.RecoveryDivergence.ChangedFieldsSinceBefore);
-        Assert.Contains("VerificationUnknown", result.Error);
+        Assert.True(result.RecoveryDivergence!.InstalledStateDiverged);
+        Assert.Contains(
+            "ExcludeApp:" + Product,
+            result.RecoveryDivergence.InstalledStateDifferences
+        );
+        Assert.Contains("ExcludeApp:" + Product, result.Error);
         Assert.Empty(runtime.Phases);
     }
 
@@ -310,12 +310,12 @@ public sealed class OfficeDeploymentTests
             )
         );
         runtime.Record = RecoveryRecord(plan, runId, "Verify", false);
-        runtime.Current = Inventory("x64", RegistryValue.DWord(1));
         var result = manager.ResumeInstallation(runId, Options);
         Assert.Equal(OfficeDeploymentStatus.Blocked, result.Status);
         Assert.Equal("UnsupportedRecoveryState", result.ReasonCode);
         Assert.True(result.RecoveryRequired);
         Assert.NotNull(result.RecoveryDivergence);
+        Assert.False(result.RecoveryDivergence!.InstalledStateDiverged);
         Assert.Empty(runtime.Phases);
     }
 
