@@ -19,7 +19,7 @@ Merges matching override properties into the base array in place.
 ### __AllParameterSets
 
 ```
-Merge-ObjectArrays [-Base] <array> [-Overrides] <array> [<CommonParameters>]
+Merge-ObjectArrays [-Base] <array> [-Overrides] <array>
 ```
 
 ## ALIASES

@@ -21,7 +21,7 @@ Queries scheduled task lifecycle telemetry.
 ```
 Get-WindowsScheduledTaskEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-TaskName] <string>] [[-ComputerName] <string[]>] [[-MaxEvents] <int>]
- [[-Configuration] <hashtable>] [<CommonParameters>]
+ [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Compares observed Office state with an explicit target.
 ### __AllParameterSets
 
 ```
-Test-OfficeDeployment [-Configuration] <Object> [[-Inventory] <Object>] [<CommonParameters>]
+Test-OfficeDeployment [-Configuration] <Object> [[-Inventory] <Object>]
 ```
 
 ## ALIASES

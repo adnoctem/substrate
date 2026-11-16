@@ -20,14 +20,14 @@ Installs a Win32 program through the Microsoft.WinGet.Client provider.
 
 ```
 Install-Win32ProgramFromWinGet -Name <string> [-Version <string>] [-Source <string>] [-DryRun]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ### Id
 
 ```
 Install-Win32ProgramFromWinGet -Id <string> [-Version <string>] [-Source <string>] [-DryRun]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

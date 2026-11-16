@@ -20,7 +20,7 @@ Verifies or continues an explicitly authorized Office migration.
 
 ```
 Resume-OfficeMigration [-Recovery] <Object> [-OdtPath] <string> [[-ProductKey] <securestring>]
- [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

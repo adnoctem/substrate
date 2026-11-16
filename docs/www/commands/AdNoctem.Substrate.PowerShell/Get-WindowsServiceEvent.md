@@ -21,7 +21,7 @@ Queries service lifecycle, failure, and installation events.
 ```
 Get-WindowsServiceEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-ServiceName] <string>] [[-ComputerName] <string[]>] [[-MaxEvents] <int>]
- [[-Configuration] <hashtable>] [<CommonParameters>]
+ [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

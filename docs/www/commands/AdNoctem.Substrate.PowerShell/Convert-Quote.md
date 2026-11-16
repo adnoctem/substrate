@@ -19,7 +19,7 @@ Converts single quotes to double quotes or vice versa in a specified file.
 ### __AllParameterSets
 
 ```
-Convert-Quote [-Path] <string> [[-To] <string>] [<CommonParameters>]
+Convert-Quote [-Path] <string> [[-To] <string>]
 ```
 
 ## ALIASES

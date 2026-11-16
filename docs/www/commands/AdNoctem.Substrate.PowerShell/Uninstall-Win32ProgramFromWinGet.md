@@ -19,13 +19,13 @@ Uninstalls a Win32 program through the Microsoft.WinGet.Client provider.
 ### Name
 
 ```
-Uninstall-Win32ProgramFromWinGet -Name <string> [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+Uninstall-Win32ProgramFromWinGet -Name <string> [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ### Id
 
 ```
-Uninstall-Win32ProgramFromWinGet -Id <string> [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+Uninstall-Win32ProgramFromWinGet -Id <string> [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

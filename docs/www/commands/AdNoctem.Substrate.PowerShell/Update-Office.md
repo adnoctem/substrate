@@ -20,7 +20,7 @@ Updates a pinned Office build while preserving other deployment dimensions.
 
 ```
 Update-Office [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>] [-ForceCloseApps] [-DryRun]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

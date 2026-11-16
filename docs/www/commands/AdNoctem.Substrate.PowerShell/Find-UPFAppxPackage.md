@@ -20,7 +20,7 @@ Resolves UPF AppX/MSIX wildcard patterns to concrete package inventory records.
 
 ```
 Find-UPFAppxPackage [-Pattern] <string[]> [-Installed] [-Provisioned] [-AllUsers]
- [-IncludeProtected] [-IncludeFramework] [-IncludeResource] [-IncludeBundle] [<CommonParameters>]
+ [-IncludeProtected] [-IncludeFramework] [-IncludeResource] [-IncludeBundle]
 ```
 
 ## ALIASES

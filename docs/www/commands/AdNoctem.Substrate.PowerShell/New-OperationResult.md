@@ -23,7 +23,7 @@ New-OperationResult [[-Target] <string>] [[-Source] <string>] [[-Scope] <string>
  [[-Action] <string>] [[-Status] <string>] [[-Detail] <string>] [[-SkippedReason] <string>]
  [[-ErrorMessage] <string>] [[-Property] <hashtable>] [[-Changed] <bool>]
  [[-AlreadyCompliant] <bool>] [[-Before] <Object>] [[-After] <Object>] [[-ExitCode] <int>]
- [[-RebootRequired] <bool>] [[-Duration] <timespan>] [[-RunId] <string>] [<CommonParameters>]
+ [[-RebootRequired] <bool>] [[-Duration] <timespan>] [[-RunId] <string>]
 ```
 
 ## ALIASES

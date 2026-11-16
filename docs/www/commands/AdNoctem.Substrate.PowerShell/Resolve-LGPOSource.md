@@ -19,7 +19,7 @@ Returns metadata for a known LGPO source location.
 ### __AllParameterSets
 
 ```
-Resolve-LGPOSource [[-Source] <string>] [<CommonParameters>]
+Resolve-LGPOSource [[-Source] <string>]
 ```
 
 ## ALIASES

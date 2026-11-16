@@ -19,7 +19,7 @@ Reads a named value from a registry key.
 ### __AllParameterSets
 
 ```
-Get-RegistryValue [-Path] <string> [[-Name] <string>] [<CommonParameters>]
+Get-RegistryValue [-Path] <string> [[-Name] <string>]
 ```
 
 ## ALIASES

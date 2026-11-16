@@ -19,7 +19,7 @@ Reads repair-tool metadata and identifies supported ScanPST file targeting.
 ### __AllParameterSets
 
 ```
-Get-OutlookRepairToolInfo [-LiteralPath] <string> [<CommonParameters>]
+Get-OutlookRepairToolInfo [-LiteralPath] <string>
 ```
 
 ## ALIASES

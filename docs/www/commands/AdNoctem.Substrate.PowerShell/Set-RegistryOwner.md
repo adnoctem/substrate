@@ -20,7 +20,7 @@ Set-RegistryOwner - Takes ownership of a registry key, optionally including all 
 
 ```
 Set-RegistryOwner [-Hive] <string> [-Key] <string> [-SID <SecurityIdentifier>] [-Recurse] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

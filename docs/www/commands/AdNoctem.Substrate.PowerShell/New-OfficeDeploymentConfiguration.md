@@ -21,7 +21,7 @@ Creates an ordered, secret-free Office target configuration in memory.
 ```
 New-OfficeDeploymentConfiguration [-TargetProductId] <string> [[-Architecture] <string>]
  [[-Channel] <string>] [[-Language] <string[]>] [[-Version] <string>] [[-ExcludeApp] <string[]>]
- [[-LocaleSource] <string>] [-AutoSourceLocales] [<CommonParameters>]
+ [[-LocaleSource] <string>] [-AutoSourceLocales]
 ```
 
 ## ALIASES

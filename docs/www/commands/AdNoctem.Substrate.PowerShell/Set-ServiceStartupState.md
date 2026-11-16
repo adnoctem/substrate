@@ -20,7 +20,7 @@ Sets service startup types with confirmation and protection rules.
 
 ```
 Set-ServiceStartupState [-Name] <string[]> [-StartupType] <string> [[-Filter] <string[]>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

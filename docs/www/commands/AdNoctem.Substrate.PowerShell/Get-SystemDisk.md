@@ -19,7 +19,7 @@ Returns disk usage information for fixed volumes backed by physical disks.
 ### __AllParameterSets
 
 ```
-Get-SystemDisk [-All] [<CommonParameters>]
+Get-SystemDisk [-All]
 ```
 
 ## ALIASES

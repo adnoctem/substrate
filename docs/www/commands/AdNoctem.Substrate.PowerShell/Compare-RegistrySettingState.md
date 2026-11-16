@@ -19,7 +19,7 @@ Previews differences between selected registry values and desired state.
 ### __AllParameterSets
 
 ```
-Compare-RegistrySettingState [-Settings] <Object[]> [<CommonParameters>]
+Compare-RegistrySettingState [-Settings] <Object[]>
 ```
 
 ## ALIASES

@@ -20,7 +20,7 @@ triggered.
 ### __AllParameterSets
 
 ```
-Test-PendingReboot [<CommonParameters>]
+Test-PendingReboot
 ```
 
 ## ALIASES

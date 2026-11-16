@@ -19,7 +19,7 @@ Returns $true if the named registry value exists, $false otherwise.
 ### __AllParameterSets
 
 ```
-Test-RegistryValue [-Path] <string> [[-Name] <string>] [<CommonParameters>]
+Test-RegistryValue [-Path] <string> [[-Name] <string>]
 ```
 
 ## ALIASES

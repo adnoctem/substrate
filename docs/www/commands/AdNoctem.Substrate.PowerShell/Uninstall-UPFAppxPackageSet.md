@@ -20,7 +20,7 @@ Resolves package patterns and removes eligible AppX/MSIX packages.
 
 ```
 Uninstall-UPFAppxPackageSet [-Pattern] <string[]> [-Installed] [-Provisioned] [-AllUsers]
- [-IncludeProtected] [-Force] [-PassThru] [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-IncludeProtected] [-Force] [-PassThru] [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

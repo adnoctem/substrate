@@ -20,7 +20,7 @@ Installs PowerShell modules.
 
 ```
 Add-PSModule [[-Name] <string>] [[-Version] <string>] [[-MinimumVersion] <string>]
- [[-Scope] <string>] [[-FromFile] <string>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Scope] <string>] [[-FromFile] <string>] [-Force] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

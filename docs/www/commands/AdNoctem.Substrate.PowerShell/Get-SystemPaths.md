@@ -19,7 +19,7 @@ Returns standard product directory paths for tools, config, cache, data, and log
 ### __AllParameterSets
 
 ```
-Get-SystemPaths [[-Name] <string>] [<CommonParameters>]
+Get-SystemPaths [[-Name] <string>]
 ```
 
 ## ALIASES

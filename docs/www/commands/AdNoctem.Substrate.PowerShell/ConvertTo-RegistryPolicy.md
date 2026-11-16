@@ -20,7 +20,6 @@ Writes ordered records to a registry.pol file without applying policy.
 
 ```
 ConvertTo-RegistryPolicy [[-InputObject] <Object[]>] [-Path] <string> [-Force] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

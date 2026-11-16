@@ -19,13 +19,13 @@ Hides an available update so it does not appear in future scans.
 ### Pipeline
 
 ```
-Hide-WindowsUpdate -InputObject <psobject[]> [-WhatIf] [-Confirm] [<CommonParameters>]
+Hide-WindowsUpdate -InputObject <psobject[]> [-WhatIf] [-Confirm]
 ```
 
 ### KB
 
 ```
-Hide-WindowsUpdate -KBArticleID <string> [-WhatIf] [-Confirm] [<CommonParameters>]
+Hide-WindowsUpdate -KBArticleID <string> [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

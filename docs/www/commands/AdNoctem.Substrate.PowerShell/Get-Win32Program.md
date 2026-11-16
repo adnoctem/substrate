@@ -19,7 +19,7 @@ Returns normalized Win32 program inventory from Windows uninstall registry keys.
 ### __AllParameterSets
 
 ```
-Get-Win32Program [[-Name] <string>] [-IncludeSystemComponent] [<CommonParameters>]
+Get-Win32Program [[-Name] <string>] [-IncludeSystemComponent]
 ```
 
 ## ALIASES

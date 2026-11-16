@@ -19,7 +19,7 @@ Gets a named security event group.
 ### __AllParameterSets
 
 ```
-Get-SecurityEventGroup [-Name] <string> [[-Configuration] <hashtable>] [<CommonParameters>]
+Get-SecurityEventGroup [-Name] <string> [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Returns the Windows edition SKU (e.g. "Professional", "Enterprise").
 ### __AllParameterSets
 
 ```
-Get-OSEdition [<CommonParameters>]
+Get-OSEdition
 ```
 
 ## ALIASES

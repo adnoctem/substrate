@@ -20,7 +20,6 @@ Exports a named Windows event log to an .evtx file via wevtutil.
 
 ```
 Export-EventLog [-LogName] <string> [-OutputPath] <string> [[-MissingLogPath] <string>]
- [<CommonParameters>]
 ```
 
 ## ALIASES

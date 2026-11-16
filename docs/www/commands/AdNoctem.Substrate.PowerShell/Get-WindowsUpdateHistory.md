@@ -19,7 +19,7 @@ Returns installed Windows update history.
 ### __AllParameterSets
 
 ```
-Get-WindowsUpdateHistory [[-Last] <int>] [[-KBArticleID] <string>] [<CommonParameters>]
+Get-WindowsUpdateHistory [[-Last] <int>] [[-KBArticleID] <string>]
 ```
 
 ## ALIASES

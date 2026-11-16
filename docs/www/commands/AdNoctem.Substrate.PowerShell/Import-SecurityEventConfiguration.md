@@ -19,7 +19,7 @@ Reads and caches literal security event configuration data.
 ### __AllParameterSets
 
 ```
-Import-SecurityEventConfiguration [[-Path] <string>] [-Force] [<CommonParameters>]
+Import-SecurityEventConfiguration [[-Path] <string>] [-Force]
 ```
 
 ## ALIASES

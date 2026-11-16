@@ -20,7 +20,7 @@ percentage.
 ### __AllParameterSets
 
 ```
-Get-SystemMemory [<CommonParameters>]
+Get-SystemMemory
 ```
 
 ## ALIASES

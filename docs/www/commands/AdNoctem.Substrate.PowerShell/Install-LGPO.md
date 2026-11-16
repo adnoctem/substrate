@@ -20,7 +20,6 @@ Downloads, verifies, and installs LGPO.exe to a controllable path.
 
 ```
 Install-LGPO [[-Destination] <string>] [[-Source] <string>] [-Force] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

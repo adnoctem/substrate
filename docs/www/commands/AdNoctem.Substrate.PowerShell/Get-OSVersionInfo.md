@@ -19,7 +19,7 @@ Returns a complete snapshot of Windows version metadata from the registry.
 ### __AllParameterSets
 
 ```
-Get-OSVersionInfo [<CommonParameters>]
+Get-OSVersionInfo
 ```
 
 ## ALIASES

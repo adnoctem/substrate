@@ -19,7 +19,7 @@ Verifies the LGPO download URL is still reachable.
 ### __AllParameterSets
 
 ```
-Test-LGPOSourceAvailability [[-Source] <string>] [<CommonParameters>]
+Test-LGPOSourceAvailability [[-Source] <string>]
 ```
 
 ## ALIASES

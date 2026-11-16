@@ -19,7 +19,7 @@ Searches a registry hive for a pattern via reg.exe query.
 ### __AllParameterSets
 
 ```
-Search-RegistryKey [-Root] <string> [-Pattern] <string> [-OutputPath] <string> [<CommonParameters>]
+Search-RegistryKey [-Root] <string> [-Pattern] <string> [-OutputPath] <string>
 ```
 
 ## ALIASES

@@ -20,7 +20,6 @@ Updates a package using a local AppX/MSIX file.
 
 ```
 Update-UPFAppxPackage [-Path] <string> [[-DependencyPath] <string[]>] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

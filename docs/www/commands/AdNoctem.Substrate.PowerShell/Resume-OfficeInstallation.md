@@ -20,7 +20,7 @@ Verifies or continues the same interrupted Office installation.
 
 ```
 Resume-OfficeInstallation [-Recovery] <Object> [-OdtPath] <string> [[-ProductKey] <securestring>]
- [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

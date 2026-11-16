@@ -19,7 +19,7 @@ Assesses target activation separately from installation compliance.
 ### __AllParameterSets
 
 ```
-Get-OfficeActivationStatus [-TargetProductId] <string> [<CommonParameters>]
+Get-OfficeActivationStatus [-TargetProductId] <string>
 ```
 
 ## ALIASES

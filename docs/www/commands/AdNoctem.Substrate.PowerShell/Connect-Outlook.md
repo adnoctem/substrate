@@ -19,7 +19,7 @@ Connects to an Outlook COM application and MAPI namespace.
 ### __AllParameterSets
 
 ```
-Connect-Outlook [<CommonParameters>]
+Connect-Outlook
 ```
 
 ## ALIASES

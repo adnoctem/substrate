@@ -19,7 +19,7 @@ Returns the reviewed Microsoft ODT download location without network I/O.
 ### __AllParameterSets
 
 ```
-Resolve-OfficeDeploymentToolSource [<CommonParameters>]
+Resolve-OfficeDeploymentToolSource
 ```
 
 ## ALIASES

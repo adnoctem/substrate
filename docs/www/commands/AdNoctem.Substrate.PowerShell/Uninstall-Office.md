@@ -20,7 +20,7 @@ Removes only explicitly selected Click-to-Run products.
 
 ```
 Uninstall-Office [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>] [-ForceCloseApps]
- [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Sets the default local print device.
 ### __AllParameterSets
 
 ```
-Set-DefaultPrintDevice [-Name] <string> [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-DefaultPrintDevice [-Name] <string> [-PassThru] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

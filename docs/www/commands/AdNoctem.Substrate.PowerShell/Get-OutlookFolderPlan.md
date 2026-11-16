@@ -21,7 +21,6 @@ Builds a read-only, locale-independent Outlook folder processing plan.
 ```
 Get-OutlookFolderPlan [-Namespace] <Object> [-StoreRoot] <Object> [[-FolderName] <string>]
  [[-Include] <string[]>] [[-Exclusions] <string[]>] [[-ProgressId] <int>] [-Recurse]
- [<CommonParameters>]
 ```
 
 ## ALIASES

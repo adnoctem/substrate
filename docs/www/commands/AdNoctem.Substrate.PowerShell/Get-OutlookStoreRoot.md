@@ -19,7 +19,7 @@ Gets the root folder for an Outlook store.
 ### __AllParameterSets
 
 ```
-Get-OutlookStoreRoot [-Namespace] <Object> [[-Name] <string>] [<CommonParameters>]
+Get-OutlookStoreRoot [-Namespace] <Object> [[-Name] <string>]
 ```
 
 ## ALIASES

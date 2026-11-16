@@ -19,7 +19,7 @@ Set-ItemOwner - Takes ownership of a file or folder via takeown/icacls.
 ### __AllParameterSets
 
 ```
-Set-ItemOwner [-Path] <string> [-Group <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-ItemOwner [-Path] <string> [-Group <string>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

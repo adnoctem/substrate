@@ -21,7 +21,6 @@ Queries Sysmon telemetry if the channel is available.
 ```
 Get-WindowsSysmonEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-ComputerName] <string[]>] [[-MaxEvents] <int>] [[-Configuration] <hashtable>]
- [<CommonParameters>]
 ```
 
 ## ALIASES

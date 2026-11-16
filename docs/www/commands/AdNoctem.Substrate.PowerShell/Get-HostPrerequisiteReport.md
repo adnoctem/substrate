@@ -21,7 +21,7 @@ Explains whether the host satisfies an operation's prerequisites.
 ```
 Get-HostPrerequisiteReport [[-MinBuild] <int>] [[-MaxBuild] <int>] [[-Edition] <string[]>]
  [[-Architecture] <string>] [[-RequiredModules] <hashtable>] [[-RequiredCommands] <string[]>]
- [[-RequiredServices] <hashtable>] [-RequireAdministrator] [<CommonParameters>]
+ [[-RequiredServices] <hashtable>] [-RequireAdministrator]
 ```
 
 ## ALIASES

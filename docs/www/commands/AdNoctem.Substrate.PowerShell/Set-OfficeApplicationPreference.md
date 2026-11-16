@@ -20,7 +20,7 @@ Applies validated Office preferences to existing and future users through ODT cu
 
 ```
 Set-OfficeApplicationPreference [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>]
- [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

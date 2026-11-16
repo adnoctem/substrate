@@ -19,7 +19,7 @@ Returns $true if the PSWindowsUpdate module is installed.
 ### __AllParameterSets
 
 ```
-Test-PSWindowsUpdateAvailable [<CommonParameters>]
+Test-PSWindowsUpdateAvailable
 ```
 
 ## ALIASES

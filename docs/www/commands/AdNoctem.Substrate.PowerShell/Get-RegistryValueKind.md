@@ -19,7 +19,7 @@ Gets the exact Microsoft.Win32.RegistryValueKind of a registry value.
 ### __AllParameterSets
 
 ```
-Get-RegistryValueKind [-Path] <string> [[-Name] <string>] [<CommonParameters>]
+Get-RegistryValueKind [-Path] <string> [[-Name] <string>]
 ```
 
 ## ALIASES

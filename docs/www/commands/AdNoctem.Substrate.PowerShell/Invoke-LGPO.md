@@ -19,7 +19,7 @@ Applies a policy text file or GPO backup using an existing LGPO executable.
 ### __AllParameterSets
 
 ```
-Invoke-LGPO [-PolicyPath] <string> [[-LgpoExe] <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Invoke-LGPO [-PolicyPath] <string> [[-LgpoExe] <string>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

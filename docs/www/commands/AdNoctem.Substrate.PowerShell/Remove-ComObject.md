@@ -19,7 +19,7 @@ Releases one or more COM objects.
 ### __AllParameterSets
 
 ```
-Remove-ComObject [[-InputObject] <Object[]>] [<CommonParameters>]
+Remove-ComObject [[-InputObject] <Object[]>]
 ```
 
 ## ALIASES

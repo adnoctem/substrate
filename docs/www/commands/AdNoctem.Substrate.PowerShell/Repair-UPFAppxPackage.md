@@ -20,7 +20,6 @@ Repairs installed UPF AppX/MSIX packages by re-registering their manifests.
 
 ```
 Repair-UPFAppxPackage [-Name] <string> [-AllUsers] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

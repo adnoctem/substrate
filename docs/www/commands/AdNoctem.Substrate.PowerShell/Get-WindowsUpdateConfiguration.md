@@ -19,7 +19,7 @@ Returns current Windows Update service configuration.
 ### __AllParameterSets
 
 ```
-Get-WindowsUpdateConfiguration [<CommonParameters>]
+Get-WindowsUpdateConfiguration
 ```
 
 ## ALIASES

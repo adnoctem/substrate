@@ -20,7 +20,7 @@ Removes installed PowerShell module versions.
 
 ```
 Remove-PSModule [[-Name] <string>] [[-LatestToKeep] <int>] [[-Scope] <string>] [[-Path] <string>]
- [-All] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-All] [-Force] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

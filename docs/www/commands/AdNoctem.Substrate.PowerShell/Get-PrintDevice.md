@@ -19,7 +19,7 @@ Gets installed local print devices.
 ### __AllParameterSets
 
 ```
-Get-PrintDevice [<CommonParameters>]
+Get-PrintDevice
 ```
 
 ## ALIASES

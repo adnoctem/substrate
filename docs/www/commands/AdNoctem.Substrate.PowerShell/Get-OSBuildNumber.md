@@ -19,7 +19,7 @@ Returns the Windows build number as an integer.
 ### __AllParameterSets
 
 ```
-Get-OSBuildNumber [<CommonParameters>]
+Get-OSBuildNumber
 ```
 
 ## ALIASES

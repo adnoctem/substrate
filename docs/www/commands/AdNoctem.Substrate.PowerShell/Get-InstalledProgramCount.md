@@ -19,7 +19,7 @@ Counts visible Win32 programs registered in the Windows uninstall registry keys.
 ### __AllParameterSets
 
 ```
-Get-InstalledProgramCount [<CommonParameters>]
+Get-InstalledProgramCount
 ```
 
 ## ALIASES

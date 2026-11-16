@@ -20,7 +20,7 @@ Removes selected non-primary languages without removing the suite.
 
 ```
 Remove-OfficeLanguage [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>] [-ForceCloseApps]
- [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

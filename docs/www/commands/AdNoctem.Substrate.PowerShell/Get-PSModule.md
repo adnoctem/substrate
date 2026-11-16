@@ -19,7 +19,7 @@ Exports installed PowerShell modules to the pipeline or a JSON file.
 ### __AllParameterSets
 
 ```
-Get-PSModule [[-Path] <string>] [[-Name] <string>] [[-Scope] <string>] [<CommonParameters>]
+Get-PSModule [[-Path] <string>] [[-Name] <string>] [[-Scope] <string>]
 ```
 
 ## ALIASES

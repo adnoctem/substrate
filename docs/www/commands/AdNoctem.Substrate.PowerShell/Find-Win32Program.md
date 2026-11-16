@@ -19,13 +19,13 @@ Finds Win32 program uninstall registrations by wildcard name or exact registry p
 ### Name
 
 ```
-Find-Win32Program -Name <string> [-IncludeSystemComponent] [<CommonParameters>]
+Find-Win32Program -Name <string> [-IncludeSystemComponent]
 ```
 
 ### RegistryPath
 
 ```
-Find-Win32Program -RegistryPath <string> [-IncludeSystemComponent] [<CommonParameters>]
+Find-Win32Program -RegistryPath <string> [-IncludeSystemComponent]
 ```
 
 ## ALIASES

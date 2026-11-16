@@ -19,7 +19,7 @@ Adds a Microsoft Defender exclusion.
 ### __AllParameterSets
 
 ```
-Add-DefenderExclusion [-Type] <string> [-Value] <string> [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-DefenderExclusion [-Type] <string> [-Value] <string> [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES
