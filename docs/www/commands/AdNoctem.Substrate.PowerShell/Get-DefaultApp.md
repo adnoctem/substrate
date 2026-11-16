@@ -19,7 +19,7 @@ Retrieves the current user's default application command for an extension.
 ### __AllParameterSets
 
 ```
-Get-DefaultApp [-FileExtension] <string> [<CommonParameters>]
+Get-DefaultApp [-FileExtension] <string>
 ```
 
 ## ALIASES

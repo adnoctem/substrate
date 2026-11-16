@@ -19,7 +19,7 @@ Reads registry.pol records without applying policy or requiring LGPO.
 ### __AllParameterSets
 
 ```
-ConvertFrom-RegistryPolicy [-Path] <string> [-Raw] [<CommonParameters>]
+ConvertFrom-RegistryPolicy [-Path] <string> [-Raw]
 ```
 
 ## ALIASES

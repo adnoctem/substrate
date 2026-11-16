@@ -19,7 +19,7 @@ Returns $true if the input is a valid IPv6 address per RFC 4291.
 ### __AllParameterSets
 
 ```
-Test-IPv6Address [-Address] <string> [<CommonParameters>]
+Test-IPv6Address [-Address] <string>
 ```
 
 ## ALIASES

@@ -20,7 +20,7 @@ Tests which remote-management channels a host answers on.
 
 ```
 Test-RemoteHostReachability [-ComputerName] <string[]> [-Credential <pscredential>] [-IncludeRdp]
- [-CredSSP] [-TimeoutSeconds <int>] [<CommonParameters>]
+ [-CredSSP] [-TimeoutSeconds <int>]
 ```
 
 ## ALIASES

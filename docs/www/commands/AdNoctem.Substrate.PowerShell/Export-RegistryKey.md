@@ -19,7 +19,7 @@ Exports a registry key to a .reg text file via reg.exe.
 ### __AllParameterSets
 
 ```
-Export-RegistryKey [-Key] <string> [-OutputPath] <string> [<CommonParameters>]
+Export-RegistryKey [-Key] <string> [-OutputPath] <string>
 ```
 
 ## ALIASES

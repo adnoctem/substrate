@@ -19,7 +19,7 @@ Returns $true if a reboot is pending after a Windows update install.
 ### __AllParameterSets
 
 ```
-Test-WindowsUpdateRebootRequired [<CommonParameters>]
+Test-WindowsUpdateRebootRequired
 ```
 
 ## ALIASES

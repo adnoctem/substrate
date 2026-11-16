@@ -20,7 +20,6 @@ Resolves an event field's semantic mapping.
 
 ```
 Resolve-WindowsEventMappedField [-MapName] <string> [-Value] <Object> [[-Configuration] <hashtable>]
- [<CommonParameters>]
 ```
 
 ## ALIASES

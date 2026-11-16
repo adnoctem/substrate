@@ -19,7 +19,7 @@ Uninstalls a previously installed Windows update.
 ### __AllParameterSets
 
 ```
-Uninstall-WindowsUpdate [-KBArticleID] <string> [-WhatIf] [-Confirm] [<CommonParameters>]
+Uninstall-WindowsUpdate [-KBArticleID] <string> [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

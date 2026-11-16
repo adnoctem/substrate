@@ -19,7 +19,7 @@ Resets app data for installed UPF AppX/MSIX packages when the platform supports 
 ### __AllParameterSets
 
 ```
-Reset-UPFAppxPackage [-Name] <string> [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+Reset-UPFAppxPackage [-Name] <string> [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

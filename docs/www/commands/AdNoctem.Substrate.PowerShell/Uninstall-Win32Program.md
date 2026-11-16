@@ -20,14 +20,12 @@ Uninstalls Win32 programs using registered uninstall commands.
 
 ```
 Uninstall-Win32Program -Name <string> [-Quiet] [-Force] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ### InputObject
 
 ```
 Uninstall-Win32Program -InputObject <psobject> [-Quiet] [-Force] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

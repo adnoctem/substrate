@@ -19,7 +19,7 @@ Returns the Windows feature-update display name (e.g. "22H2", "23H2").
 ### __AllParameterSets
 
 ```
-Get-OSDisplayVersion [<CommonParameters>]
+Get-OSDisplayVersion
 ```
 
 ## ALIASES

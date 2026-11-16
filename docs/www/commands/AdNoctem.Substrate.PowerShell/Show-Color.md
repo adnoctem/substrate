@@ -19,7 +19,7 @@ Displays the available console colors.
 ### __AllParameterSets
 
 ```
-Show-Color [[-ArgumentList] <Object[]>] [<CommonParameters>]
+Show-Color [[-ArgumentList] <Object[]>]
 ```
 
 ## ALIASES

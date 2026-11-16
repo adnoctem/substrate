@@ -19,7 +19,7 @@ Checks whether the reviewed Microsoft ODT download is reachable.
 ### __AllParameterSets
 
 ```
-Test-OfficeDeploymentToolSourceAvailability [<CommonParameters>]
+Test-OfficeDeploymentToolSourceAvailability
 ```
 
 ## ALIASES

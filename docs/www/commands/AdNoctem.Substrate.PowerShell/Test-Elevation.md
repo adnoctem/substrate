@@ -19,7 +19,7 @@ Test-Elevation - Returns whether the current process has administrator privilege
 ### __AllParameterSets
 
 ```
-Test-Elevation [<CommonParameters>]
+Test-Elevation
 ```
 
 ## ALIASES

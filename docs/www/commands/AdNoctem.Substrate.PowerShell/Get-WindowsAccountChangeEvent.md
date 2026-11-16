@@ -21,7 +21,7 @@ Queries account lifecycle and group membership change events.
 ```
 Get-WindowsAccountChangeEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-TargetUserName] <string>] [[-SubjectUserName] <string>] [[-ComputerName] <string[]>]
- [[-MaxEvents] <int>] [[-Configuration] <hashtable>] [<CommonParameters>]
+ [[-MaxEvents] <int>] [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

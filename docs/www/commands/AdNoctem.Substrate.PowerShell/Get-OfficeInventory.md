@@ -19,7 +19,7 @@ Reads Office registrations without launching Office or Windows Installer.
 ### __AllParameterSets
 
 ```
-Get-OfficeInventory [<CommonParameters>]
+Get-OfficeInventory
 ```
 
 ## ALIASES

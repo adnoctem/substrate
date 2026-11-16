@@ -19,7 +19,7 @@ Returns whether the LGPO executable exists at the specified path.
 ### __AllParameterSets
 
 ```
-Test-LGPOInstalled [[-Path] <string>] [<CommonParameters>]
+Test-LGPOInstalled [[-Path] <string>]
 ```
 
 ## ALIASES

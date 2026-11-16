@@ -20,7 +20,7 @@ Adds selected full-UI languages while preserving primary language and existing r
 
 ```
 Add-OfficeLanguage [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>] [-ForceCloseApps]
- [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

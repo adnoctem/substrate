@@ -21,7 +21,7 @@ Runs a caller-selected local installer through the C# package API.
 ```
 Install-Win32Program [-Path] <string> [[-ArgumentList] <string[]>] [[-SuccessExitCodes] <int[]>]
  [[-RebootExitCodes] <int[]>] [[-RunId] <string>] [-NoWait] [-PassThru] [-DryRun] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

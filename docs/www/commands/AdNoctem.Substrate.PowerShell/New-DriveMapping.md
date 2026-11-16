@@ -20,7 +20,7 @@ New-DriveMapping - Persistently maps a local folder to a drive letter.
 
 ```
 New-DriveMapping [-DriveLetter] <string> [-Path] <string> [-SourceDriveLabel <string>]
- [-DriveLabel <string>] [-Restart] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-DriveLabel <string>] [-Restart] [-Force] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

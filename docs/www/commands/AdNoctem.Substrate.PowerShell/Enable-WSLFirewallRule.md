@@ -20,7 +20,6 @@ Ensures the inbound WSL firewall allow rule exists.
 
 ```
 Enable-WSLFirewallRule [[-DisplayName] <string>] [[-InterfaceAlias] <string>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

@@ -20,7 +20,7 @@ Remove-DriveMapping - Removes a persistent folder-to-drive-letter mapping.
 
 ```
 Remove-DriveMapping [-DriveLetter] <string> [-SourceDriveLabel <string>] [-Restart] [-Force]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

@@ -20,7 +20,6 @@ Retrieves the full Microsoft Defender threat catalog.
 
 ```
 Get-DefenderThreat [[-OutputPath] <string>] [[-OutputFormat] <string>] [-IncludeURLs]
- [<CommonParameters>]
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Gets or creates an Outlook child folder.
 ### __AllParameterSets
 
 ```
-Get-OutlookSubFolder [-ParentFolder] <Object> [-Name] <string> [-Create] [<CommonParameters>]
+Get-OutlookSubFolder [-ParentFolder] <Object> [-Name] <string> [-Create]
 ```
 
 ## ALIASES

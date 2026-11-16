@@ -19,7 +19,7 @@ Retrieves metadata about a registry key.
 ### __AllParameterSets
 
 ```
-Get-RegistryKey [-Path] <string> [<CommonParameters>]
+Get-RegistryKey [-Path] <string>
 ```
 
 ## ALIASES

@@ -24,7 +24,6 @@ New-PackageLifecycleResult [[-Target] <string>] [[-Source] <string>] [[-Action] 
  [[-ErrorRecord] <ErrorRecord>] [[-ErrorDomain] <string>] [[-Changed] <bool>]
  [[-AlreadyCompliant] <bool>] [[-Before] <Object>] [[-After] <Object>] [[-ExitCode] <int>]
  [[-RebootRequired] <bool>] [[-Duration] <timespan>] [[-RunId] <string>] [[-Property] <hashtable>]
- [<CommonParameters>]
 ```
 
 ## ALIASES

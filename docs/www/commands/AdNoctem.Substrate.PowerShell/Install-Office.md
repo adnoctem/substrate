@@ -21,7 +21,6 @@ Installs Office only on a clean machine or returns a verified compliant no-op.
 ```
 Install-Office [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>]
  [[-ProductKey] <securestring>] [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

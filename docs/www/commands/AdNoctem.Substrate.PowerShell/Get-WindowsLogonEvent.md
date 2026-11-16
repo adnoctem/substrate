@@ -21,7 +21,7 @@ Queries and normalises logon-related security events.
 ```
 Get-WindowsLogonEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-LogonType] <int[]>] [[-ComputerName] <string[]>] [[-MaxEvents] <int>]
- [[-Configuration] <hashtable>] [-IncludeSystem] [<CommonParameters>]
+ [[-Configuration] <hashtable>] [-IncludeSystem]
 ```
 
 ## ALIASES

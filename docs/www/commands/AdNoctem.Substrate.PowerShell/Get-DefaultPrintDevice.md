@@ -19,7 +19,7 @@ Gets the default local print device.
 ### __AllParameterSets
 
 ```
-Get-DefaultPrintDevice [<CommonParameters>]
+Get-DefaultPrintDevice
 ```
 
 ## ALIASES

@@ -24,7 +24,6 @@ Add-OperationResult [-Results] <IList> [[-Target] <string>] [[-Source] <string>]
  [[-ErrorMessage] <string>] [[-Property] <hashtable>] [[-Changed] <bool>]
  [[-AlreadyCompliant] <bool>] [[-Before] <Object>] [[-After] <Object>] [[-ExitCode] <int>]
  [[-RebootRequired] <bool>] [[-Duration] <timespan>] [[-RunId] <string>] [-PassThru]
- [<CommonParameters>]
 ```
 
 ## ALIASES

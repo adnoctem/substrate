@@ -19,7 +19,7 @@ Removes a registry key and optionally its subkeys.
 ### __AllParameterSets
 
 ```
-Remove-RegistryKey [-Path] <string> [-Recurse] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-RegistryKey [-Path] <string> [-Recurse] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

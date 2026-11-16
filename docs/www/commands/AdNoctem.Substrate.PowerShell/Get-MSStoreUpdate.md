@@ -19,7 +19,7 @@ Lists available Microsoft Store app updates.
 ### __AllParameterSets
 
 ```
-Get-MSStoreUpdate [[-PackageFamilyName] <string>] [<CommonParameters>]
+Get-MSStoreUpdate [[-PackageFamilyName] <string>]
 ```
 
 ## ALIASES

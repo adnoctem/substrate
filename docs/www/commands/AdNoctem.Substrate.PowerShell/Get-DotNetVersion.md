@@ -19,7 +19,7 @@ Returns the installed .NET runtimes, SDKs, and .NET Framework versions.
 ### __AllParameterSets
 
 ```
-Get-DotNetVersion [<CommonParameters>]
+Get-DotNetVersion
 ```
 
 ## ALIASES

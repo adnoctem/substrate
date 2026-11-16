@@ -19,7 +19,7 @@ Returns $true if the registry path exists, $false otherwise.
 ### __AllParameterSets
 
 ```
-Test-RegistryPath [-Path] <string> [<CommonParameters>]
+Test-RegistryPath [-Path] <string>
 ```
 
 ## ALIASES

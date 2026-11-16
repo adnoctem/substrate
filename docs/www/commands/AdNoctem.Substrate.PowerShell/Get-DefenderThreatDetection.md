@@ -20,7 +20,7 @@ Retrieves Microsoft Defender threat detections, optionally filtered by date.
 
 ```
 Get-DefenderThreatDetection [[-Date] <Object>] [[-OutputPath] <string>] [[-OutputFormat] <string>]
- [-IncludeURLs] [<CommonParameters>]
+ [-IncludeURLs]
 ```
 
 ## ALIASES

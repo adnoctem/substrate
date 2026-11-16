@@ -20,7 +20,7 @@ Finds where a service account is used across services and scheduled tasks.
 
 ```
 Find-ServiceAccountUsage [-Name] <string[]> [[-ComputerName] <string[]>]
- [[-Credential] <pscredential>] [<CommonParameters>]
+ [[-Credential] <pscredential>]
 ```
 
 ## ALIASES

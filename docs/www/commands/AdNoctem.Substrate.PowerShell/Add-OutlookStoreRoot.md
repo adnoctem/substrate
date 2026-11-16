@@ -19,7 +19,7 @@ Adds a Unicode PST store and returns its root folder.
 ### __AllParameterSets
 
 ```
-Add-OutlookStoreRoot [-Namespace] <Object> [-Path] <string> [<CommonParameters>]
+Add-OutlookStoreRoot [-Namespace] <Object> [-Path] <string>
 ```
 
 ## ALIASES

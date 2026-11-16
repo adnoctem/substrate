@@ -21,7 +21,7 @@ Queries PowerShell operational telemetry events.
 ```
 Get-WindowsPowerShellEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-UserName] <string>] [[-ScriptBlockText] <string>] [[-ComputerName] <string[]>]
- [[-MaxEvents] <int>] [[-Configuration] <hashtable>] [<CommonParameters>]
+ [[-MaxEvents] <int>] [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

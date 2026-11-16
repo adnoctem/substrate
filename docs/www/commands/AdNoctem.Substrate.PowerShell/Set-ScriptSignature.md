@@ -20,7 +20,7 @@ Set-ScriptSignature - Bulk Authenticode-signs PowerShell scripts under a folder.
 
 ```
 Set-ScriptSignature [-Path] <string> [-Certificate] <X509Certificate2> [[-TimestampServer] <string>]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

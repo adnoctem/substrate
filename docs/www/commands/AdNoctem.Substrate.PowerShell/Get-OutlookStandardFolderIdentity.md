@@ -19,7 +19,7 @@ Reads locale-independent standard folder identities for one Outlook store.
 ### __AllParameterSets
 
 ```
-Get-OutlookStandardFolderIdentity [-Namespace] <Object> [-StoreRoot] <Object> [<CommonParameters>]
+Get-OutlookStandardFolderIdentity [-Namespace] <Object> [-StoreRoot] <Object>
 ```
 
 ## ALIASES

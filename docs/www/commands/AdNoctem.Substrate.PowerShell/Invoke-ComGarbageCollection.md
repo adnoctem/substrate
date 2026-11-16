@@ -19,7 +19,7 @@ Runs final COM cleanup garbage collection passes.
 ### __AllParameterSets
 
 ```
-Invoke-ComGarbageCollection [<CommonParameters>]
+Invoke-ComGarbageCollection
 ```
 
 ## ALIASES

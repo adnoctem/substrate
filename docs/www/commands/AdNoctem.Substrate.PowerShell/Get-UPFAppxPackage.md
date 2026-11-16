@@ -20,7 +20,7 @@ Returns normalized installed and provisioned UPF AppX/MSIX package inventory.
 
 ```
 Get-UPFAppxPackage [[-Name] <string>] [-Installed] [-Provisioned] [-AllUsers] [-IncludeFramework]
- [-IncludeResource] [-IncludeBundle] [<CommonParameters>]
+ [-IncludeResource] [-IncludeBundle]
 ```
 
 ## ALIASES

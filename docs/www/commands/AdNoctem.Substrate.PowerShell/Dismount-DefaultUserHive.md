@@ -19,7 +19,7 @@ Unloads a previously mounted default user hive.
 ### __AllParameterSets
 
 ```
-Dismount-DefaultUserHive [[-MountName] <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Dismount-DefaultUserHive [[-MountName] <string>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

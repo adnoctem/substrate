@@ -20,7 +20,7 @@ Returns $true if the current host meets all supplied applicability constraints.
 
 ```
 Test-HostApplicability [[-MinBuild] <int>] [[-MaxBuild] <int>] [[-Edition] <string[]>]
- [[-Bitness] <string>] [<CommonParameters>]
+ [[-Bitness] <string>]
 ```
 
 ## ALIASES

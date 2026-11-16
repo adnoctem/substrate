@@ -19,7 +19,7 @@ Counts installed UPF AppX/MSIX packages for the current user.
 ### __AllParameterSets
 
 ```
-Get-AppxPackageCount [<CommonParameters>]
+Get-AppxPackageCount
 ```
 
 ## ALIASES

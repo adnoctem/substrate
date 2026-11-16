@@ -20,7 +20,6 @@ Creates operation results for registry setting definitions.
 
 ```
 ConvertTo-RegistrySettingResult [-Settings] <Object[]> [[-Source] <string>] [-Undo] [-DryRun]
- [<CommonParameters>]
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Write a message to standard output with color and optional timestamp.
 ### __AllParameterSets
 
 ```
-Write-Log [-Message] <string> [[-Color] <ConsoleColor>] [-Timestamps] [<CommonParameters>]
+Write-Log [-Message] <string> [[-Color] <ConsoleColor>] [-Timestamps]
 ```
 
 ## ALIASES

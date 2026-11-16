@@ -19,7 +19,7 @@ Test-ADCredential - Validates a username/password pair against AD.
 ### __AllParameterSets
 
 ```
-Test-ADCredential [-Credential] <pscredential> [[-Domain] <string>] [<CommonParameters>]
+Test-ADCredential [-Credential] <pscredential> [[-Domain] <string>]
 ```
 
 ## ALIASES

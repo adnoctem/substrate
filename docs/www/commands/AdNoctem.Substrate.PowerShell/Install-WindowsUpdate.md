@@ -20,21 +20,18 @@ Installs one or more Windows updates.
 
 ```
 Install-WindowsUpdate -InputObject <psobject[]> [-AutoReboot] [-IgnoreReboot] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ### KB
 
 ```
 Install-WindowsUpdate -KBArticleID <string> [-AutoReboot] [-IgnoreReboot] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ### All
 
 ```
 Install-WindowsUpdate -AcceptAll [-AutoReboot] [-IgnoreReboot] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

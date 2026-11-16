@@ -19,7 +19,7 @@ Verifies the signature, identity, and minimum version of ODT setup.exe.
 ### __AllParameterSets
 
 ```
-Test-OfficeDeploymentTool [-OdtPath] <string> [<CommonParameters>]
+Test-OfficeDeploymentTool [-OdtPath] <string>
 ```
 
 ## ALIASES
