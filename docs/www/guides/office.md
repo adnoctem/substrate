@@ -162,16 +162,17 @@ closure requires explicit consent. A held deployment lock or a changed inventory
 | Supported pre-launch checkpoint                                           | Revalidate authority, host, media and state; preview/continue the original operation      |
 | Migration checkpoint after confirmed completed C2R removal                | Continue installation of the recorded destination without repeating removal               |
 | Busy deployment or pending reboot                                         | Stop and wait/resolve the reported prerequisite                                           |
-| Changed machine makes the refreshed plan ineligible                       | `StaleRecoveryState`; inspect divergence evidence and create a new plan                   |
+| Installed product, version, languages or excluded apps diverge            | `StaleRecoveryState`; inspect divergence evidence, retire, or create a new plan           |
+| Changed machine makes the refreshed plan otherwise ineligible             | `StaleRecoveryState`; inspect divergence evidence and create a new plan                   |
 | Uncertain partial installation or unverified unsupported checkpoint       | `UnsupportedRecoveryState`; inspect native state/logs before a separately reviewed action |
 
 These are decisions constrained by the recorded action and current gates, not permission to replay any failed journal.
 
-Recovery observations compare current inventory with the journal's recorded `Before` and, when present, its recorded `After`. Inventory
-differences are evidence, not a block by themselves: `RecoveryDivergence` reports the recorded and current fingerprints plus the changed
-top-level fields, and safe pre-launch continuation may proceed. If the refreshed plan is not eligible, recovery blocks with
-`StaleRecoveryState` and explains the changed fields and blockers. `RecoveryRequired` remains false for that divergence case and for the
-informational busy, reboot, and conflict observations.
+Recovery observations compare current installed product, version, languages, and excluded apps with the journal's recorded `Before` and,
+when present, its recorded `After`. Installed-state divergence blocks with `StaleRecoveryState` before any ODT launch and names the
+differences through `RecoveryDivergence`; a difference no longer continues merely because a refreshed plan happens to be safe. The same
+blocker is used if a non-divergent refreshed plan is unexpectedly ineligible. `RecoveryRequired` remains false for divergence and for the
+informational busy, reboot, and conflict observations; actual journal or execution failures keep their existing recovery flag.
 
 A stale journal can be retired with `Move-OfficeRecovery`. Retirement validates the run, machine, schema, and recorded fingerprints,
 writes `RunId.abandoned.json`, and moves the journal `.json`, its `.jsonl` log, and related run artifacts into `Abandoned` under the same
