@@ -104,14 +104,33 @@ Add-Observation 'operation-log-string-enumeration' {
 }
 
 if ((Get-Command Write-OperationResultLog).CommandType -eq 'Cmdlet') {
+  function Get-NormalizedPath {
+    param ([string]$Value)
+
+    $full = [IO.Path]::GetFullPath($Value)
+    $full = [AdNoctem.Substrate.IO.FileSystemPath]::Parse($full).ExpandLongName().Value
+    $separators = [char[]]@([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+
+    $full.TrimEnd($separators)
+  }
+
   Add-Observation 'operation-log-default' {
     $path = Write-OperationResultLog -Results @([PSCustomObject]@{ Timestamp = 'fixed' }) -ScriptName DefaultProbe
 
     try {
+      $logRoot = Get-NormalizedPath (Join-Path $env:TEMP 'winkit\logs')
+      $normalizedPath = Get-NormalizedPath $path
+      $underWinkit = $normalizedPath.StartsWith(
+        $logRoot + [IO.Path]::DirectorySeparatorChar,
+        [StringComparison]::OrdinalIgnoreCase
+      )
+
       [ordered]@{
-        Path        = $path
-        Exists      = Test-Path -LiteralPath $path
-        UnderWinkit = $path -like (Join-Path $env:TEMP 'winkit\logs\*')
+        Path           = $path
+        Exists         = Test-Path -LiteralPath $path
+        LogRoot        = $logRoot
+        NormalizedPath = $normalizedPath
+        UnderWinkit    = $underWinkit
       }
     }
     finally {
