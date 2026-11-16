@@ -1,3 +1,21 @@
+## [0.4.0](https://github.com/adnoctem/substrate/compare/v0.3.2...v0.4.0) (2026-11-16)
+
+### Features
+
+- **src:** add recovery divergence evidence and journal retirement ([33db544](https://github.com/adnoctem/substrate/commit/33db544c3de4e63541cbb615e6e6032f9c950171))
+
+### Bug Fixes
+
+- **src:** block recovery on installed-state divergence ([5fa6a59](https://github.com/adnoctem/substrate/commit/5fa6a5946cb8600218930014cfac4a189d7710c5))
+- **src:** distinguish verification unknowns from recovery requirements ([39c50b5](https://github.com/adnoctem/substrate/commit/39c50b5b9091b1cdf3d8fb1492b6ad7bc68a7740))
+- **src:** guard legacy Office storage paths ([65bdb33](https://github.com/adnoctem/substrate/commit/65bdb33afab107dc07530a2119b46e7ebd19bd06))
+- **src:** rename Office journal root and media manifest ([0b0e60e](https://github.com/adnoctem/substrate/commit/0b0e60eaf6f671755b4e628d3865bca7de0e3dce))
+- **src:** standardize winkit machine paths and runtime names ([ab7219b](https://github.com/adnoctem/substrate/commit/ab7219b495f662c11bd7b65c586760af13c80277))
+- **src:** tolerate language-neutral Office MSI product codes ([e3e44eb](https://github.com/adnoctem/substrate/commit/e3e44eb2dfd86e79c43f37d1c2952e3655bfad41))
+- **src:** tolerate unreadable Outlook profile stores and accounts ([dcff86e](https://github.com/adnoctem/substrate/commit/dcff86e4ac6b9dcf34facda80c1802df05c1450b))
+- **src:** treat absent Click-to-Run ExcludedApps as an empty set ([b633385](https://github.com/adnoctem/substrate/commit/b6333852314b6c1460f4bc25510cfa8055c223a3))
+- **tests:** normalize default operation log path assertions ([d01d4a3](https://github.com/adnoctem/substrate/commit/d01d4a313d9a206875e2ee86cd285f2fecb72015))
+
 ## [0.3.2](https://github.com/adnoctem/substrate/compare/v0.3.1...v0.3.2) (2026-11-10)
 
 ### Bug Fixes
