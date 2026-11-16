@@ -31,6 +31,11 @@ Describe 'Compiled foundation compatibility' {
     $defaultLog.Records.Count | Should -Be 1
     $defaultLog.Records[0].Value.Exists | Should -BeTrue
     $defaultLog.Records[0].Value.UnderWinkit | Should -BeTrue
+    $defaultLog.Records[0].Value.LogRoot | Should -Match '\\winkit\\logs$'
+    $defaultLog.Records[0].Value.NormalizedPath.StartsWith(
+      $defaultLog.Records[0].Value.LogRoot + [IO.Path]::DirectorySeparatorChar,
+      [StringComparison]::OrdinalIgnoreCase
+    ) | Should -BeTrue
 
     foreach ($collection in @('ArrayList', 'List', 'Array')) {
       foreach ($count in @(0, 1, 3)) {
