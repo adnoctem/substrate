@@ -215,29 +215,6 @@ function New-EncryptedCredentialFile {
   finally { if ($null -ne $ownedPassword) { $ownedPassword.Dispose() } }
 }
 
-function Resolve-SubstrateOfficeLogRoot {
-  [CmdletBinding()]
-  [OutputType([string])]
-  param ([Parameter(Mandatory = $true)][string]$LogRoot)
-
-  $default = Join-Path $env:ProgramData 'winkit-Office'
-  $legacy = Join-Path $env:ProgramData 'PSFoundation-Office'
-  $resolved = [IO.Path]::GetFullPath($LogRoot)
-  $defaultPath = [IO.Path]::GetFullPath($default)
-  $legacyPath = [IO.Path]::GetFullPath($legacy)
-
-  if ([string]::Equals($resolved, $legacyPath, [StringComparison]::OrdinalIgnoreCase)) {
-    Stop-SubstrateOfficeOperation InvalidConfiguration "The legacy Office recovery root '$legacy' is not read. Run scripts\Maintenance\Repair-LegacyPaths.ps1 once before using this version."
-  }
-
-  if ([string]::Equals($resolved, $defaultPath, [StringComparison]::OrdinalIgnoreCase) -and
-    -not (Test-Path -LiteralPath $default) -and (Test-Path -LiteralPath $legacy)) {
-    Stop-SubstrateOfficeOperation InvalidConfiguration "A legacy Office recovery root exists at '$legacy' but '$default' does not. Run scripts\Maintenance\Repair-LegacyPaths.ps1 once before using this version."
-  }
-
-  $LogRoot
-}
-
 function Get-OfficeDeploymentRecovery {
   <#
   .EXTERNALHELP AdNoctem.Substrate.PowerShell-help.xml
@@ -249,7 +226,6 @@ function Get-OfficeDeploymentRecovery {
     [string]$LogRoot = (Join-Path $env:ProgramData 'winkit-Office')
   )
 
-  $LogRoot = Resolve-SubstrateOfficeLogRoot -LogRoot $LogRoot
   $outcome = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::ReadRecovery($RunId, $LogRoot)
 
   if ($outcome.Failure) { Stop-SubstrateOfficeNativeFailure $outcome.Failure }
@@ -281,7 +257,6 @@ function Move-OfficeRecovery {
 
   process {
     $metadata = Get-SubstrateOfficeExecutionContext | ConvertTo-Json -Depth 30 -Compress
-    $LogRoot = Resolve-SubstrateOfficeLogRoot -LogRoot $LogRoot
 
     if (-not $PSCmdlet.ShouldProcess($RunId, "Retire Office recovery journal under $LogRoot. Reason: $Reason")) { return }
 
@@ -1044,7 +1019,7 @@ function Test-LGPOInstalled {
   [OutputType([bool])]
   param (
     [Parameter(Mandatory = $false)]
-    [string]$Path = (Join-Path -Path $env:ProgramData -ChildPath 'AdNoctem.Substrate.PowerShell\tools\LGPO.exe')
+    [string]$Path = (Join-Path -Path $env:ProgramData -ChildPath 'winkit\tools\LGPO.exe')
   )
 
   if ([string]::IsNullOrEmpty($Path)) { return (Test-Path -LiteralPath $Path -PathType Leaf) }
@@ -1071,7 +1046,7 @@ function Invoke-LGPO {
     [ValidateScript({ Test-Path -LiteralPath $_ })]
     [string]$PolicyPath,
     [Parameter(Mandatory = $false)]
-    [string]$LgpoExe = (Join-Path -Path $env:ProgramData -ChildPath 'AdNoctem.Substrate.PowerShell\tools\LGPO.exe')
+    [string]$LgpoExe = (Join-Path -Path $env:ProgramData -ChildPath 'winkit\tools\LGPO.exe')
   )
 
   if (-not (Test-Path -LiteralPath $LgpoExe -PathType Leaf)) {
@@ -1401,7 +1376,6 @@ function Invoke-SubstrateOfficeWorkflow {
     [string]$OdtPath, [string]$LogRoot, [bool]$DryRun, [bool]$ForceCloseApps, [Security.SecureString]$ProductKey)
 
   $metadata = Get-SubstrateOfficeExecutionContext | ConvertTo-Json -Depth 30 -Compress
-  $LogRoot = Resolve-SubstrateOfficeLogRoot -LogRoot $LogRoot
   $response = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::Deployment(($Plan | ConvertTo-Json -Depth 30 -Compress), $ExpectedAction, $OdtPath, $LogRoot, $ForceCloseApps, $ProductKey, $true, $metadata)
 
   if ($response.Failure) { Stop-SubstrateOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }
@@ -1434,7 +1408,6 @@ function Invoke-SubstrateOfficeRecovery {
 
   Assert-SubstrateOfficeField $Recovery @('RunId', 'LogRoot', 'Path', 'Record') @('RunId', 'LogRoot')
   $metadata = Get-SubstrateOfficeExecutionContext | ConvertTo-Json -Depth 30 -Compress
-  $LogRoot = Resolve-SubstrateOfficeLogRoot -LogRoot $Recovery.LogRoot
   $response = [AdNoctem.Substrate.PowerShell.Office.OfficeCompatibility]::Recover($Recovery.RunId, $OriginalAction, $OdtPath, $LogRoot, $ForceCloseApps, $ProductKey, $true, $metadata)
 
   if ($response.Failure) { Stop-SubstrateOfficeOperation $response.Failure.ReasonCode $response.Failure.Detail $response.Failure.Diagnostic }

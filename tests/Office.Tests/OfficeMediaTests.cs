@@ -116,39 +116,6 @@ public sealed class OfficeMediaTests
         }
     }
 
-    [Fact]
-    public void LegacyMediaManifestIsRejectedWithRepairGuidance()
-    {
-        var root = Path.Combine(
-            Path.GetTempPath(),
-            "substrate-legacy-media-" + Guid.NewGuid().ToString("N")
-        );
-        Directory.CreateDirectory(root);
-
-        try
-        {
-            System.IO.File.WriteAllText(
-                Path.Combine(root, OfficeMediaManifest.LegacyFileName),
-                "{}"
-            );
-            var error = Assert.Throws<OfficeException>(() =>
-                OfficeMediaManager.GuardLegacyManifest(
-                    AdNoctem.Substrate.IO.FileSystemPath.Parse(root)
-                )
-            );
-            Assert.Equal(OfficeFailureReason.ReprepareMedia, error.Reason);
-            Assert.Contains("Repair-LegacyPaths.ps1", error.Message);
-            System.IO.File.WriteAllText(Path.Combine(root, OfficeMediaManifest.FileName), "{}");
-            OfficeMediaManager.GuardLegacyManifest(
-                AdNoctem.Substrate.IO.FileSystemPath.Parse(root)
-            );
-        }
-        finally
-        {
-            Directory.Delete(root, true);
-        }
-    }
-
     private static OfficeMediaFile File(string path) =>
         new OfficeMediaFile(path, 12, new string('a', 64));
 }

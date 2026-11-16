@@ -34,11 +34,7 @@ public sealed class InstallLgpoCommand : LgpoNetworkCommand
 {
     [Parameter(Position = 0)]
     public string Destination { get; set; } =
-        Path.Combine(
-            Environment.GetEnvironmentVariable("ProgramData") ?? "",
-            "PSFoundation",
-            "tools"
-        );
+        Path.Combine(Environment.GetEnvironmentVariable("ProgramData") ?? "", "winkit", "tools");
 
     [Parameter(Position = 1), ValidateSet("SCT-LGPO-Standalone")]
     public string Source { get; set; } = "SCT-LGPO-Standalone";

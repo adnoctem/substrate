@@ -25,5 +25,10 @@ Describe 'Compiled registry policy compatibility' {
     }
 
     $differences | Should -BeNullOrEmpty -Because "v1/v2 policy differences: $($differences -join ', '); reports: $reports"
+
+    $current = $after.'lgpo-default-current'.Records[0].Value
+    $current.Installed | Should -BeTrue
+    $current.InstallPath | Should -Match 'winkit\\tools\\LGPO\.exe$'
+    $current.InvokeResult | Should -BeExactly 'NoError'
   }
 }

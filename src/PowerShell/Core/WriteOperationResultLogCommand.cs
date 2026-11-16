@@ -21,7 +21,7 @@ public sealed class WriteOperationResultLogCommand : PSCmdlet
     public string ScriptName { get; set; } = "";
 
     [Parameter(Position = 2), ValidatePattern("^[A-Za-z0-9._-]+$")]
-    public string Name { get; set; } = "PSFoundation";
+    public string Name { get; set; } = "winkit";
 
     [Parameter(Position = 3)]
     public string Path { get; set; } = "";

@@ -102,6 +102,23 @@ Add-Observation 'operation-log-string-enumeration' {
 
   $entries
 }
+
+if ((Get-Command Write-OperationResultLog).CommandType -eq 'Cmdlet') {
+  Add-Observation 'operation-log-default' {
+    $path = Write-OperationResultLog -Results @([PSCustomObject]@{ Timestamp = 'fixed' }) -ScriptName DefaultProbe
+
+    try {
+      [ordered]@{
+        Path        = $path
+        Exists      = Test-Path -LiteralPath $path
+        UnderWinkit = $path -like (Join-Path $env:TEMP 'winkit\logs\*')
+      }
+    }
+    finally {
+      if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
+    }
+  }
+}
 Add-Observation 'result-fixed-size-stop' { Add-OperationResult -Results ([object[]]@()) -Target 'value' -PassThru }
 Add-Observation 'result-fixed-size-continue' { Add-OperationResult -Results ([object[]]@()) -Target 'value' -PassThru -ErrorAction Continue }
 Add-Observation 'log-default' { Write-Log 'hello' }

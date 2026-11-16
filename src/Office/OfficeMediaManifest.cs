@@ -41,9 +41,6 @@ public sealed class OfficeMediaFile
 public sealed class OfficeMediaManifest
 {
     public const string FileName = "winkit-office-media.json";
-
-    // Temporary migration guard: remove after all managed machines have run Repair-LegacyPaths.ps1.
-    internal const string LegacyFileName = "psfoundation-office-media.json";
     public const int MaximumJsonBytes = 16 * 1024 * 1024;
     public OfficeConfiguration Configuration { get; }
     public string VersionText { get; }

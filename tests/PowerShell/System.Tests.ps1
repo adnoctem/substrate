@@ -25,5 +25,12 @@ Describe 'C# Windows inventory and identity' {
     }
 
     $differences | Should -BeNullOrEmpty -Because "v1/v2 system differences: $($differences -join ', '); reports: $reports"
+
+    $defaultPaths = $after.'default-paths'
+    $defaultPaths.Data | Should -Be (Join-Path $env:ProgramData 'winkit')
+    $defaultPaths.Home | Should -Be (Join-Path $env:USERPROFILE 'winkit')
+    $defaultPaths.Config | Should -Be (Join-Path $env:APPDATA 'winkit')
+    $defaultPaths.Cache | Should -Be (Join-Path $env:LOCALAPPDATA 'winkit')
+    $defaultPaths.Logs | Should -Be (Join-Path $env:LOCALAPPDATA 'winkit\logs')
   }
 }

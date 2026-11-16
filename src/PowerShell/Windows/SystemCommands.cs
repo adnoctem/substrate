@@ -322,7 +322,7 @@ public sealed class GetSystemInfoCommand : SystemCommand
 public sealed class GetSystemPathsCommand : PSCmdlet
 {
     [Parameter(Position = 0), ValidatePattern("^[A-Za-z0-9._-]+$")]
-    public string Name { get; set; } = "PSFoundation";
+    public string Name { get; set; } = "winkit";
 
     protected override void ProcessRecord()
     {
