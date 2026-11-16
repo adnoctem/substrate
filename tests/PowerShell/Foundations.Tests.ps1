@@ -26,6 +26,12 @@ Describe 'Compiled foundation compatibility' {
 
     $differences | Should -BeNullOrEmpty -Because "v1/v2 foundation differences: $($differences -join ', '); reports: $reports"
 
+    $defaultLog = $after.'operation-log-default'
+    $defaultLog.Terminated | Should -BeFalse
+    $defaultLog.Records.Count | Should -Be 1
+    $defaultLog.Records[0].Value.Exists | Should -BeTrue
+    $defaultLog.Records[0].Value.UnderWinkit | Should -BeTrue
+
     foreach ($collection in @('ArrayList', 'List', 'Array')) {
       foreach ($count in @(0, 1, 3)) {
         $case = $after."operation-log-collection-${collection}-${count}"

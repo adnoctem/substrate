@@ -13,10 +13,11 @@ function Get-Shape {
     })
 }
 
-foreach ($command in @('Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEdition', 'Get-OSProductName', 'Get-OSVersionInfo', 'Get-Hostname', 'Get-SystemPaths')) {
+foreach ($command in @('Get-OSBuildNumber', 'Get-OSDisplayVersion', 'Get-OSEdition', 'Get-OSProductName', 'Get-OSVersionInfo', 'Get-Hostname')) {
   $observations[$command] = & $command
 }
 
+if ((Get-Command Get-SystemPaths).CommandType -eq 'Cmdlet') { $observations['default-paths'] = Get-SystemPaths }
 $observations['named-paths'] = Get-SystemPaths 'synthetic-product'
 $observations['dotnet'] = Get-DotNetVersion
 $user = Get-UserInfo

@@ -36,7 +36,7 @@ internal sealed class PackageRuntimeClient
                 executable.Value
             );
 
-        var eventName = "Local\\PSFoundation.Package.Cancel." + Guid.NewGuid().ToString("N");
+        var eventName = "Local\\winkit.Package.Cancel." + Guid.NewGuid().ToString("N");
 
         using var cancelled = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
 

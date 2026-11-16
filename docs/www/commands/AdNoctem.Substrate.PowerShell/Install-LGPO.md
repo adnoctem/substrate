@@ -58,7 +58,7 @@ Install-LGPO -Force -Verbose
 ### Example 3
 
 ```powershell
-Install-LGPO -Destination "$env:LOCALAPPDATA\PSFoundation\tools"
+Install-LGPO -Destination "$env:LOCALAPPDATA\winkit\tools"
 ```
 
 ## PARAMETERS
@@ -88,12 +88,12 @@ HelpMessage: ""
 ### -Destination
 
 Directory where LGPO.exe ends up.
-Defaults to %ProgramData%\PSFoundation\tools.
+Defaults to %ProgramData%\winkit\tools.
 Non-elevated callers should supply a user-writable path.
 
 ```yaml
 Type: System.String
-DefaultValue: (Join-Path -Path $env:ProgramData -ChildPath 'PSFoundation\tools')
+DefaultValue: (Join-Path -Path $env:ProgramData -ChildPath 'winkit\tools')
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

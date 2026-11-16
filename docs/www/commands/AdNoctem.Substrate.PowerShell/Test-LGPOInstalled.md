@@ -43,11 +43,11 @@ Test-LGPOInstalled
 ### -Path
 
 Literal executable path.
-Defaults to the module's ProgramData tools directory.
+Defaults to the winkit tools directory.
 
 ```yaml
 Type: System.String
-DefaultValue: (Join-Path -Path $env:ProgramData -ChildPath 'AdNoctem.Substrate.PowerShell\tools\LGPO.exe')
+DefaultValue: (Join-Path -Path $env:ProgramData -ChildPath 'winkit\tools\LGPO.exe')
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

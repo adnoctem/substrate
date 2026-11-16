@@ -35,15 +35,13 @@ The helper is intended for scripts that keep
 console output concise but still need an auditable record of every
 action, skipped action, and failure.
 
-Logs are written to %TEMP%\PSFoundation\logs by default.
+Logs are written to %TEMP%\winkit\logs by default.
 Each line
 includes a timestamp, script name, and the properties already present on
 the result object, such as Target, Source, Scope, Action, Status, Detail,
 SkippedReason, or Error.
 
 Consumers that want their own log directory pass -Name.
-This module never
-writes under another product's directory by default.
 
 ## EXAMPLES
 
@@ -72,14 +70,14 @@ Writes the accumulated collection without changing its objects.
 
 Directory name used under %TEMP% when Path is omitted.
 Defaults to
-PSFoundation.
+winkit.
 Consuming products supply their own name, for example
--Name 'winkit'.
+-Name 'Contoso'.
 A single path segment; separators are rejected.
 
 ```yaml
 Type: System.String
-DefaultValue: "'PSFoundation'"
+DefaultValue: "'winkit'"
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

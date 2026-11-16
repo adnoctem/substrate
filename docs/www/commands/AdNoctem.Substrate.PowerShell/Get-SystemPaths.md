@@ -31,8 +31,7 @@ None.
 Provides a single structured lookup for the five canonical per-product
 folders.
 The -Name parameter controls the subdirectory name used under
-each root and defaults to this module's own name, so a consuming product
-supplies its own rather than inheriting another one's directories.
+each root and defaults to `winkit`; a consuming product can supply its own.
 
 ## EXAMPLES
 
@@ -41,7 +40,7 @@ supplies its own rather than inheriting another one's directories.
 ```powershell
 $paths = Get-SystemPaths
 $paths.Data
-C:\ProgramData\PSFoundation
+C:\ProgramData\winkit
 ```
 
 ### Example 2
@@ -55,13 +54,13 @@ Get-SystemPaths -Name 'myapp' | Format-List
 ### -Name
 
 Subdirectory name under each root.
-Defaults to 'PSFoundation'.
+Defaults to 'winkit'.
 A single
 path segment; separators are rejected.
 
 ```yaml
 Type: System.String
-DefaultValue: "'PSFoundation'"
+DefaultValue: "'winkit'"
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

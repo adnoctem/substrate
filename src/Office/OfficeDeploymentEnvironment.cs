@@ -171,7 +171,7 @@ public sealed class OfficeDeploymentLock : IDisposable
             throw new PlatformNotSupportedException("Office deployment locking requires Windows.");
 
         cancellationToken.ThrowIfCancellationRequested();
-        var mutex = new Mutex(false, @"Global\PSFoundation.OfficeDeployment");
+        var mutex = new Mutex(false, @"Global\winkit.OfficeDeployment");
 
         try
         {

@@ -196,5 +196,40 @@ Add-Observation 'lgpo-install-existing' { Install-LGPO -Destination $installDire
 Add-Observation 'lgpo-install-force-whatif' { Install-LGPO -Destination $installDirectory -Force -WhatIf -Verbose }
 Remove-Item -LiteralPath (Join-Path $installDirectory 'LGPO.exe')
 Remove-Item -LiteralPath $installDirectory
+
+if ((Get-Command Install-LGPO).CommandType -eq 'Cmdlet') {
+  $defaultProgramData = Join-Path $scratch 'default-programdata'
+  $currentTools = Join-Path $defaultProgramData 'winkit\tools'
+  $defaultPolicy = Join-Path $scratch 'default-policy.txt'
+  $null = [IO.Directory]::CreateDirectory($currentTools)
+  [IO.File]::WriteAllText($defaultPolicy, 'ok')
+  $originalProgramData = $env:ProgramData
+
+  try {
+    $env:ProgramData = $defaultProgramData
+    [IO.File]::WriteAllText((Join-Path $currentTools 'LGPO.exe'), 'synthetic existing executable; never run')
+
+    Add-Observation 'lgpo-default-current' {
+      $invokeResult = ''
+
+      try {
+        $null = Invoke-LGPO -PolicyPath $defaultPolicy -WhatIf
+        $invokeResult = 'NoError'
+      }
+      catch { $invokeResult = $_.Exception.Message }
+
+      [ordered]@{
+        Installed    = Test-LGPOInstalled
+        InstallPath  = Install-LGPO -WhatIf
+        InvokeResult = $invokeResult
+      }
+    }
+  }
+  finally {
+    $env:ProgramData = $originalProgramData
+    Remove-Item -LiteralPath $defaultProgramData -Recurse -Force
+  }
+}
+
 $observations | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
 Remove-Item -LiteralPath ($ReportPath + '.progress')

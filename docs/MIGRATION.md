@@ -69,13 +69,12 @@ Both are published and use the same release version. These 0.x packages are avai
 stable compatibility guarantees begin at 1.0.0. Winkit has migrated to the published module; further extraction of reusable implementations
 from its scripts remains separate work.
 
-Some PSFoundation names intentionally remain because they identify persisted state or public compatibility objects:
+Some PSFoundation names intentionally remain as public compatibility identifiers:
 
-- `PSFoundation.RegistryPolicy.Entry` and `PSFoundation.RegistryPolicy.RawEntry`, plus Outlook context type tags.
-- The `Global\PSFoundation.OfficeDeployment` mutex.
-- Existing tool defaults, Office journal schemas and fingerprints.
+- `PSFoundation.RegistryPolicy.Entry` and `PSFoundation.RegistryPolicy.RawEntry`, plus the Outlook context type tag.
 
-Changing those names would require a deliberate state migration. Their presence is not an incomplete namespace rename.
+These are public type names, not machine paths. Runtime-only mutex and cancellation-event names use the winkit prefix.
+Machines upgraded from an earlier layout must run `scripts\Maintenance\Repair-LegacyPaths.ps1` once before using this version.
 
 ## Evidence and its limits
 

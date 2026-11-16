@@ -302,26 +302,6 @@ public sealed partial class OfficeMediaManager
         CancellationToken cancellationToken = default
     ) => ReadFilesAsync(root, cancellationToken).GetAwaiter().GetResult();
 
-    // Temporary migration guard: remove after all managed machines have run Repair-LegacyPaths.ps1.
-    internal static void GuardLegacyManifest(FileSystemPath root)
-    {
-        if (root == null)
-            throw new ArgumentNullException(nameof(root));
-
-        if (File.Exists(root.Combine(OfficeMediaManifest.FileName).Value))
-            return;
-
-        var legacy = root.Combine(OfficeMediaManifest.LegacyFileName);
-
-        if (File.Exists(legacy.Value))
-            throw new OfficeException(
-                OfficeFailureReason.ReprepareMedia,
-                "The legacy Office media manifest '"
-                    + legacy.Value
-                    + "' is not read. Run scripts\\Maintenance\\Repair-LegacyPaths.ps1 once before using this version."
-            );
-    }
-
     /// <summary>Validates prepared media and returns structured readiness evidence without starting setup.exe.</summary>
     /// <remarks>Inspection is a point-in-time observation. Execution must inspect again while owning its deployment lock and staging.</remarks>
     public async Task<OfficeMediaAssessment> InspectAsync(
@@ -342,7 +322,6 @@ public sealed partial class OfficeMediaManager
             guard.RequireProtected(root.Value, "MediaDirectory", cancellationToken);
             var manifestPath = root.Combine(OfficeMediaManifest.FileName);
             guard.ValidatePath(manifestPath.Value, cancellationToken);
-            GuardLegacyManifest(root);
 
             if (!File.Exists(manifestPath.Value))
                 throw new OfficeException(
