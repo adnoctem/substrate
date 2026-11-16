@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 param ([string]$ModulePath, [string]$ReportPath)
 
 $ErrorActionPreference = 'Stop'
@@ -77,10 +77,10 @@ $observations['defaults'] = New-OfficeDeploymentConfiguration Standard2024Volume
 $live = $observations['live-read-only-inventory']
 $absentProduct = @('Standard2019Volume', 'ProPlus2019Volume', 'Standard2021Volume', 'ProPlus2021Volume' | Where-Object { $_ -notin @($live.Products | ForEach-Object { $_.ProductId }) })[0]
 $absentPlan = Get-OfficeDeploymentPlan -Action Remove -RemoveProductId $absentProduct -Inventory $live
-$observations['remove-read-only-noop'] = Uninstall-Office -Plan $absentPlan -OdtPath $processHost -DryRun |
+$observations['remove-read-only-noop'] = Uninstall-Office -Plan $absentPlan -OdtPath $processHost -LogRoot 'C:\Synthetic\Logs' -DryRun |
   Select-Object Target, Source, Action, Status, Phase, ReasonCode, Changed, ChangeKnown, AlreadyCompliant, WrapperExitCode, RecoveryRequired
 $observations['execution-action-guard'] = & {
-  try { Install-Office -Plan $absentPlan -OdtPath $processHost -DryRun; throw 'Mismatched plan action was accepted.' }
+  try { Install-Office -Plan $absentPlan -OdtPath $processHost -LogRoot 'C:\Synthetic\Logs' -DryRun; throw 'Mismatched plan action was accepted.' }
   catch { if (-not $_.Exception.Data.Contains('OfficeReason')) { throw }; [string]$_.Exception.Data['OfficeReason'] }
 }
 $observations['media-preview-rejects-unsigned-tool'] = & {

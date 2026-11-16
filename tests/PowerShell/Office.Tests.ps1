@@ -26,4 +26,22 @@ Describe 'C# Office assessment compatibility' {
 
     $differences | Should -BeNullOrEmpty -Because "v1/v2 Office differences: $($differences -join ', '); reports: $reports"
   }
+
+  It 'blocks legacy Office recovery storage in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
+    $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+    $reports = Join-Path $root 'build/test-results/office'
+    $null = [IO.Directory]::CreateDirectory($reports)
+    $report = Join-Path $reports "$Engine-legacy-root.json"
+    $module = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
+    $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Office-LegacyRoot-Probe.ps1'), '-ModulePath', $module, '-ReportPath', $report)
+    $result.ExitCode | Should -Be 0 -Because $result.Output
+    $observed = Get-Content $report -Raw | ConvertFrom-Json
+
+    $observed.LegacyReason | Should -BeExactly 'InvalidConfiguration'
+    $observed.LegacyMessage | Should -Match 'PSFoundation-Office'
+    $observed.LegacyMessage | Should -Match 'Repair-LegacyPaths\.ps1'
+    $observed.ExplicitLegacyReason | Should -BeExactly 'InvalidConfiguration'
+    $observed.ExplicitLegacyMessage | Should -Match 'Repair-LegacyPaths\.ps1'
+    $observed.CurrentRootMessage | Should -Not -Match 'Repair-LegacyPaths\.ps1'
+  }
 }

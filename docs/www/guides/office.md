@@ -138,6 +138,9 @@ accepted only as `SecureString` and materialized in protected temporary XML for 
 erasure of storage and redaction of ODT's own logs cannot be guaranteed. Cleanup failures retain the original error and report protected
 residue.
 
+Machines that still have the legacy `PSFoundation-Office` journal root or `psfoundation-office-media.json` must run
+`scripts\Maintenance\Repair-LegacyPaths.ps1` once before using this version; legacy paths are never read.
+
 ```powershell
 $recovery = Get-OfficeDeploymentRecovery -RunId $result.RunId
 $recovery | Resume-OfficeInstallation -OdtPath 'C:\Tools\ODT\setup.exe' -WhatIf
