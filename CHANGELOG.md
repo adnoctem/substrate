@@ -1,3 +1,9 @@
+## [0.4.1](https://github.com/adnoctem/substrate/compare/v0.4.0...v0.4.1) (2026-11-19)
+
+### Bug Fixes
+
+- **tools:** define compatibility functions in the module file ([ef5175e](https://github.com/adnoctem/substrate/commit/ef5175e2e45fb94ffb7b1e13ed923dbe55c68c58)), closes [#Requires](https://github.com/adnoctem/substrate/issues/Requires)
+
 ## [0.4.0](https://github.com/adnoctem/substrate/compare/v0.3.2...v0.4.0) (2026-11-16)
 
 ### Features
