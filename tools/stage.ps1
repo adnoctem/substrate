@@ -44,8 +44,6 @@ foreach ($target in @(@{ Edition = 'Desktop'; Framework = 'net48' }, @{ Edition 
   }
 }
 
-# Windows PowerShell 5.1 must decode shipped scripts as UTF-8 even when they contain non-ASCII text.
-[IO.File]::WriteAllText((Join-Path $stage 'compat.ps1'), [IO.File]::ReadAllText((Join-Path $repositoryRoot 'src/PowerShell/compat.ps1')), [Text.UTF8Encoding]::new($true))
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/PowerShell/security.psd1') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'module.psd1') -Destination (Join-Path $stage 'AdNoctem.Substrate.PowerShell.psd1')
@@ -63,8 +61,13 @@ $loader += '  [Reflection.Assembly]::LoadFrom((Join-Path $PSScriptRoot ''lib/Cor
 $loader += '  [Reflection.Assembly]::LoadFrom((Join-Path $PSScriptRoot ''lib/Core/AdNoctem.Substrate.Documents.dll'')) | Out-Null' + "`n"
 $loader += '}' + "`n"
 $loader += 'Import-Module (Join-Path $PSScriptRoot (''lib/'' + $PSEdition + ''/AdNoctem.Substrate.PowerShell.dll'')) -Scope Local -ErrorAction Stop' + "`n"
-$loader += '. (Join-Path $PSScriptRoot ''compat.ps1'')' + "`n"
+
+# The compatibility functions are written into the module file itself. Dot-sourcing a script while a module loads
+# through `#Requires -Modules` makes every `exit N` in the requiring script report 0 under `powershell -File`.
+$loader += [IO.File]::ReadAllText((Join-Path $repositoryRoot 'src/PowerShell/compat.ps1')).TrimEnd() + "`n"
 $loader += "Export-ModuleMember -Cmdlet @($quotedNames) -Function @($quotedFunctions) -Alias @($quotedAliases)`n"
+
+# Windows PowerShell 5.1 must decode the module as UTF-8 even when it contains non-ASCII text.
 [IO.File]::WriteAllText((Join-Path $stage 'AdNoctem.Substrate.PowerShell.psm1'), $loader, [Text.UTF8Encoding]::new($true))
 Update-ModuleManifest -Path $manifestPath -ModuleVersion $parts[0] -Prerelease $prerelease -FunctionsToExport $compatibility -CmdletsToExport $compiled
 Write-Output "Staged $version with $($compiled.Count) compiled commands and $($compatibility.Count) compatibility functions."

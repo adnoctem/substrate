@@ -50,7 +50,7 @@ if ((Get-Command ConvertTo-RegistryProviderPath).CommandType -eq 'Cmdlet') {
   foreach ($command in $compatibility) {
     $owners = @(Get-Command -Name $command -Module AdNoctem.Substrate.PowerShell -All)
 
-    if ($owners.Count -ne 1 -or $owners[0].CommandType -ne 'Function' -or (Split-Path $owners[0].ScriptBlock.File -Leaf) -ne 'compat.ps1') { throw "Invalid compatibility owner: $command" }
+    if ($owners.Count -ne 1 -or $owners[0].CommandType -ne 'Function' -or (Split-Path $owners[0].ScriptBlock.File -Leaf) -ne 'AdNoctem.Substrate.PowerShell.psm1') { throw "Invalid compatibility owner: $command" }
 
     if (-not (Get-Help "AdNoctem.Substrate.PowerShell\$command").Synopsis) { throw "Missing compatibility help: $command" }
   }

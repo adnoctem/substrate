@@ -100,7 +100,7 @@ Add-Observation 'colors' { Show-Color }
 Add-Observation 'colors-unused' { Show-Color -Typo extra }
 Add-Observation 'colors-verbose' { Show-Color -Verbose }
 
-if ((Get-Command Show-Color).ScriptBlock.File -like '*compat.ps1') {
+if ((Get-Command Show-Color).ScriptBlock.File -like '*AdNoctem.Substrate.PowerShell.psm1') {
   $completions = [Management.Automation.CommandCompletion]::CompleteInput('Show-Color -Ver', 15, $null)
 
   if ($completions.CompletionMatches.CompletionText -notcontains '-Verbose') { throw 'Show-Color does not complete -Verbose.' }
