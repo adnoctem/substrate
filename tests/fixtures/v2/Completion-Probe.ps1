@@ -11,7 +11,7 @@ try {
 
   if ($exports.Count -ne 195) { throw 'Incomplete module exports.' }
 
-  if (@(Get-ChildItem (Split-Path $ModulePath -Parent) -Filter *.ps1).Count -ne 1) { throw 'Legacy scripts remain staged.' }
+  if (@(Get-ChildItem (Split-Path $ModulePath -Parent) -Filter *.ps1).Count -ne 0) { throw 'Standalone scripts are staged; the compatibility functions belong in the module file.' }
 
   $report = Get-HostPrerequisiteReport -RequiredCommands 'Get-Item', 'PSF-SyntheticMissingCommand' -RequiredModules @{ 'Microsoft.PowerShell.Utility' = '1.0' }
 
