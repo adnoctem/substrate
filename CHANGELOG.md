@@ -1,3 +1,10 @@
+## [0.5.0](https://github.com/adnoctem/substrate/compare/v0.4.1...v0.5.0) (2026-11-20)
+
+### Features
+
+- **src:** add ConvertTo-FormattedJson ([817be09](https://github.com/adnoctem/substrate/commit/817be091473ad3733cabd65f84679638d8def76b))
+- **src:** read Outlook 2007 delivery stores from the profile records ([d12ecee](https://github.com/adnoctem/substrate/commit/d12ecee150b3f7db4b07fc9b0f60390f5e0c8c21))
+
 ## [0.4.1](https://github.com/adnoctem/substrate/compare/v0.4.0...v0.4.1) (2026-11-19)
 
 ### Bug Fixes
