@@ -45,6 +45,9 @@ public enum OutlookDeliveryStoreSource
     Unresolved = 0,
     Account = 1,
     ProfileDefault = 2,
+
+    /// <summary>Read from the account's record in the MAPI profile, where Outlook 2007 keeps it without reporting it.</summary>
+    ProfileRecord = 3,
 }
 
 /// <summary>One account in the current profile and the store it delivers new mail into.</summary>
@@ -282,7 +285,8 @@ public sealed partial class OutlookManager
 
         var stores = ReadStores(session, cancellationToken);
         var fallback = ReadDefaultDelivery(session, stores);
-        var accounts = ReadAccounts(session, fallback, cancellationToken);
+        var records = ReadProfileRecords(session);
+        var accounts = ReadAccounts(session, fallback, records, stores, cancellationToken);
 
         return new OutlookProfileInventory(accounts, Classify(stores, accounts));
     }
@@ -355,6 +359,28 @@ public sealed partial class OutlookManager
         }
 
         return facts;
+    }
+
+    /// <summary>
+    /// The account records of the connected profile. Namespace.CurrentProfileName is readable on every client the fleet
+    /// runs; the records are only consulted where an account cannot report its own delivery store.
+    /// </summary>
+    private static OutlookProfileRecords ReadProfileRecords(object session)
+    {
+        string profileName;
+
+        try
+        {
+            profileName = OutlookDispatch.Text(session, "CurrentProfileName");
+        }
+        catch (Exception error)
+        {
+            return OutlookProfileRecords.Empty(
+                "The current profile name is unavailable: " + error.Message
+            );
+        }
+
+        return OutlookProfileRecords.Read(profileName);
     }
 
     private static List<StoreFacts> ReadStores(object session, CancellationToken cancellationToken)
@@ -460,6 +486,8 @@ public sealed partial class OutlookManager
     private static List<OutlookAccountInfo> ReadAccounts(
         object session,
         DeliveryFacts fallback,
+        OutlookProfileRecords records,
+        List<StoreFacts> stores,
         CancellationToken cancellationToken
     )
     {
@@ -480,7 +508,7 @@ public sealed partial class OutlookManager
                     account = OutlookDispatch.Require(
                         OutlookDispatch.Call(accounts, "Item", index)
                     );
-                    result.Add(ReadAccount(account, fallback));
+                    result.Add(ReadAccount(account, fallback, records, stores));
                 }
                 catch (Exception error) when (!(error is OperationCanceledException))
                 {
@@ -516,7 +544,12 @@ public sealed partial class OutlookManager
                 + error.Message
         );
 
-    private static OutlookAccountInfo ReadAccount(object account, DeliveryFacts fallback)
+    private static OutlookAccountInfo ReadAccount(
+        object account,
+        DeliveryFacts fallback,
+        OutlookProfileRecords records,
+        List<StoreFacts> stores
+    )
     {
         var displayName = "";
         var evidence = "";
@@ -608,7 +641,36 @@ public sealed partial class OutlookManager
             deliveryFilePath = "";
             deliverySource = OutlookDeliveryStoreSource.Unresolved;
 
-            if (fallback.IsKnown)
+            // The profile keeps each account's delivery store as its StoreID. Only an exact match with one of the
+            // profile's own data files is taken; anything else falls back to the default, as before.
+            var recorded = records.DeliveryEntryId(displayName);
+            var recordedStores =
+                recorded == null
+                    ? new List<StoreFacts>()
+                    : stores
+                        .Where(store => OutlookDispatch.Equal(store.StoreId, recorded))
+                        .ToList();
+
+            if (recordedStores.Count == 1)
+            {
+                deliveryStoreId = recordedStores[0].StoreId;
+                deliveryStoreName = recordedStores[0].DisplayName;
+                deliveryFilePath = recordedStores[0].FilePath;
+                deliverySource = OutlookDeliveryStoreSource.ProfileRecord;
+                evidence = Append(
+                    evidence,
+                    "Delivery is read from the profile's record for this account."
+                );
+            }
+            else if (recorded != null)
+                evidence = Append(
+                    evidence,
+                    "The profile records a delivery store that is not among the profile's data files."
+                );
+
+            var isRecorded = deliverySource == OutlookDeliveryStoreSource.ProfileRecord;
+
+            if (!isRecorded && fallback.IsKnown)
             {
                 deliveryStoreId = fallback.StoreId;
                 deliveryStoreName = fallback.DisplayName;
@@ -620,8 +682,11 @@ public sealed partial class OutlookManager
                         + fallback.DisplayName
                         + "'; this client cannot report a per-account override."
                 );
+
+                if (!string.IsNullOrEmpty(records.Evidence))
+                    evidence = Append(evidence, records.Evidence);
             }
-            else if (!string.IsNullOrEmpty(fallback.Evidence))
+            else if (!isRecorded && !string.IsNullOrEmpty(fallback.Evidence))
                 evidence = Append(evidence, fallback.Evidence);
         }
         finally

@@ -150,6 +150,40 @@ Describe 'C# Outlook profile inventory' {
     $observed.Blind.Evidence | Should -Match 'profile default delivery store is unavailable'
   }
 
+  It 'reads delivery from the profile record where the account cannot report it in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
+    $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+    $reports = Join-Path $root 'build/test-results/outlook'
+    $null = [IO.Directory]::CreateDirectory($reports)
+    $report = Join-Path $reports "$Engine-recorded.json"
+    $module = Join-Path $root 'build/module/AdNoctem.Substrate.PowerShell/AdNoctem.Substrate.PowerShell.psd1'
+    $result = Invoke-SubstrateHostProbe -Engine $Engine -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $root 'tests/fixtures/v2/Outlook-Account-Probe.ps1'), '-ModulePath', $module, '-ReportPath', $report)
+    $result.ExitCode | Should -Be 0 -Because $result.Output
+    $observed = Get-Content $report -Raw | ConvertFrom-Json
+
+    # Outlook 2007 keeps the store the profile records for each account; it is read, not inferred, and it wins over
+    # the profile default, so the re-pointed POP account is listed against the PST and not the mailbox.
+    $observed.RecordedPop.DeliveryStoreID | Should -BeExactly 'B1B1B1B1'
+    $observed.RecordedPop.DeliveryStoreName | Should -BeExactly 'Personal Folders'
+    $observed.RecordedPop.DeliveryStoreSource | Should -BeExactly 'ProfileRecord'
+    $observed.RecordedPop.IsDeliveryStoreInferred | Should -BeFalse
+    $observed.RecordedPop.Evidence | Should -Match "profile's record for this account"
+    @($observed.RecordedLocal.DeliveredFrom) | Should -Contain 'pop@recorded.test'
+    @($observed.RecordedOst.DeliveredFrom) | Should -Not -Contain 'pop@recorded.test'
+
+    # Records that cannot be attributed or that name an unknown store fall back to the profile default.
+    foreach ($twin in @($observed.RecordedTwins)) {
+      $twin.DeliveryStoreSource | Should -BeExactly 'ProfileDefault'
+      $twin.IsDeliveryStoreInferred | Should -BeTrue
+    }
+
+    $observed.RecordedOrphan.DeliveryStoreSource | Should -BeExactly 'ProfileDefault'
+    $observed.RecordedOrphan.Evidence | Should -Match 'records a delivery store that is not among'
+
+    # Without a readable profile name the earlier legacy result is unchanged.
+    $observed.LegacyPop.DeliveryStoreSource | Should -BeExactly 'ProfileDefault'
+    $observed.LegacyPop.Evidence | Should -Match 'current profile name is unavailable'
+  }
+
   It 'keeps readable stores and accounts when a provider refuses one in <Engine>' -ForEach @(@{ Engine = 'powershell.exe' }, @{ Engine = 'pwsh' }) {
     $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     $reports = Join-Path $root 'build/test-results/outlook'

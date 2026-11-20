@@ -57,6 +57,52 @@ $blindAccount = $blind.AddAccount('pop@blind.test', 2, $null)
 $blindAccount.HideDeliveryStore = $true
 $blindAccounts = @(Get-OutlookAccount -Namespace $blind)
 
+# Outlook 2007 again, but the profile records each account's delivery store. The POP account was re-pointed to a
+# local PST, which the profile default cannot show. Two accounts share a name, so their records cannot be told
+# apart, and one record names a store the profile does not hold. Records live below a synthetic HKCU key.
+$profilesKey = 'Software\substrate-tests\' + [guid]::NewGuid().ToString('N')
+$accountsKey = "HKCU:\$profilesKey\Recorded\9375CFF0413111d3B88A00104B2A6676"
+$recordedEnvironment = [Environment]::GetEnvironmentVariable('SUBSTRATE_OUTLOOK_PROFILES_KEY')
+
+function Add-SyntheticRecord {
+  param ([string]$Key, [string]$Name, [string]$EntryId)
+
+  $path = Join-Path $accountsKey $Key
+  $null = New-Item -Path $path -Force
+  $nameBytes = [Text.Encoding]::Unicode.GetBytes($Name + [char]0)
+  $entryBytes = [byte[]]($EntryId -split '(..)' | Where-Object { $_ } | ForEach-Object { [Convert]::ToByte($_, 16) })
+  $null = New-ItemProperty -Path $path -Name 'Account Name' -PropertyType Binary -Value $nameBytes
+  $null = New-ItemProperty -Path $path -Name 'Delivery Store EntryID' -PropertyType Binary -Value $entryBytes
+}
+
+try {
+  $recorded = New-Object AdNoctem.Substrate.Tests.Fixtures.OutlookFixture
+  $recorded.ProfileName = 'Recorded'
+  $recordedExchange = $recorded.AddExisting((Join-Path $directory 'recorded-outlook.ost'), 'A0A0A0A0')
+  $recordedExchange.DisplayName = 'Postfach - Recorded'
+  $recordedExchange.ExchangeStoreType = 0
+  $recordedLocal = $recorded.AddExisting((Join-Path $directory 'recorded-local.pst'), 'B1B1B1B1')
+  $recordedLocal.DisplayName = 'Personal Folders'
+
+  foreach ($pair in @(@('pop@recorded.test', 2), @('twin@recorded.test', 2), @('twin@recorded.test', 2), @('unknown@recorded.test', 2))) {
+    $added = $recorded.AddAccount($pair[0], $pair[1], $null)
+    $added.HideDeliveryStore = $true
+  }
+
+  Add-SyntheticRecord -Key '00000002' -Name 'pop@recorded.test' -EntryId 'b1b1b1b1'
+  Add-SyntheticRecord -Key '00000003' -Name 'twin@recorded.test' -EntryId 'B1B1B1B1'
+  Add-SyntheticRecord -Key '00000004' -Name 'twin@recorded.test' -EntryId 'A0A0A0A0'
+  Add-SyntheticRecord -Key '00000005' -Name 'unknown@recorded.test' -EntryId 'C2C2C2C2'
+
+  [Environment]::SetEnvironmentVariable('SUBSTRATE_OUTLOOK_PROFILES_KEY', $profilesKey)
+  $recordedAccounts = @(Get-OutlookAccount -Namespace $recorded)
+  $recordedStores = @(Get-OutlookStore -Namespace $recorded)
+}
+finally {
+  [Environment]::SetEnvironmentVariable('SUBSTRATE_OUTLOOK_PROFILES_KEY', $recordedEnvironment)
+  Remove-Item -LiteralPath "HKCU:\$profilesKey" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 try {
   $observations = [ordered]@{
     AccountCount   = $accounts.Count
@@ -77,6 +123,11 @@ try {
     LegacyDefault  = @($legacyStores | Where-Object StoreID -EQ 'legacy-exchange')[0]
     LegacyOther    = @($legacyStores | Where-Object StoreID -EQ 'legacy-local')[0]
     Blind          = $blindAccounts[0]
+    RecordedPop    = @($recordedAccounts | Where-Object DisplayName -EQ 'pop@recorded.test')[0]
+    RecordedTwins  = @($recordedAccounts | Where-Object DisplayName -EQ 'twin@recorded.test')
+    RecordedOrphan = @($recordedAccounts | Where-Object DisplayName -EQ 'unknown@recorded.test')[0]
+    RecordedLocal  = @($recordedStores | Where-Object StoreID -EQ 'B1B1B1B1')[0]
+    RecordedOst    = @($recordedStores | Where-Object StoreID -EQ 'A0A0A0A0')[0]
   }
 
   $observations | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
