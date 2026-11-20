@@ -5,7 +5,7 @@
     'Install-Office', 'Uninstall-Office', 'Switch-OfficeDeployment', 'Update-Office', 'Set-OfficeUpdateConfiguration', 'Add-OfficeLanguage', 'Remove-OfficeLanguage',
     'Set-OfficeApplicationSelection', 'Set-OfficeApplicationPreference', 'Resume-OfficeInstallation', 'Resume-OfficeMigration', 'Move-OfficeRecovery')
   Windows     = @('Set-ServiceStartupState', 'New-DriveMapping', 'Remove-DriveMapping')
-  Data        = @('Convert-Quote', 'Merge-ObjectArrays', 'Get-DefaultApp')
+  Data        = @('Convert-Quote', 'Merge-ObjectArrays', 'ConvertTo-FormattedJson', 'Get-DefaultApp')
   Credentials = @('New-EncryptedCredentialFile', 'Request-AdministratorPrivilege')
   Security    = @('Import-SecurityEventConfiguration', 'Get-SecurityEventGroup', 'Get-SecurityEventDefinition', 'Resolve-WindowsEventMappedField', 'ConvertFrom-WinEvent',
     'Get-WindowsEventByDefinition', 'Get-WindowsLogonEvent', 'Get-WindowsAccountChangeEvent', 'Get-WindowsServiceEvent', 'Get-WindowsBootEvent',

@@ -119,6 +119,33 @@ function Merge-ObjectArrays {
   [AdNoctem.Substrate.PowerShell.Core.DataCompatibility]::Merge($Base, $Overrides)
 }
 
+function ConvertTo-FormattedJson {
+  <#
+  .EXTERNALHELP AdNoctem.Substrate.PowerShell-help.xml
+  #>
+  [CmdletBinding()]
+  [OutputType([string])]
+  param (
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)][AllowNull()][object]$InputObject,
+    [ValidateRange(1, 100)][int]$Depth = 20,
+    [ValidateRange(0, 8)][int]$Indent = 2
+  )
+
+  begin { $items = New-Object System.Collections.Generic.List[object] }
+
+  process { $items.Add($InputObject) }
+
+  end {
+    # One value is serialized as itself and several pipeline values as an array, as ConvertTo-Json does.
+    $value = $items.ToArray()
+
+    if ($items.Count -eq 1) { $value = $items[0] }
+
+    $json = ConvertTo-Json -InputObject $value -Depth $Depth -Compress
+    [AdNoctem.Substrate.PowerShell.Core.DataCompatibility]::FormatJson($json, $Indent)
+  }
+}
+
 function Get-DefaultApp {
   <#
   .EXTERNALHELP AdNoctem.Substrate.PowerShell-help.xml

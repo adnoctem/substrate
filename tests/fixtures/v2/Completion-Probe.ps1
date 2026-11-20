@@ -9,7 +9,7 @@ $null = [IO.Directory]::CreateDirectory($root)
 try {
   $exports = @(Get-Command -Module AdNoctem.Substrate.PowerShell)
 
-  if ($exports.Count -ne 195) { throw 'Incomplete module exports.' }
+  if ($exports.Count -ne 196) { throw 'Incomplete module exports.' }
 
   if (@(Get-ChildItem (Split-Path $ModulePath -Parent) -Filter *.ps1).Count -ne 0) { throw 'Standalone scripts are staged; the compatibility functions belong in the module file.' }
 
