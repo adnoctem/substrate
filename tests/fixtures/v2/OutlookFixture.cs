@@ -18,6 +18,21 @@ namespace AdNoctem.Substrate.Tests.Fixtures
         public int Added;
         public int Removed;
         public bool FailAfterAttach;
+
+        /// <summary>Namespace.CurrentProfileName; null makes the read fail like an unreadable profile.</summary>
+        public string CurrentProfileName
+        {
+            get
+            {
+                if (ProfileName == null)
+                    throw new InvalidOperationException("Synthetic unreadable profile name.");
+
+                return ProfileName;
+            }
+        }
+
+        public string ProfileName;
+
         public FakeStore DefaultStore
         {
             get { return Stores.Values[0]; }
