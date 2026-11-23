@@ -19,7 +19,7 @@ Reads a protected Office recovery record without resuming it.
 ### __AllParameterSets
 
 ```
-Get-OfficeDeploymentRecovery [-RunId] <string> [[-LogRoot] <string>] [<CommonParameters>]
+Get-OfficeDeploymentRecovery [-RunId] <string> [[-LogRoot] <string>]
 ```
 
 ## ALIASES

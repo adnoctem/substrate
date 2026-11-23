@@ -19,7 +19,7 @@ Runs sfc /verifyOnly and returns a structured integrity verdict.
 ### __AllParameterSets
 
 ```
-Test-SystemFileIntegrity [<CommonParameters>]
+Test-SystemFileIntegrity
 ```
 
 ## ALIASES

@@ -20,7 +20,7 @@ Finds event definitions using the C# event catalog.
 
 ```
 Get-SecurityEventDefinition [[-Group] <string>] [[-LogName] <string>] [[-ProviderName] <string>]
- [[-Id] <int[]>] [[-Name] <string>] [[-Configuration] <hashtable>] [<CommonParameters>]
+ [[-Id] <int[]>] [[-Name] <string>] [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

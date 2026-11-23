@@ -21,7 +21,6 @@ Runs an external executable and captures stdout/stderr to a file or the pipeline
 ```
 Invoke-SafeProcess [-FilePath] <string> [[-ArgumentList] <string[]>] [[-OutputPath] <string>]
  [[-TimeoutSeconds] <int>] [[-CancellationToken] <CancellationToken>] [-PassThru] [-AsResult]
- [<CommonParameters>]
 ```
 
 ## ALIASES

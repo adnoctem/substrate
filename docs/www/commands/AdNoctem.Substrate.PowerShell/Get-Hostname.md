@@ -19,7 +19,7 @@ Returns the computer hostname.
 ### __AllParameterSets
 
 ```
-Get-Hostname [<CommonParameters>]
+Get-Hostname
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Resolves a Windows account name to its security identifier.
 ### __AllParameterSets
 
 ```
-Get-UserSID [-UserName] <string> [<CommonParameters>]
+Get-UserSID [-UserName] <string>
 ```
 
 ## ALIASES

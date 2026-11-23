@@ -19,7 +19,7 @@ Resolves a registry path string to a Microsoft.Win32.RegistryKey object.
 ### __AllParameterSets
 
 ```
-Resolve-RegistryPath [-Path] <string> [[-View] <RegistryView>] [-Writable] [<CommonParameters>]
+Resolve-RegistryPath [-Path] <string> [[-View] <RegistryView>] [-Writable]
 ```
 
 ## ALIASES

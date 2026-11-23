@@ -20,7 +20,7 @@ Changes application exclusions while preserving product, build, architecture, an
 
 ```
 Set-OfficeApplicationSelection [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>]
- [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

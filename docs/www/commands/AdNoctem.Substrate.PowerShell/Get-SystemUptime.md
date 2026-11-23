@@ -19,7 +19,7 @@ Returns the system uptime (time since last boot).
 ### __AllParameterSets
 
 ```
-Get-SystemUptime [<CommonParameters>]
+Get-SystemUptime
 ```
 
 ## ALIASES

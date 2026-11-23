@@ -19,7 +19,7 @@ Tests whether an event log channel exists on the local machine.
 ### __AllParameterSets
 
 ```
-Test-WindowsEventLogChannel [-LogName] <string> [<CommonParameters>]
+Test-WindowsEventLogChannel [-LogName] <string>
 ```
 
 ## ALIASES

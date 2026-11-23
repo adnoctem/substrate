@@ -19,7 +19,7 @@ Finds installed ScanPST repair tools and their targeting capabilities.
 ### __AllParameterSets
 
 ```
-Find-OutlookRepairTool [[-Name] <string>] [<CommonParameters>]
+Find-OutlookRepairTool [[-Name] <string>]
 ```
 
 ## ALIASES

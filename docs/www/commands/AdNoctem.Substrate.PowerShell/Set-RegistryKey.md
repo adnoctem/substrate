@@ -19,7 +19,7 @@ Creates a registry key if it does not already exist.
 ### __AllParameterSets
 
 ```
-Set-RegistryKey [-Path] <string> [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-RegistryKey [-Path] <string> [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

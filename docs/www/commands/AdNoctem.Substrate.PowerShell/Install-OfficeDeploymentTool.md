@@ -20,7 +20,6 @@ Acquires and provisions a reviewed Microsoft Office Deployment Tool build.
 
 ```
 Install-OfficeDeploymentTool [-Destination] <string> [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

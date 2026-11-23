@@ -19,7 +19,7 @@ Returns a comprehensive system information snapshot (fetch-style).
 ### __AllParameterSets
 
 ```
-Get-SystemInfo [<CommonParameters>]
+Get-SystemInfo
 ```
 
 ## ALIASES

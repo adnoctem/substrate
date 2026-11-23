@@ -19,7 +19,7 @@ Reads the accounts of the connected Outlook profile and the store each one deliv
 ### __AllParameterSets
 
 ```
-Get-OutlookAccount [-Namespace] <Object> [<CommonParameters>]
+Get-OutlookAccount [-Namespace] <Object>
 ```
 
 ## ALIASES

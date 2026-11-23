@@ -20,7 +20,7 @@ Relaunches the calling entry script through an explicit Windows UAC request.
 
 ```
 Request-AdministratorPrivilege [[-ScriptPath] <string>] [[-BoundParameters] <IDictionary>]
- [[-ArgumentList] <Object[]>] [-IsElevatedRelaunch] [<CommonParameters>]
+ [[-ArgumentList] <Object[]>] [-IsElevatedRelaunch]
 ```
 
 ## ALIASES

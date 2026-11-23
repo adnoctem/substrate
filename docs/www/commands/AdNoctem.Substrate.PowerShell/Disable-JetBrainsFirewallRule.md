@@ -19,7 +19,7 @@ Disables public-profile JetBrains IDE firewall rules.
 ### __AllParameterSets
 
 ```
-Disable-JetBrainsFirewallRule [[-Prefix] <string[]>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Disable-JetBrainsFirewallRule [[-Prefix] <string[]>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

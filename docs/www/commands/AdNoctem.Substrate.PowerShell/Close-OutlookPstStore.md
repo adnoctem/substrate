@@ -19,7 +19,7 @@ Releases an existing-PST context and detaches only its owned attachment.
 ### __AllParameterSets
 
 ```
-Close-OutlookPstStore [-Context] <Object> [<CommonParameters>]
+Close-OutlookPstStore [-Context] <Object>
 ```
 
 ## ALIASES

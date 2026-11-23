@@ -20,7 +20,6 @@ Exports registry setting definitions with Preferred set to current values.
 
 ```
 Export-RegistrySettingState [-Settings] <Object[]> [[-View] <RegistryView>] [-Detailed]
- [<CommonParameters>]
 ```
 
 ## ALIASES

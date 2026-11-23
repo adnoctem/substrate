@@ -19,7 +19,7 @@ Decodes a Robocopy exit code into its success/failure meaning.
 ### __AllParameterSets
 
 ```
-Convert-RobocopyExitCode [-ExitCode] <int> [<CommonParameters>]
+Convert-RobocopyExitCode [-ExitCode] <int>
 ```
 
 ## ALIASES

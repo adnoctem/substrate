@@ -20,21 +20,21 @@ Updates one or all Win32 programs through the Microsoft.WinGet.Client provider.
 
 ```
 Update-Win32ProgramFromWinGet [-Id <string>] [-IncludeUnknown] [-Source <string>] [-DryRun]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ### Name
 
 ```
 Update-Win32ProgramFromWinGet [-Name <string>] [-IncludeUnknown] [-Source <string>] [-DryRun]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm]
 ```
 
 ### All
 
 ```
 Update-Win32ProgramFromWinGet [-All] [-IncludeUnknown] [-Source <string>] [-DryRun] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

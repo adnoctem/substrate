@@ -21,7 +21,7 @@ Builds a read-only Office operation plan with explicit authority.
 ```
 Get-OfficeDeploymentPlan [-Action] <string> [[-Configuration] <Object>] [[-SourcePath] <string>]
  [[-RemoveProductId] <string[]>] [[-Language] <string[]>] [[-Settings] <Object>]
- [[-Inventory] <Object>] [-RemoveMsi] [<CommonParameters>]
+ [[-Inventory] <Object>] [-RemoveMsi]
 ```
 
 ## ALIASES

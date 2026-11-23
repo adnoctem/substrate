@@ -19,7 +19,7 @@ Converts an object to JSON with a fixed indentation on every PowerShell edition.
 ### __AllParameterSets
 
 ```
-ConvertTo-FormattedJson [-InputObject] <Object> [-Depth <int>] [-Indent <int>] [<CommonParameters>]
+ConvertTo-FormattedJson [-InputObject] <Object> [-Depth <int>] [-Indent <int>]
 ```
 
 ## ALIASES

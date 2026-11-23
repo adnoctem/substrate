@@ -20,7 +20,7 @@ Enables or disables one or more scheduled tasks.
 
 ```
 Set-ScheduledTaskState [-TaskName] <string[]> [-State] <string> [[-Filter] <string[]>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

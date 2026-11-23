@@ -19,7 +19,7 @@ Installs font files into the system font store.
 ### __AllParameterSets
 
 ```
-Install-Font [-FontSourceFolder] <string> [-RemoveSource] [-WhatIf] [-Confirm] [<CommonParameters>]
+Install-Font [-FontSourceFolder] <string> [-RemoveSource] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

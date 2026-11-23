@@ -19,7 +19,7 @@ Removes a named value from a registry key.
 ### __AllParameterSets
 
 ```
-Remove-RegistryValue [-Path] <string> [[-Name] <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-RegistryValue [-Path] <string> [[-Name] <string>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

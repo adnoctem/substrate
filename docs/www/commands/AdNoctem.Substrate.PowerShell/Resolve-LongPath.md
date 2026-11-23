@@ -19,7 +19,7 @@ Resolves an existing filesystem path and expands Windows short-name aliases.
 ### __AllParameterSets
 
 ```
-Resolve-LongPath [-LiteralPath] <string> [<CommonParameters>]
+Resolve-LongPath [-LiteralPath] <string>
 ```
 
 ## ALIASES

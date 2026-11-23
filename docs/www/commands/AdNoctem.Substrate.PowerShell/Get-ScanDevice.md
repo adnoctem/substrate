@@ -19,7 +19,7 @@ Gets WIA-compatible scan devices.
 ### __AllParameterSets
 
 ```
-Get-ScanDevice [<CommonParameters>]
+Get-ScanDevice
 ```
 
 ## ALIASES

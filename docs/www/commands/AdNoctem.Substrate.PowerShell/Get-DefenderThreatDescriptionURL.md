@@ -20,7 +20,7 @@ threat family name.
 ### __AllParameterSets
 
 ```
-Get-DefenderThreatDescriptionURL [-ThreatName] <string> [<CommonParameters>]
+Get-DefenderThreatDescriptionURL [-ThreatName] <string>
 ```
 
 ## ALIASES

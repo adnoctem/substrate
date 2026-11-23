@@ -19,7 +19,7 @@ Invokes native help on a verified Office Deployment Tool executable.
 ### __AllParameterSets
 
 ```
-Get-OfficeDeploymentToolHelp [-OdtPath] <string> [-WhatIf] [-Confirm] [<CommonParameters>]
+Get-OfficeDeploymentToolHelp [-OdtPath] <string> [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

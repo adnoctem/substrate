@@ -19,7 +19,7 @@ Validates an Office package, manifest, payloads, paths, and write protection.
 ### __AllParameterSets
 
 ```
-Test-OfficeDeploymentMedia [-SourcePath] <string> [[-Configuration] <Object>] [<CommonParameters>]
+Test-OfficeDeploymentMedia [-SourcePath] <string> [[-Configuration] <Object>]
 ```
 
 ## ALIASES

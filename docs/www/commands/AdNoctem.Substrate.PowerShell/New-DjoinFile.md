@@ -20,7 +20,6 @@ New-DjoinFile - Writes an offline-join blob in the format djoin.exe consumes.
 
 ```
 New-DjoinFile [-Blob] <string> [[-DestinationFile] <FileInfo>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

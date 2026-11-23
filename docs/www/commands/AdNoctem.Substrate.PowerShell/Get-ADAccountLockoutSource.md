@@ -20,7 +20,7 @@ Get-ADAccountLockoutSource - Reports the source of account lockouts from the PDC
 
 ```
 Get-ADAccountLockoutSource [[-DomainName] <string>] [[-UserName] <string>] [[-StartTime] <datetime>]
- [[-Credential] <pscredential>] [<CommonParameters>]
+ [[-Credential] <pscredential>]
 ```
 
 ## ALIASES

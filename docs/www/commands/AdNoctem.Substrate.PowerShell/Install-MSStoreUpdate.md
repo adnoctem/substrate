@@ -19,19 +19,19 @@ Installs available Microsoft Store app updates.
 ### Pipeline (Default)
 
 ```
-Install-MSStoreUpdate -InputObject <psobject[]> [-WhatIf] [-Confirm] [<CommonParameters>]
+Install-MSStoreUpdate -InputObject <psobject[]> [-WhatIf] [-Confirm]
 ```
 
 ### Name
 
 ```
-Install-MSStoreUpdate -PackageFamilyName <string> [-WhatIf] [-Confirm] [<CommonParameters>]
+Install-MSStoreUpdate -PackageFamilyName <string> [-WhatIf] [-Confirm]
 ```
 
 ### All
 
 ```
-Install-MSStoreUpdate -All [-WhatIf] [-Confirm] [<CommonParameters>]
+Install-MSStoreUpdate -All [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

@@ -19,7 +19,7 @@ Returns the full Windows product name string.
 ### __AllParameterSets
 
 ```
-Get-OSProductName [<CommonParameters>]
+Get-OSProductName
 ```
 
 ## ALIASES

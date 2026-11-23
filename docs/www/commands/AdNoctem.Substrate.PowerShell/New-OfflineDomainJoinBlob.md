@@ -21,7 +21,7 @@ New-OfflineDomainJoinBlob - Provisions an AD computer account and returns the of
 ```
 New-OfflineDomainJoinBlob [-ComputerName] <string> [-Domain] <string> [[-Credential] <pscredential>]
  [[-MachineAccountOU] <string>] [[-DCName] <string>] [[-ProvisionOptions] <uint>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

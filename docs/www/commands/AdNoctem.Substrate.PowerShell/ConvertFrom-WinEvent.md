@@ -19,7 +19,7 @@ Converts an event record to the established enriched result shape.
 ### __AllParameterSets
 
 ```
-ConvertFrom-WinEvent [-Event] <Object> [[-Configuration] <hashtable>] [<CommonParameters>]
+ConvertFrom-WinEvent [-Event] <Object> [[-Configuration] <hashtable>]
 ```
 
 ## ALIASES

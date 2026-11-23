@@ -19,7 +19,7 @@ Enumerates WMI subscription-based persistence.
 ### __AllParameterSets
 
 ```
-Get-WMIPersistence [<CommonParameters>]
+Get-WMIPersistence
 ```
 
 ## ALIASES

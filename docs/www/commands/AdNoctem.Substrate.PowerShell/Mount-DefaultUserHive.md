@@ -20,7 +20,6 @@ Loads C:\Users\Default\NTUSER.DAT into the registry under HKU\<MountName>.
 
 ```
 Mount-DefaultUserHive [[-MountName] <string>] [[-HivePath] <string>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

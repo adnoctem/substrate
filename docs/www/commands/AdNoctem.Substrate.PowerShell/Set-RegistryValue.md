@@ -20,7 +20,7 @@ Creates or updates a named value in a registry key.
 
 ```
 Set-RegistryValue [-Path] <string> [[-Name] <string>] [-Value] <Object>
- [[-Type] <RegistryValueKind>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Type] <RegistryValueKind>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

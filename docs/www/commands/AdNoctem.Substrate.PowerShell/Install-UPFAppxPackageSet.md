@@ -21,7 +21,6 @@ Installs a sequence of local AppX/MSIX packages.
 ```
 Install-UPFAppxPackageSet [-Path] <string[]> [[-DependencyPath] <string[]>] [-Provisioned]
  [-SkipLicense] [-ForceUpdateFromAnyVersion] [-PassThru] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

@@ -21,7 +21,6 @@ Queries boot, shutdown, and crash events.
 ```
 Get-WindowsBootEvent [[-StartTime] <datetime>] [[-EndTime] <datetime>] [[-Id] <int[]>]
  [[-ComputerName] <string[]>] [[-MaxEvents] <int>] [[-Configuration] <hashtable>]
- [<CommonParameters>]
 ```
 
 ## ALIASES

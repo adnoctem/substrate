@@ -20,7 +20,7 @@ Finds files written near a point in time (e.g. around a Defender detection).
 
 ```
 Find-NewlyWrittenObject [[-Date] <Object>] [[-Before] <int>] [[-After] <int>] [[-Path] <string>]
- [[-OutputPath] <string>] [[-OutputFormat] <string>] [<CommonParameters>]
+ [[-OutputPath] <string>] [[-OutputFormat] <string>]
 ```
 
 ## ALIASES

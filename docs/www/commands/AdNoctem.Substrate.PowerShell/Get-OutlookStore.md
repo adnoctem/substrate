@@ -19,7 +19,7 @@ Reads the data files of the connected Outlook profile with the accounts that dep
 ### __AllParameterSets
 
 ```
-Get-OutlookStore [-Namespace] <Object> [<CommonParameters>]
+Get-OutlookStore [-Namespace] <Object>
 ```
 
 ## ALIASES

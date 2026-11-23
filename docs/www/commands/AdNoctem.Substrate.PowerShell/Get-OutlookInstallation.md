@@ -19,7 +19,7 @@ Finds local Outlook installation directories.
 ### __AllParameterSets
 
 ```
-Get-OutlookInstallation [<CommonParameters>]
+Get-OutlookInstallation
 ```
 
 ## ALIASES

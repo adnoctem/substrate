@@ -22,7 +22,7 @@ Generic event query helper wrapping Get-WinEvent -FilterHashtable.
 Get-WindowsEventByDefinition [[-Definition] <hashtable[]>] [[-Group] <string>] [[-Id] <int[]>]
  [[-LogName] <string[]>] [[-StartTime] <datetime>] [[-EndTime] <datetime>]
  [[-ComputerName] <string[]>] [[-MaxEvents] <int>] [[-Configuration] <hashtable>]
- [-SkipMissingChannel] [<CommonParameters>]
+ [-SkipMissingChannel]
 ```
 
 ## ALIASES

@@ -19,13 +19,13 @@ Translates known deployment error codes into operator guidance.
 ### Record (Default)
 
 ```
-Get-ErrorTranslation -ErrorRecord <ErrorRecord> [-Domain <string>] [<CommonParameters>]
+Get-ErrorTranslation -ErrorRecord <ErrorRecord> [-Domain <string>]
 ```
 
 ### Code
 
 ```
-Get-ErrorTranslation -Code <Object> -Domain <string> [<CommonParameters>]
+Get-ErrorTranslation -Code <Object> -Domain <string>
 ```
 
 ## ALIASES

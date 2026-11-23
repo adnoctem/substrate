@@ -19,7 +19,7 @@ Get-FileLockProcess - Finds the process(es) holding a file open.
 ### __AllParameterSets
 
 ```
-Get-FileLockProcess [-FilePath] <string[]> [<CommonParameters>]
+Get-FileLockProcess [-FilePath] <string[]>
 ```
 
 ## ALIASES

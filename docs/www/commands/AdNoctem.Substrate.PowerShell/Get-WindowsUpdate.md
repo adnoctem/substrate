@@ -20,7 +20,6 @@ Lists available Windows updates.
 
 ```
 Get-WindowsUpdate [[-Category] <string[]>] [[-KBArticleID] <string>] [[-Title] <string>]
- [<CommonParameters>]
 ```
 
 ## ALIASES

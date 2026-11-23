@@ -19,7 +19,7 @@ Get-EncryptedCredentialFile - Reads a credential stored by New-EncryptedCredenti
 ### __AllParameterSets
 
 ```
-Get-EncryptedCredentialFile [-Path] <string> [-KeyPath] <string> [<CommonParameters>]
+Get-EncryptedCredentialFile [-Path] <string> [-KeyPath] <string>
 ```
 
 ## ALIASES

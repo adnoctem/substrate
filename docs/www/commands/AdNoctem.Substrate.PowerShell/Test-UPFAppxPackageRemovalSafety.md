@@ -19,7 +19,7 @@ Classifies whether a UPF AppX/MSIX package should be protected from removal by d
 ### __AllParameterSets
 
 ```
-Test-UPFAppxPackageRemovalSafety [-InputObject] <psobject> [<CommonParameters>]
+Test-UPFAppxPackageRemovalSafety [-InputObject] <psobject>
 ```
 
 ## ALIASES

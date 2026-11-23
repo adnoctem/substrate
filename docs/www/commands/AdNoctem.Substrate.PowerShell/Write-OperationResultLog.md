@@ -20,7 +20,7 @@ Writes operation result objects to a JSON Lines log file.
 
 ```
 Write-OperationResultLog [-Results] <IEnumerable> [[-ScriptName] <string>] [[-Name] <string>]
- [[-Path] <string>] [[-RunId] <string>] [<CommonParameters>]
+ [[-Path] <string>] [[-RunId] <string>]
 ```
 
 ## ALIASES

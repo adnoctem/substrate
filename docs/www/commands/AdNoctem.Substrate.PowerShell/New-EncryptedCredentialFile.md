@@ -20,7 +20,7 @@ Stores a credential and a separate random AES key in protected files.
 
 ```
 New-EncryptedCredentialFile [-Path] <string> [-KeyPath] <string> [[-Credential] <pscredential>]
- [[-UserName] <string>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-UserName] <string>] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

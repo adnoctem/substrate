@@ -19,7 +19,7 @@ Returns reusable Win32 and UPF AppX/MSIX package counts for system summaries.
 ### __AllParameterSets
 
 ```
-Get-PackageCount [<CommonParameters>]
+Get-PackageCount
 ```
 
 ## ALIASES

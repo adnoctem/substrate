@@ -20,7 +20,6 @@ Opens an existing local PST and returns an ownership-aware lifetime context.
 
 ```
 Open-OutlookPstStore [-Namespace] <Object> [-LiteralPath] <string> [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

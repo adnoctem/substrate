@@ -20,7 +20,7 @@ Restores selected registry values from a detailed snapshot.
 
 ```
 Restore-RegistrySettingState [-Settings] <Object[]> [[-ExpectedState] <Object[]>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+ [-Confirm]
 ```
 
 ## ALIASES

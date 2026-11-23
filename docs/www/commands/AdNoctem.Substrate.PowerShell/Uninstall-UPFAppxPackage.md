@@ -20,7 +20,7 @@ Uninstalls a single normalized UPF AppX/MSIX package inventory record.
 
 ```
 Uninstall-UPFAppxPackage [-InputObject] <psobject> [-AllUsers] [-IncludeProtected] [-Force]
- [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

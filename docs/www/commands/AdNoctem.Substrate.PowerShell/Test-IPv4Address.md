@@ -19,7 +19,7 @@ Returns $true if the input is a valid IPv4 address per RFC 791.
 ### __AllParameterSets
 
 ```
-Test-IPv4Address [-Address] <string> [<CommonParameters>]
+Test-IPv4Address [-Address] <string>
 ```
 
 ## ALIASES

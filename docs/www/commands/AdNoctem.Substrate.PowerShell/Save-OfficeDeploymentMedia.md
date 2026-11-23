@@ -20,7 +20,7 @@ Prepares a verified Office package and publishes its manifest last.
 
 ```
 Save-OfficeDeploymentMedia [-Configuration] <Object> [-SourcePath] <string> [-OdtPath] <string>
- [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES

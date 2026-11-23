@@ -19,7 +19,7 @@ Get-ADFSMORoleHolder - Reports all five FSMO role holders in one call.
 ### __AllParameterSets
 
 ```
-Get-ADFSMORoleHolder [[-Credential] <pscredential>] [<CommonParameters>]
+Get-ADFSMORoleHolder [[-Credential] <pscredential>]
 ```
 
 ## ALIASES

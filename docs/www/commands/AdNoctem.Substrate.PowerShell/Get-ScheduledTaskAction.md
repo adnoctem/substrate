@@ -19,7 +19,7 @@ Returns structured scheduled task action data for all registered tasks.
 ### __AllParameterSets
 
 ```
-Get-ScheduledTaskAction [-SuspiciousOnly] [<CommonParameters>]
+Get-ScheduledTaskAction [-SuspiciousOnly]
 ```
 
 ## ALIASES

@@ -20,7 +20,7 @@ Get-CertificateInventory - Lists certificates in local or remote stores with exp
 
 ```
 Get-CertificateInventory [[-Name] <string[]>] [[-Subject] <string>] [-StorePath] <string>
- [[-DaysLeft] <int>] [[-Credential] <pscredential>] [-NotExpired] [<CommonParameters>]
+ [[-DaysLeft] <int>] [[-Credential] <pscredential>] [-NotExpired]
 ```
 
 ## ALIASES

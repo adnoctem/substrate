@@ -21,7 +21,6 @@ Installs or provisions a local AppX/MSIX package.
 ```
 Install-UPFAppxPackage [-Path] <string> [[-DependencyPath] <string[]>] [[-LicensePath] <string>]
  [-Provisioned] [-SkipLicense] [-ForceUpdateFromAnyVersion] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

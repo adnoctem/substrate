@@ -21,7 +21,6 @@ Executes an approved replacement after staging and verifying all destination med
 ```
 Switch-OfficeDeployment [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>]
  [[-ProductKey] <securestring>] [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## ALIASES

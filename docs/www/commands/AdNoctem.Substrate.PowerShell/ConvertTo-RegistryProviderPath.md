@@ -19,7 +19,7 @@ Converts a registry path to PS drive format suitable for provider cmdlets.
 ### __AllParameterSets
 
 ```
-ConvertTo-RegistryProviderPath [-Path] <string> [<CommonParameters>]
+ConvertTo-RegistryProviderPath [-Path] <string>
 ```
 
 ## ALIASES

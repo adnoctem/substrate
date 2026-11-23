@@ -20,7 +20,7 @@ Applies explicitly selected update settings without installing Office.
 
 ```
 Set-OfficeUpdateConfiguration [-Plan] <Object> [-OdtPath] <string> [[-LogRoot] <string>]
- [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-ForceCloseApps] [-DryRun] [-WhatIf] [-Confirm]
 ```
 
 ## ALIASES
