@@ -13,6 +13,8 @@
   },
   {
     "Name": "Microsoft.PowerShell.PlatyPS",
-    "RequiredVersion": "1.0.1"
+    "RequiredVersion": "1.0.1",
+    "HoldUntil": "2027-05-24",
+    "HoldReason": "1.0.3 drops [<CommonParameters>] from generated command syntax; revisit once upstream stabilizes."
   }
 ]

@@ -15,6 +15,7 @@ dotnet msbuild tools/tasks.proj -t:Verify
 ```
 
 Restore uses NuGet lock files, the local .NET tool manifest, and exact PowerShell tool versions in `tools/dev-dependencies.json`.
+To keep a tool on its pin, add `HoldUntil` (yyyy-MM-dd) and `HoldReason` to its entry. The weekly dependency run then reports newer versions in its summary and pull request instead of applying them.
 PowerShell tools are restored under `build/tools/modules`; no installation of the legacy runtime dependencies is needed.
 
 ## Daily workflow
