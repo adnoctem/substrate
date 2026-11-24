@@ -28,11 +28,11 @@ public sealed class OdtSource
     public static OdtSource Reviewed { get; } =
         new OdtSource(
             new Uri(
-                "https://download.microsoft.com/download/6c1eeb25-cf8b-41d9-8d0d-cc1dbc032140/officedeploymenttool_20326-20112.exe"
+                "https://download.microsoft.com/download/6c1eeb25-cf8b-41d9-8d0d-cc1dbc032140/officedeploymenttool_20527-20150.exe"
             ),
-            new Version("16.0.20326.20112"),
+            new Version("16.0.20527.20150"),
             new Uri("https://www.microsoft.com/en-us/download/details.aspx?id=49117"),
-            new DateTime(2026, 9, 27, 0, 0, 0, DateTimeKind.Utc)
+            new DateTime(2026, 11, 24, 0, 0, 0, DateTimeKind.Utc)
         );
 
     public OdtSource(Uri downloadUri, Version version, Uri reference, DateTime reviewedAtUtc)
