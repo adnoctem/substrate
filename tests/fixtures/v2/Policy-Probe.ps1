@@ -140,13 +140,17 @@ Add-Observation 'malformed-short-multi' {
 Add-Observation 'lgpo-source' {
   foreach ($source in @((Resolve-LGPOSource), (Resolve-LGPOSource -Source 'sct-lgpo-standalone'))) {
     if ((Get-Command Resolve-LGPOSource).CommandType -eq 'Cmdlet') {
-      if ($source.Sha256 -cne 'CB7159D134A0A1E7B1ED2ADA9A3CE8CE8F4DE391D14403D55438AF824247CC55' -or $source.LastVerified -cne '2026-10-04') {
+      $reviewed = [AdNoctem.Substrate.Policies.LgpoSource]::Standalone
+
+      if ($source.Url -cne $reviewed.DownloadUri.AbsoluteUri -or $source.Sha256 -cne $reviewed.TrustedSha256 -or $source.ExpectedBinaryPath -cne $reviewed.ExpectedBinaryPath -or $source.LastVerified -cne $reviewed.VerifiedAtUtc.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)) {
         throw 'LGPO source must expose the reviewed ZIP pin and verification date.'
       }
     }
 
-    # The reviewed source pin/date intentionally replace the frozen placeholder. Compare all other fields and types normally.
+    # Vendor refreshes replace the reviewed pin, so v1 cannot hold the current values. Compare all other fields and types normally.
+    $source.Url = '<reviewed-source-uri>'
     $source.Sha256 = '<reviewed-source-pin>'
+    $source.ExpectedBinaryPath = '<reviewed-source-entry>'
     $source.LastVerified = '<reviewed-source-date>'
     $source
   }

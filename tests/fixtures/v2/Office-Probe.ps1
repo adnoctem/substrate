@@ -49,6 +49,26 @@ if ($rejectedMedia.ReasonCode -eq 'ReprepareMedia') {
 $previewPath = Join-Path $repo 'build/office-tool-preview-absent'
 $observations['tool-preview'] = Install-OfficeDeploymentTool -Destination $previewPath -DryRun
 $observations['tool-whatif'] = Install-OfficeDeploymentTool -Destination $previewPath -WhatIf
+
+# Vendor refreshes replace the reviewed ODT pin, so v1 cannot hold the current values. Check them against the managed pin,
+# then compare all other fields and types normally.
+$toolSources = @($observations['tool-source'], $observations['tool-preview'].Source, $observations['tool-whatif'].Source)
+
+if ($managed) {
+  $reviewed = [AdNoctem.Substrate.Office.OdtSource]::Reviewed
+
+  foreach ($source in $toolSources) {
+    if ($source.Uri -cne $reviewed.DownloadUri.AbsoluteUri -or $source.Version -cne $reviewed.Version.ToString() -or $source.ReviewedDate -cne $reviewed.ReviewedAtUtc.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)) {
+      throw 'Office Deployment Tool source must expose the reviewed pin and review date.'
+    }
+  }
+}
+
+foreach ($source in $toolSources) {
+  $source.Uri = '<reviewed-source-uri>'
+  $source.Version = '<reviewed-source-version>'
+  $source.ReviewedDate = '<reviewed-source-date>'
+}
 $observations['tool-help-whatif'] = @(Get-OfficeDeploymentToolHelp -OdtPath $processHost -WhatIf)
 
 if (Test-Path -LiteralPath $previewPath) { throw 'Tool preview created its destination.' }
