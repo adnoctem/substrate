@@ -19,8 +19,8 @@ Retires a protected Office recovery journal and preserves its evidence.
 ### __AllParameterSets
 
 ```
-Move-OfficeRecovery [-RunId] <string> [-Reason] <string> [[-LogRoot] <string>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+Move-OfficeRecovery [-RunId] <string> [-Reason] <string> [[-LogRoot] <string>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ## ALIASES
