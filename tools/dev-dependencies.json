@@ -1,11 +1,11 @@
 [
   {
     "Name": "Microsoft.PowerShell.PSResourceGet",
-    "RequiredVersion": "1.2.0"
+    "RequiredVersion": "1.3.1"
   },
   {
     "Name": "Pester",
-    "RequiredVersion": "5.7.1"
+    "RequiredVersion": "6.2.0"
   },
   {
     "Name": "PSScriptAnalyzer",
